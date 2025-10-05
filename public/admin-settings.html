@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings - Portfolio SaaS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .settings-nav {
+            position: sticky;
+            top: 2rem;
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .plan-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .plan-card.popular::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transform: rotate(45deg) translate(25%, -50%);
+            transform-origin: center;
+            width: 120px;
+            text-align: center;
+        }
+        
+        .integration-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-connected {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-available {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        
+        .api-key {
+            font-family: 'Courier New', monospace;
+            background-color: #f3f4f6;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-4">
+                    <a href="/admin-dashboard.html" class="text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-2xl font-semibold text-gray-900">Settings</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="saveAllBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Save All Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Settings Navigation -->
+            <div class="lg:w-1/4">
+                <nav class="settings-nav bg-white rounded-lg shadow-sm p-4">
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#general" class="settings-nav-item flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 active">
+                                <i class="fas fa-cog mr-3"></i>General
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#users" class="settings-nav-item flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-users mr-3"></i>User Management
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#security" class="settings-nav-item flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-shield-alt mr-3"></i>Security
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#api" class="settings-nav-item flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-code mr-3"></i>API Access
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#integrations" class="settings-nav-item flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-plug mr-3"></i>Integrations
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#backup" class="settings-nav-item flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-database mr-3"></i>Backup
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#billing" class="settings-nav-item flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-credit-card mr-3"></i>Billing
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#support" class="settings-nav-item flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-life-ring mr-3"></i>Support
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="lg:w-3/4">
+                <!-- General Settings -->
+                <div id="generalSettings" class="settings-section">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">General Settings</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Site Title</label>
+                                <input type="text" id="siteTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="My Portfolio">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Site Description</label>
+                                <input type="text" id="siteDescription" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="Professional portfolio website">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Time Zone</label>
+                                <select id="timeZone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="UTC">UTC</option>
+                                    <option value="America/New_York">Eastern Time</option>
+                                    <option value="America/Chicago">Central Time</option>
+                                    <option value="America/Denver">Mountain Time</option>
+                                    <option value="America/Los_Angeles">Pacific Time</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                                <select id="language" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="en">English</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Feature Toggles</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">Analytics</h4>
+                                        <p class="text-sm text-gray-600">Track visitor analytics</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="analyticsEnabled" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">Comments</h4>
+                                        <p class="text-sm text-gray-600">Allow visitor comments</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="commentsEnabled">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">Contact Form</h4>
+                                        <p class="text-sm text-gray-600">Enable contact form</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="contactFormEnabled" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">Dark Mode</h4>
+                                        <p class="text-sm text-gray-600">Allow dark mode toggle</p>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="darkModeEnabled" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management -->
+                <div id="userSettings" class="settings-section hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-semibold text-gray-900">User Management</h2>
+                            <button id="inviteUserBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-plus mr-2"></i>Invite User
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersList" class="bg-white divide-y divide-gray-200">
+                                    <!-- Users will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div id="securitySettings" class="settings-section hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Security Settings</h2>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Password Policy</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Length</label>
+                                        <input type="number" id="minPasswordLength" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="8" min="6" max="32">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
+                                        <input type="number" id="sessionTimeout" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="1440" min="30">
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 space-y-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="requireUppercase" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                        <span class="ml-2 text-sm text-gray-700">Require uppercase letters</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="requireNumbers" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                        <span class="ml-2 text-sm text-gray-700">Require numbers</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="requireSpecialChars" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Require special characters</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Two-Factor Authentication</h3>
+                                <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                                    <div>
+                                        <h4 class="font-medium text-green-900">2FA Status</h4>
+                                        <p class="text-sm text-green-700">Two-factor authentication is enabled</p>
+                                    </div>
+                                    <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                        Configure
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Login Attempts</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Failed Attempts</label>
+                                        <input type="number" id="maxLoginAttempts" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="5" min="3" max="10">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Lockout Duration (minutes)</label>
+                                        <input type="number" id="lockoutDuration" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" value="15" min="5">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Access -->
+                <div id="apiSettings" class="settings-section hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-semibold text-gray-900">API Access</h2>
+                            <button id="generateApiKeyBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-plus mr-2"></i>Generate API Key
+                            </button>
+                        </div>
+
+                        <div class="space-y-4" id="apiKeysList">
+                            <!-- API keys will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integrations -->
+                <div id="integrationsSettings" class="settings-section hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Integrations</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="integrationsList">
+                            <!-- Integrations will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backup Settings -->
+                <div id="backupSettings" class="settings-section hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-semibold text-gray-900">Backup & Restore</h2>
+                            <button id="createBackupBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-plus mr-2"></i>Create Backup
+                            </button>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Automatic Backups</h3>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="dailyBackup" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                    <span class="ml-2 text-sm text-gray-700">Daily backups</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="weeklyBackup" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                    <span class="ml-2 text-sm text-gray-700">Weekly backups</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="monthlyBackup" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                    <span class="ml-2 text-sm text-gray-700">Monthly backups</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Backups</h3>
+                            <div class="space-y-3" id="backupsList">
+                                <!-- Backups will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Settings -->
+                <div id="billingSettings" class="settings-section hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Billing & Subscription</h2>
+                        
+                        <div class="mb-8">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Current Plan</h3>
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-semibold text-blue-900">Professional Plan</h4>
+                                        <p class="text-blue-700">$29/month • Renews on March 15, 2024</p>
+                                    </div>
+                                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        Manage
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Usage</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-900">Users</h4>
+                                    <p class="text-2xl font-bold text-gray-900">2 <span class="text-sm font-normal text-gray-600">/ 5</span></p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 40%"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-900">Projects</h4>
+                                    <p class="text-2xl font-bold text-gray-900">15 <span class="text-sm font-normal text-gray-600">/ ∞</span></p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                        <div class="bg-green-600 h-2 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="font-medium text-gray-900">Storage</h4>
+                                    <p class="text-2xl font-bold text-gray-900">2.4GB <span class="text-sm font-normal text-gray-600">/ 10GB</span></p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                        <div class="bg-yellow-600 h-2 rounded-full" style="width: 24%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Available Plans</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="plan-card border border-gray-200 rounded-lg p-6">
+                                    <h4 class="text-lg font-semibold text-gray-900">Free</h4>
+                                    <p class="text-3xl font-bold text-gray-900 mt-2">$0<span class="text-sm font-normal text-gray-600">/month</span></p>
+                                    <ul class="mt-4 space-y-2 text-sm text-gray-600">
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>1 User</li>
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>5 Projects</li>
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>100MB Storage</li>
+                                    </ul>
+                                    <button class="w-full mt-6 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200">
+                                        Current Plan
+                                    </button>
+                                </div>
+                                
+                                <div class="plan-card popular border-2 border-blue-500 rounded-lg p-6">
+                                    <h4 class="text-lg font-semibold text-gray-900">Professional</h4>
+                                    <p class="text-3xl font-bold text-gray-900 mt-2">$29<span class="text-sm font-normal text-gray-600">/month</span></p>
+                                    <ul class="mt-4 space-y-2 text-sm text-gray-600">
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>5 Users</li>
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Unlimited Projects</li>
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>10GB Storage</li>
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>API Access</li>
+                                    </ul>
+                                    <button class="w-full mt-6 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                                        Current Plan
+                                    </button>
+                                </div>
+                                
+                                <div class="plan-card border border-gray-200 rounded-lg p-6">
+                                    <h4 class="text-lg font-semibold text-gray-900">Enterprise</h4>
+                                    <p class="text-3xl font-bold text-gray-900 mt-2">$99<span class="text-sm font-normal text-gray-600">/month</span></p>
+                                    <ul class="mt-4 space-y-2 text-sm text-gray-600">
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Unlimited Users</li>
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Unlimited Projects</li>
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>100GB Storage</li>
+                                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Priority Support</li>
+                                    </ul>
+                                    <button class="w-full mt-6 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">
+                                        Upgrade
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support Settings -->
+                <div id="supportSettings" class="settings-section hidden">
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-6">Support</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div class="feature-card bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-comments text-blue-600 text-2xl mr-3"></i>
+                                    <h3 class="text-lg font-semibold text-blue-900">Live Chat</h3>
+                                </div>
+                                <p class="text-blue-700 mb-4">Get instant help from our support team</p>
+                                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                    Start Chat
+                                </button>
+                            </div>
+                            
+                            <div class="feature-card bg-green-50 border border-green-200 rounded-lg p-6">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-envelope text-green-600 text-2xl mr-3"></i>
+                                    <h3 class="text-lg font-semibold text-green-900">Email Support</h3>
+                                </div>
+                                <p class="text-green-700 mb-4">Send us a detailed message</p>
+                                <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                    Send Email
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Support Tickets</h3>
+                            <div class="space-y-3" id="supportTicketsList">
+                                <!-- Support tickets will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Invite User Modal -->
+    <div id="inviteUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 w-full max-w-md mx-4">
+            <h3 class="text-xl font-semibold text-gray-900 mb-6">Invite User</h3>
+            
+            <form id="inviteUserForm">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input type="email" id="inviteEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <select id="inviteRole" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="viewer">Viewer</option>
+                            <option value="editor">Editor</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
+                        <textarea id="inviteMessage" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Welcome to the team!"></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelInvite" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Send Invitation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Generate API Key Modal -->
+    <div id="generateApiKeyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 w-full max-w-md mx-4">
+            <h3 class="text-xl font-semibold text-gray-900 mb-6">Generate API Key</h3>
+            
+            <form id="generateApiKeyForm">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Key Name</label>
+                        <input type="text" id="apiKeyName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="My API Key">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" value="projects:read" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Read Projects</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" value="projects:write" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Write Projects</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" value="carousel:read" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Read Carousel</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" value="carousel:write" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Write Carousel</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelApiKey" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Generate Key
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-system.js"></script>
+    <script src="js/auth-middleware.js"></script>
+    <script src="js/saas-features.js"></script>
+    
+    <script>
+        class AdminSettings {
+            constructor() {
+                this.currentSection = 'general';
+                this.init();
+            }
+
+            async init() {
+                // Check authentication
+                if (!window.authSystem?.isAuthenticated()) {
+                    window.location.href = '/admin-login-v2.html';
+                    return;
+                }
+
+                this.setupNavigation();
+                this.setupModals();
+                this.loadAllSettings();
+                this.setupEventListeners();
+            }
+
+            setupNavigation() {
+                const navItems = document.querySelectorAll('.settings-nav-item');
+                
+                navItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const section = item.getAttribute('href').substring(1);
+                        this.switchSection(section);
+                    });
+                });
+            }
+
+            switchSection(section) {
+                // Update navigation
+                document.querySelectorAll('.settings-nav-item').forEach(item => {
+                    item.classList.remove('active', 'bg-blue-100', 'text-blue-600');
+                });
+                
+                const activeItem = document.querySelector(`[href="#${section}"]`);
+                if (activeItem) {
+                    activeItem.classList.add('active', 'bg-blue-100', 'text-blue-600');
+                }
+
+                // Update content
+                document.querySelectorAll('.settings-section').forEach(section => {
+                    section.classList.add('hidden');
+                });
+
+                const sectionElement = document.getElementById(`${section}Settings`);
+                if (sectionElement) {
+                    sectionElement.classList.remove('hidden');
+                    this.currentSection = section;
+                    this.loadSectionData(section);
+                }
+            }
+
+            async loadSectionData(section) {
+                switch (section) {
+                    case 'users':
+                        await this.loadUsers();
+                        break;
+                    case 'api':
+                        await this.loadApiKeys();
+                        break;
+                    case 'integrations':
+                        await this.loadIntegrations();
+                        break;
+                    case 'backup':
+                        await this.loadBackups();
+                        break;
+                    case 'support':
+                        await this.loadSupportTickets();
+                        break;
+                }
+            }
+
+            async loadAllSettings() {
+                // Load general settings
+                await this.loadGeneralSettings();
+            }
+
+            async loadGeneralSettings() {
+                try {
+                    // Load from API or use defaults
+                    const settings = {
+                        siteTitle: 'My Portfolio',
+                        siteDescription: 'Professional portfolio website',
+                        timeZone: 'UTC',
+                        language: 'en',
+                        analyticsEnabled: true,
+                        commentsEnabled: false,
+                        contactFormEnabled: true,
+                        darkModeEnabled: true
+                    };
+
+                    // Update form fields
+                    Object.keys(settings).forEach(key => {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            if (element.type === 'checkbox') {
+                                element.checked = settings[key];
+                            } else {
+                                element.value = settings[key];
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error loading general settings:', error);
+                }
+            }
+
+            async loadUsers() {
+                try {
+                    const users = await window.saasFeatures.getUserList();
+                    const tbody = document.getElementById('usersList');
+                    
+                    tbody.innerHTML = users.map(user => `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <img class="h-10 w-10 rounded-full" src="${user.avatar}" alt="">
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                                        <div class="text-sm text-gray-500">${user.email}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${this.getRoleBadgeClass(user.role)}">
+                                    ${user.role}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                    ${user.status}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                ${new Date(user.lastLogin).toLocaleDateString()}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="adminSettings.editUser('${user.id}')">Edit</button>
+                                <button class="text-red-600 hover:text-red-900" onclick="adminSettings.deleteUser('${user.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error loading users:', error);
+                }
+            }
+
+            async loadApiKeys() {
+                try {
+                    const apiKeys = await window.saasFeatures.getAPIKeys();
+                    const container = document.getElementById('apiKeysList');
+                    
+                    container.innerHTML = apiKeys.map(key => `
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-medium text-gray-900">${key.name}</h4>
+                                <span class="text-xs px-2 py-1 rounded-full ${key.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                    ${key.status}
+                                </span>
+                            </div>
+                            <div class="api-key text-sm text-gray-600 mb-2">${key.key}</div>
+                            <div class="text-xs text-gray-500 mb-3">
+                                Created: ${new Date(key.created).toLocaleDateString()} • 
+                                Last used: ${new Date(key.lastUsed).toLocaleDateString()}
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="text-xs text-gray-500">
+                                    Permissions: ${key.permissions.join(', ')}
+                                </div>
+                                <button class="text-red-600 hover:text-red-800 text-sm" onclick="adminSettings.revokeApiKey('${key.id}')">
+                                    Revoke
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error loading API keys:', error);
+                }
+            }
+
+            async loadIntegrations() {
+                try {
+                    const integrations = window.saasFeatures.availableIntegrations;
+                    const container = document.getElementById('integrationsList');
+                    
+                    container.innerHTML = Object.entries(integrations).map(([id, integration]) => `
+                        <div class="feature-card border border-gray-200 rounded-lg p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="${integration.icon} text-2xl text-gray-600 mr-3"></i>
+                                    <h3 class="text-lg font-semibold text-gray-900">${integration.name}</h3>
+                                </div>
+                                <span class="integration-status ${integration.status === 'connected' ? 'status-connected' : 'status-available'}">
+                                    ${integration.status}
+                                </span>
+                            </div>
+                            <p class="text-gray-600 mb-4">${integration.description}</p>
+                            <button class="w-full py-2 px-4 rounded-lg ${integration.status === 'connected' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}" 
+                                    onclick="adminSettings.${integration.status === 'connected' ? 'disconnect' : 'connect'}Integration('${id}')">
+                                ${integration.status === 'connected' ? 'Disconnect' : 'Connect'}
+                            </button>
+                        </div>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error loading integrations:', error);
+                }
+            }
+
+            async loadBackups() {
+                try {
+                    const backups = await window.saasFeatures.getBackupList();
+                    const container = document.getElementById('backupsList');
+                    
+                    container.innerHTML = backups.map(backup => `
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-database text-gray-600 mr-3"></i>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">${backup.type} backup</h4>
+                                    <p class="text-sm text-gray-500">${backup.size} • ${new Date(backup.created).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
+                                    ${backup.status}
+                                </span>
+                                <button class="text-blue-600 hover:text-blue-800 text-sm" onclick="adminSettings.restoreBackup('${backup.id}')">
+                                    Restore
+                                </button>
+                                <button class="text-red-600 hover:text-red-800 text-sm" onclick="adminSettings.deleteBackup('${backup.id}')">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error loading backups:', error);
+                }
+            }
+
+            async loadSupportTickets() {
+                try {
+                    const tickets = await window.saasFeatures.getSupportTickets();
+                    const container = document.getElementById('supportTicketsList');
+                    
+                    container.innerHTML = tickets.map(ticket => `
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div>
+                                <h4 class="font-medium text-gray-900">${ticket.subject}</h4>
+                                <p class="text-sm text-gray-500">Created: ${new Date(ticket.created).toLocaleDateString()}</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs px-2 py-1 rounded-full ${this.getTicketStatusClass(ticket.status)}">
+                                    ${ticket.status}
+                                </span>
+                                <span class="text-xs px-2 py-1 rounded-full ${this.getTicketPriorityClass(ticket.priority)}">
+                                    ${ticket.priority}
+                                </span>
+                            </div>
+                        </div>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error loading support tickets:', error);
+                }
+            }
+
+            setupModals() {
+                // Invite User Modal
+                document.getElementById('inviteUserBtn').addEventListener('click', () => {
+                    document.getElementById('inviteUserModal').classList.remove('hidden');
+                });
+
+                document.getElementById('cancelInvite').addEventListener('click', () => {
+                    document.getElementById('inviteUserModal').classList.add('hidden');
+                });
+
+                document.getElementById('inviteUserForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.inviteUser();
+                });
+
+                // Generate API Key Modal
+                document.getElementById('generateApiKeyBtn').addEventListener('click', () => {
+                    document.getElementById('generateApiKeyModal').classList.remove('hidden');
+                });
+
+                document.getElementById('cancelApiKey').addEventListener('click', () => {
+                    document.getElementById('generateApiKeyModal').classList.add('hidden');
+                });
+
+                document.getElementById('generateApiKeyForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.generateApiKey();
+                });
+
+                // Create Backup
+                document.getElementById('createBackupBtn').addEventListener('click', async () => {
+                    await this.createBackup();
+                });
+            }
+
+            setupEventListeners() {
+                // Save All Changes
+                document.getElementById('saveAllBtn').addEventListener('click', async () => {
+                    await this.saveAllSettings();
+                });
+            }
+
+            async inviteUser() {
+                const email = document.getElementById('inviteEmail').value;
+                const role = document.getElementById('inviteRole').value;
+                const message = document.getElementById('inviteMessage').value;
+
+                try {
+                    await window.saasFeatures.inviteUser({ email, role, message });
+                    document.getElementById('inviteUserModal').classList.add('hidden');
+                    document.getElementById('inviteUserForm').reset();
+                    await this.loadUsers();
+                } catch (error) {
+                    console.error('Error inviting user:', error);
+                }
+            }
+
+            async generateApiKey() {
+                const name = document.getElementById('apiKeyName').value;
+                const permissions = Array.from(document.querySelectorAll('#generateApiKeyForm input[type="checkbox"]:checked'))
+                    .map(cb => cb.value);
+
+                try {
+                    await window.saasFeatures.generateAPIKey(name, permissions);
+                    document.getElementById('generateApiKeyModal').classList.add('hidden');
+                    document.getElementById('generateApiKeyForm').reset();
+                    await this.loadApiKeys();
+                } catch (error) {
+                    console.error('Error generating API key:', error);
+                }
+            }
+
+            async createBackup() {
+                try {
+                    await window.saasFeatures.createBackup('manual');
+                    await this.loadBackups();
+                } catch (error) {
+                    console.error('Error creating backup:', error);
+                }
+            }
+
+            async saveAllSettings() {
+                try {
+                    // Collect all settings
+                    const settings = {
+                        general: {
+                            siteTitle: document.getElementById('siteTitle').value,
+                            siteDescription: document.getElementById('siteDescription').value,
+                            timeZone: document.getElementById('timeZone').value,
+                            language: document.getElementById('language').value,
+                            analyticsEnabled: document.getElementById('analyticsEnabled').checked,
+                            commentsEnabled: document.getElementById('commentsEnabled').checked,
+                            contactFormEnabled: document.getElementById('contactFormEnabled').checked,
+                            darkModeEnabled: document.getElementById('darkModeEnabled').checked
+                        },
+                        security: {
+                            minPasswordLength: parseInt(document.getElementById('minPasswordLength').value),
+                            sessionTimeout: parseInt(document.getElementById('sessionTimeout').value),
+                            requireUppercase: document.getElementById('requireUppercase').checked,
+                            requireNumbers: document.getElementById('requireNumbers').checked,
+                            requireSpecialChars: document.getElementById('requireSpecialChars').checked,
+                            maxLoginAttempts: parseInt(document.getElementById('maxLoginAttempts').value),
+                            lockoutDuration: parseInt(document.getElementById('lockoutDuration').value)
+                        },
+                        backup: {
+                            dailyBackup: document.getElementById('dailyBackup').checked,
+                            weeklyBackup: document.getElementById('weeklyBackup').checked,
+                            monthlyBackup: document.getElementById('monthlyBackup').checked
+                        }
+                    };
+
+                    // Save to API
+                    const response = await fetch('/api/settings', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${window.authSystem.getToken()}`
+                        },
+                        body: JSON.stringify(settings)
+                    });
+
+                    if (response.ok) {
+                        this.showNotification('success', 'Settings saved successfully');
+                    } else {
+                        throw new Error('Failed to save settings');
+                    }
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                    this.showNotification('error', 'Failed to save settings');
+                }
+            }
+
+            // Utility methods
+            getRoleBadgeClass(role) {
+                const classes = {
+                    'admin': 'bg-red-100 text-red-800',
+                    'editor': 'bg-blue-100 text-blue-800',
+                    'viewer': 'bg-gray-100 text-gray-800'
+                };
+                return classes[role] || 'bg-gray-100 text-gray-800';
+            }
+
+            getTicketStatusClass(status) {
+                const classes = {
+                    'open': 'bg-yellow-100 text-yellow-800',
+                    'closed': 'bg-green-100 text-green-800',
+                    'pending': 'bg-blue-100 text-blue-800'
+                };
+                return classes[status] || 'bg-gray-100 text-gray-800';
+            }
+
+            getTicketPriorityClass(priority) {
+                const classes = {
+                    'high': 'bg-red-100 text-red-800',
+                    'medium': 'bg-yellow-100 text-yellow-800',
+                    'low': 'bg-green-100 text-green-800'
+                };
+                return classes[priority] || 'bg-gray-100 text-gray-800';
+            }
+
+            showNotification(type, message) {
+                window.saasFeatures.showNotification(type, message);
+            }
+
+            // Action methods
+            async editUser(userId) {
+                // Implement user editing
+                console.log('Edit user:', userId);
+            }
+
+            async deleteUser(userId) {
+                if (confirm('Are you sure you want to delete this user?')) {
+                    // Implement user deletion
+                    console.log('Delete user:', userId);
+                }
+            }
+
+            async revokeApiKey(keyId) {
+                if (confirm('Are you sure you want to revoke this API key?')) {
+                    try {
+                        await window.saasFeatures.revokeAPIKey(keyId);
+                        await this.loadApiKeys();
+                    } catch (error) {
+                        console.error('Error revoking API key:', error);
+                    }
+                }
+            }
+
+            async connectIntegration(integrationId) {
+                try {
+                    await window.saasFeatures.connectIntegration(integrationId, {});
+                    await this.loadIntegrations();
+                } catch (error) {
+                    console.error('Error connecting integration:', error);
+                }
+            }
+
+            async disconnectIntegration(integrationId) {
+                if (confirm('Are you sure you want to disconnect this integration?')) {
+                    try {
+                        await window.saasFeatures.disconnectIntegration(integrationId);
+                        await this.loadIntegrations();
+                    } catch (error) {
+                        console.error('Error disconnecting integration:', error);
+                    }
+                }
+            }
+
+            async restoreBackup(backupId) {
+                try {
+                    await window.saasFeatures.restoreBackup(backupId);
+                } catch (error) {
+                    console.error('Error restoring backup:', error);
+                }
+            }
+
+            async deleteBackup(backupId) {
+                if (confirm('Are you sure you want to delete this backup?')) {
+                    // Implement backup deletion
+                    console.log('Delete backup:', backupId);
+                }
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.adminSettings = new AdminSettings();
+        });
+    </script>
+</body>
+</html>

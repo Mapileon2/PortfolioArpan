@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Admin - Simple Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-white opacity-5 rounded-full floating"></div>
+        <div class="absolute top-3/4 right-1/4 w-32 h-32 bg-white opacity-5 rounded-full floating" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-md relative z-10">
+        <!-- Logo/Brand -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-white bg-opacity-20 rounded-full mb-4">
+                <i class="fas fa-magic text-2xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Portfolio Admin</h1>
+            <p class="text-white text-opacity-80">Simple login for immediate access</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="glass-effect rounded-2xl p-8">
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-white text-opacity-90 mb-2">
+                        <i class="fas fa-envelope mr-2"></i>Email Address
+                    </label>
+                    <input type="email" id="loginEmail" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
+                           placeholder="Enter your email">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-white text-opacity-90 mb-2">
+                        <i class="fas fa-lock mr-2"></i>Password
+                    </label>
+                    <input type="password" id="loginPassword" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
+                           placeholder="Enter your password">
+                </div>
+
+                <button type="submit" id="loginBtn" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 transition-all duration-300">
+                    <span class="btn-text">Sign In</span>
+                    <i class="fas fa-spinner fa-spin ml-2 hidden loading-icon"></i>
+                </button>
+            </form>
+
+            <!-- Demo Credentials -->
+            <div class="mt-6 pt-6 border-t border-white border-opacity-20">
+                <p class="text-white text-opacity-70 text-sm text-center mb-3">Demo Credentials:</p>
+                <div class="bg-white bg-opacity-10 rounded-lg p-3 text-center">
+                    <p class="text-white text-sm">Email: <strong>admin@demo.com</strong></p>
+                    <p class="text-white text-sm">Password: <strong>demo123</strong></p>
+                </div>
+            </div>
+
+            <!-- Status Display -->
+            <div id="statusDisplay" class="mt-4 p-3 bg-white bg-opacity-10 rounded-lg hidden">
+                <div id="statusContent" class="text-white text-sm"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        // Simple authentication without Supabase dependency
+        class SimpleAuth {
+            constructor() {
+                this.demoUsers = {
+                    'admin@demo.com': {
+                        password: 'demo123',
+                        name: 'Demo Admin',
+                        role: 'admin',
+                        id: 'demo-admin-001'
+                    },
+                    'editor@demo.com': {
+                        password: 'demo123',
+                        name: 'Demo Editor',
+                        role: 'editor',
+                        id: 'demo-editor-001'
+                    }
+                };
+                
+                this.init();
+            }
+
+            init() {
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+                
+                this.checkExistingAuth();
+            }
+
+            async handleLogin() {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                this.setLoading(true);
+                this.showStatus('Authenticating...', 'info');
+
+                try {
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Check demo credentials
+                    const user = this.demoUsers[email];
+                    if (!user || user.password !== password) {
+                        throw new Error('Invalid email or password');
+                    }
+
+                    // Store user data
+                    const userData = {
+                        id: user.id,
+                        email: email,
+                        name: user.name,
+                        role: user.role,
+                        loginTime: new Date().toISOString()
+                    };
+
+                    localStorage.setItem('portfolio_auth_token', 'demo_token_' + Date.now());
+                    localStorage.setItem('portfolio_user_data', JSON.stringify(userData));
+
+                    this.showStatus('Login successful! Redirecting...', 'success');
+                    this.showAlert('success', 'Welcome back, ' + user.name + '!');
+
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = '/admin-dashboard.html';
+                    }, 1500);
+
+                } catch (error) {
+                    this.showStatus('Login failed: ' + error.message, 'error');
+                    this.showAlert('error', error.message);
+                } finally {
+                    this.setLoading(false);
+                }
+            }
+
+            checkExistingAuth() {
+                const token = localStorage.getItem('portfolio_auth_token');
+                const userData = localStorage.getItem('portfolio_user_data');
+
+                if (token && userData) {
+                    try {
+                        const user = JSON.parse(userData);
+                        this.showStatus(`Already logged in as ${user.name}`, 'success');
+                        
+                        // Auto-redirect after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = '/admin-dashboard.html';
+                        }, 2000);
+                    } catch (error) {
+                        // Clear invalid data
+                        localStorage.removeItem('portfolio_auth_token');
+                        localStorage.removeItem('portfolio_user_data');
+                    }
+                }
+            }
+
+            setLoading(loading) {
+                const button = document.getElementById('loginBtn');
+                const text = button.querySelector('.btn-text');
+                const icon = button.querySelector('.loading-icon');
+
+                if (loading) {
+                    button.disabled = true;
+                    text.textContent = 'Signing In...';
+                    icon.classList.remove('hidden');
+                } else {
+                    button.disabled = false;
+                    text.textContent = 'Sign In';
+                    icon.classList.add('hidden');
+                }
+            }
+
+            showStatus(message, type) {
+                const statusDisplay = document.getElementById('statusDisplay');
+                const statusContent = document.getElementById('statusContent');
+                
+                const colors = {
+                    info: 'text-blue-200',
+                    success: 'text-green-200',
+                    error: 'text-red-200'
+                };
+
+                statusContent.className = `text-sm ${colors[type] || 'text-white'}`;
+                statusContent.textContent = message;
+                statusDisplay.classList.remove('hidden');
+            }
+
+            showAlert(type, message) {
+                const container = document.getElementById('alertContainer');
+                const alert = document.createElement('div');
+                
+                const colors = {
+                    success: 'bg-green-500',
+                    error: 'bg-red-500',
+                    info: 'bg-blue-500'
+                };
+
+                alert.className = `${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 transform translate-x-full transition-transform duration-300`;
+                alert.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'}-circle"></i>
+                    <span>${message}</span>
+                `;
+
+                container.appendChild(alert);
+
+                // Slide in
+                setTimeout(() => alert.classList.remove('translate-x-full'), 100);
+
+                // Auto remove
+                setTimeout(() => {
+                    alert.classList.add('translate-x-full');
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new SimpleAuth();
+        });
+    </script>
+</body>
+</html>

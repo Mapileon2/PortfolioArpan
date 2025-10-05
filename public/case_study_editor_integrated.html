@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Study Editor - Ghibli Inspired</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    
+    <!-- Rich Text Editor -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/35.0.1/classic/ckeditor.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Quicksand:wght@400;600&display=swap');
+        
+        :root {
+            --ghibli-blue: #6bb2e2;
+            --ghibli-green: #a5d6a7;
+            --ghibli-yellow: #fff59d;
+            --ghibli-red: #ef9a9a;
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f9f7f0;
+            color: #333;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+        
+        .ghibli-font {
+            font-family: 'Gochi Hand', cursive;
+        }
+        
+        .handwriting {
+            font-family: 'Patrick Hand', cursive;
+        }
+        
+        .ghibli-bg-blue { background-color: var(--ghibli-blue); }
+        .ghibli-bg-green { background-color: var(--ghibli-green); }
+        .ghibli-bg-yellow { background-color: var(--ghibli-yellow); }
+        .ghibli-bg-red { background-color: var(--ghibli-red); }
+        
+        .ghibli-text-blue { color: var(--ghibli-blue); }
+        .ghibli-text-green { color: var(--ghibli-green); }
+        .ghibli-text-yellow { color: var(--ghibli-yellow); }
+        .ghibli-text-red { color: var(--ghibli-red); }
+        
+        .sketch-border {
+            border: 3px dashed #333;
+            border-radius: 8px;
+        }
+        
+        .cloud-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%236bb2e2' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .slide-in {
+            animation: slideIn 1s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .section-preview {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .section-preview.active {
+            max-height: 1000px;
+        }
+        
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 350px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .notification-popup.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification-success {
+            background-color: #d1fae5;
+            border-left: 5px solid #10b981;
+            color: #065f46;
+        }
+        
+        .notification-error {
+            background-color: #fee2e2;
+            border-left: 5px solid #ef4444;
+            color: #b91c1c;
+        }
+        
+        .upload-zone {
+            border: 2px dashed var(--ghibli-blue);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-zone:hover {
+            border-color: var(--ghibli-green);
+            background-color: rgba(165, 214, 167, 0.1);
+        }
+        
+        .upload-zone.dragover {
+            border-color: var(--ghibli-yellow);
+            background-color: rgba(255, 245, 157, 0.2);
+        }
+        
+        .dark-mode {
+            background-color: #1a365d;
+            color: #e2e8f0;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #1e293b;
+        }
+        
+        .dark-mode .text-gray-800 {
+            color: #e2e8f0;
+        }
+        
+        .dark-mode .text-gray-700,
+        .dark-mode .text-gray-600 {
+            color: #94a3b8;
+        }
+        
+        .dark-mode input,
+        .dark-mode textarea,
+        .dark-mode select {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            border-color: #4a5568;
+        }
+        
+        .editor-section {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(107, 178, 226, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .editor-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, var(--ghibli-blue), var(--ghibli-green));
+            color: white;
+            border-radius: 10px 10px 0 0;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+    <!-- Notification popup container -->
+    <div id="notificationPopup" class="notification-popup">
+        <div class="flex items-start">
+            <div id="notificationIcon" class="mr-3 text-lg"></div>
+            <div>
+                <h3 id="notificationTitle" class="font-bold"></h3>
+                <p id="notificationMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dark Mode Toggle -->
+    <div class="fixed top-4 right-4 z-50">
+        <button id="darkModeToggle" class="bg-yellow-200 hover:bg-yellow-300 text-gray-800 rounded-full p-2 shadow-lg">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>    <!
+-- Navigation -->
+    <nav class="fixed w-full bg-white bg-opacity-90 shadow-sm z-40 dark:bg-gray-800 dark:bg-opacity-90">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="ghibli-font text-2xl ghibli-text-blue">
+                    <span class="text-yellow-500">★</span> Case Study Editor
+                </div>
+                <div class="flex space-x-4">
+                    <button id="saveBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full transition transform hover:scale-105">
+                        <i class="fas fa-save mr-2"></i>Save
+                    </button>
+                    <button id="previewBtn" class="ghibli-bg-blue hover:opacity-80 text-white px-4 py-2 rounded-full transition transform hover:scale-105">
+                        <i class="fas fa-eye mr-2"></i>Preview
+                    </button>
+                    <button id="publishBtn" class="ghibli-bg-yellow hover:opacity-80 text-gray-800 px-4 py-2 rounded-full transition transform hover:scale-105">
+                        <i class="fas fa-rocket mr-2"></i>Publish
+                    </button>
+                    <a href="/admin-dashboard.html" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-full transition transform hover:scale-105">
+                        <i class="fas fa-arrow-left mr-2"></i>Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-20 min-h-screen cloud-bg">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            
+            <!-- Header Section -->
+            <div class="text-center mb-12 slide-in">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4 ghibli-text-blue ghibli-font">Case Study Editor</h1>
+                <p class="text-xl text-gray-600 handwriting">Create magical case studies with Ghibli-inspired design</p>
+            </div>
+
+            <!-- Case Study Selection -->
+            <div class="editor-section mb-8 slide-in">
+                <div class="section-header">
+                    <h2 class="text-xl font-bold ghibli-font">
+                        <i class="fas fa-magic mr-2"></i>Case Study Selection
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Select Existing Case Study</label>
+                            <select id="projectSelector" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors">
+                                <option value="">-- Create New Case Study --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Case Study Title</label>
+                            <input type="text" id="caseStudyTitle" placeholder="Enter your magical project title..." 
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Controls -->
+            <div class="editor-section mb-8 slide-in">
+                <div class="section-header">
+                    <h2 class="text-xl font-bold ghibli-font">
+                        <i class="fas fa-toggle-on mr-2"></i>Enable/Disable Sections
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div class="flex items-center p-3 bg-blue-50 rounded-lg">
+                            <input type="checkbox" id="heroSection" class="section-toggle mr-3" checked data-section="hero">
+                            <label for="heroSection" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-star text-yellow-500 mr-1"></i>Hero/Introduction
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                            <input type="checkbox" id="overviewSection" class="section-toggle mr-3" checked data-section="overview">
+                            <label for="overviewSection" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-info-circle text-green-500 mr-1"></i>Overview
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-red-50 rounded-lg">
+                            <input type="checkbox" id="problemSection" class="section-toggle mr-3" checked data-section="problem">
+                            <label for="problemSection" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-exclamation-triangle text-red-500 mr-1"></i>Problem Statement
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-purple-50 rounded-lg">
+                            <input type="checkbox" id="processSection" class="section-toggle mr-3" checked data-section="process">
+                            <label for="processSection" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-cogs text-purple-500 mr-1"></i>Research & Process
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-indigo-50 rounded-lg">
+                            <input type="checkbox" id="showcaseSection" class="section-toggle mr-3" checked data-section="showcase">
+                            <label for="showcaseSection" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-desktop text-indigo-500 mr-1"></i>Solution Showcase
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-pink-50 rounded-lg">
+                            <input type="checkbox" id="reflectionSection" class="section-toggle mr-3" checked data-section="reflection">
+                            <label for="reflectionSection" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-lightbulb text-pink-500 mr-1"></i>Reflection
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-teal-50 rounded-lg">
+                            <input type="checkbox" id="gallerySectionToggle" class="section-toggle mr-3" data-section="gallery">
+                            <label for="gallerySectionToggle" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-images text-teal-500 mr-1"></i>Image Gallery
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-orange-50 rounded-lg">
+                            <input type="checkbox" id="videoSectionToggle" class="section-toggle mr-3" data-section="video">
+                            <label for="videoSectionToggle" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-video text-orange-500 mr-1"></i>Demo Video
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-cyan-50 rounded-lg">
+                            <input type="checkbox" id="documentSectionToggle" class="section-toggle mr-3" data-section="document">
+                            <label for="documentSectionToggle" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-file-alt text-cyan-500 mr-1"></i>Documents
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-lime-50 rounded-lg">
+                            <input type="checkbox" id="linksSectionToggle" class="section-toggle mr-3" data-section="links">
+                            <label for="linksSectionToggle" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-link text-lime-500 mr-1"></i>Additional Links
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-violet-50 rounded-lg">
+                            <input type="checkbox" id="figmaSectionToggle" class="section-toggle mr-3" data-section="figma">
+                            <label for="figmaSectionToggle" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fab fa-figma text-violet-500 mr-1"></i>Figma Prototype
+                            </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-rose-50 rounded-lg">
+                            <input type="checkbox" id="miroSectionToggle" class="section-toggle mr-3" data-section="miro">
+                            <label for="miroSectionToggle" class="text-gray-700 dark:text-gray-300 font-medium">
+                                <i class="fas fa-project-diagram text-rose-500 mr-1"></i>Miro Board
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Editor Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Left Column - Form Sections -->
+                <div class="space-y-8">
+                    
+                    <!-- Hero Section -->
+                    <div id="heroContent" class="section-container editor-section slide-in">
+                        <div class="section-header">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-xl font-bold ghibli-font">
+                                    <i class="fas fa-star mr-2"></i>Hero/Introduction
+                                </h2>
+                                <button type="button" class="preview-toggle bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded-lg text-sm" data-section="hero">
+                                    Preview <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Hero Title</label>
+                                <input type="text" name="heroTitle" placeholder="The Secret World of..." 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Hero Subtitle</label>
+                                <input type="text" name="heroSubtitle" placeholder="A Ghibli-Inspired Digital Experience" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Introduction Text</label>
+                                <textarea name="heroText" rows="4" placeholder="Journey through the creative process..." 
+                                          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Hero Image</label>
+                                <div class="upload-zone rounded-lg p-6 text-center" onclick="uploadHeroImage()">
+                                    <div id="heroImagePreview" class="hidden">
+                                        <img id="heroImageImg" class="w-full h-48 object-cover rounded-lg mb-4">
+                                        <button type="button" onclick="removeHeroImage()" class="text-red-600 hover:text-red-800">
+                                            <i class="fas fa-trash mr-1"></i>Remove Image
+                                        </button>
+                                    </div>
+                                    <div id="heroImageUpload" class="text-gray-500">
+                                        <i class="fas fa-cloud-upload-alt text-4xl mb-4 ghibli-text-blue"></i>
+                                        <p class="text-lg font-medium">Click to upload hero image</p>
+                                        <p class="text-sm">Recommended: 1200x600px, JPG/PNG</p>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="heroImage" />
+                            </div>
+                            <div class="section-preview" id="hero-preview">
+                                <div class="border-t-2 border-blue-200 pt-4 mt-4">
+                                    <h3 class="text-lg font-bold mb-2 text-gray-700 handwriting">Live Preview</h3>
+                                    <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg">
+                                        <h1 id="preview-heroTitle" class="text-3xl font-bold ghibli-text-blue ghibli-font mb-2"></h1>
+                                        <h2 id="preview-heroSubtitle" class="text-xl ghibli-text-green mb-3"></h2>
+                                        <p id="preview-heroText" class="text-gray-700"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>    
+                <!-- Overview Section -->
+                    <div id="overviewContent" class="section-container editor-section slide-in">
+                        <div class="section-header">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-xl font-bold ghibli-font">
+                                    <i class="fas fa-info-circle mr-2"></i>Project Overview
+                                </h2>
+                                <button type="button" class="preview-toggle bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded-lg text-sm" data-section="overview">
+                                    Preview <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Overview Title</label>
+                                <input type="text" name="overviewTitle" placeholder="Project Overview" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Overview Summary</label>
+                                <textarea name="overviewSummary" rows="4" placeholder="A brief summary of your project journey..." 
+                                          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 transition-colors"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Key Metrics</label>
+                                <div id="metricsContainer" class="space-y-3">
+                                    <div class="flex space-x-3 items-center">
+                                        <input type="text" placeholder="Metric Name (e.g., User Satisfaction)" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500">
+                                        <input type="text" placeholder="Value (e.g., 95%)" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500">
+                                        <button type="button" onclick="removeMetric(this)" class="text-red-500 hover:text-red-700 px-2">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addMetric()" class="mt-3 ghibli-bg-green hover:opacity-80 text-white px-4 py-2 rounded-lg transition">
+                                    <i class="fas fa-plus mr-1"></i>Add Metric
+                                </button>
+                            </div>
+                            <div class="section-preview" id="overview-preview">
+                                <div class="border-t-2 border-green-200 pt-4 mt-4">
+                                    <h3 class="text-lg font-bold mb-2 text-gray-700 handwriting">Live Preview</h3>
+                                    <div class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg">
+                                        <h2 id="preview-overviewTitle" class="text-2xl font-bold ghibli-text-green handwriting mb-2"></h2>
+                                        <p id="preview-overviewSummary" class="text-gray-700 mb-4"></p>
+                                        <div id="preview-overviewMetrics" class="grid grid-cols-2 gap-3">
+                                            <!-- Metrics will be displayed here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Problem Statement Section -->
+                    <div id="problemContent" class="section-container editor-section slide-in">
+                        <div class="section-header">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-xl font-bold ghibli-font">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>The Challenge
+                                </h2>
+                                <button type="button" class="preview-toggle bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded-lg text-sm" data-section="problem">
+                                    Preview <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Problem Title</label>
+                                <input type="text" name="problemTitle" placeholder="The Challenge" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Problem Description</label>
+                                <textarea name="problemDescription" rows="5" placeholder="Describe the problem you're solving..." 
+                                          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Problem Image</label>
+                                <div class="upload-zone rounded-lg p-6 text-center" onclick="uploadProblemImage()">
+                                    <div id="problemImagePreview" class="hidden">
+                                        <img id="problemImageImg" class="w-full h-48 object-cover rounded-lg mb-4">
+                                        <button type="button" onclick="removeProblemImage()" class="text-red-600 hover:text-red-800">
+                                            <i class="fas fa-trash mr-1"></i>Remove Image
+                                        </button>
+                                    </div>
+                                    <div id="problemImageUpload" class="text-gray-500">
+                                        <i class="fas fa-image text-4xl mb-4 ghibli-text-red"></i>
+                                        <p class="text-lg font-medium">Click to upload problem illustration</p>
+                                        <p class="text-sm">Support images, diagrams, or screenshots</p>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="problemImage" />
+                            </div>
+                            <div class="section-preview" id="problem-preview">
+                                <div class="border-t-2 border-red-200 pt-4 mt-4">
+                                    <h3 class="text-lg font-bold mb-2 text-gray-700 handwriting">Live Preview</h3>
+                                    <div class="bg-gradient-to-r from-red-50 to-yellow-50 p-6 rounded-lg">
+                                        <h2 id="preview-problemTitle" class="text-2xl font-bold ghibli-text-red handwriting mb-2"></h2>
+                                        <p id="preview-problemDescription" class="text-gray-700"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Process Section -->
+                    <div id="processContent" class="section-container editor-section slide-in">
+                        <div class="section-header">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-xl font-bold ghibli-font">
+                                    <i class="fas fa-cogs mr-2"></i>Our Creative Process
+                                </h2>
+                                <button type="button" class="preview-toggle bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded-lg text-sm" data-section="process">
+                                    Preview <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Process Title</label>
+                                <input type="text" name="processTitle" placeholder="Our Creative Process" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Process Description</label>
+                                <textarea name="processDescription" rows="3" placeholder="Describe your methodology and approach..." 
+                                          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Process Steps</label>
+                                <div id="processStepsContainer" class="space-y-3">
+                                    <div class="flex space-x-3 items-center">
+                                        <span class="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">1</span>
+                                        <input type="text" placeholder="Research and Discovery" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+                                        <button type="button" onclick="removeProcessStep(this)" class="text-red-500 hover:text-red-700 px-2">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addProcessStep()" class="mt-3 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition">
+                                    <i class="fas fa-plus mr-1"></i>Add Step
+                                </button>
+                            </div>
+                            <div class="section-preview" id="process-preview">
+                                <div class="border-t-2 border-purple-200 pt-4 mt-4">
+                                    <h3 class="text-lg font-bold mb-2 text-gray-700 handwriting">Live Preview</h3>
+                                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg">
+                                        <h2 id="preview-processTitle" class="text-2xl font-bold text-purple-600 handwriting mb-2"></h2>
+                                        <p id="preview-processDescription" class="text-gray-700 mb-4"></p>
+                                        <div id="preview-processSteps" class="space-y-3">
+                                            <!-- Steps will be displayed here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column - Additional Sections and Preview -->
+                <div class="space-y-8">
+                    
+                    <!-- Live Preview Panel -->
+                    <div class="editor-section slide-in sticky top-24">
+                        <div class="section-header">
+                            <h2 class="text-xl font-bold ghibli-font">
+                                <i class="fas fa-eye mr-2"></i>Live Preview
+                            </h2>
+                        </div>
+                        <div class="p-6">
+                            <div id="livePreview" class="bg-white rounded-lg p-6 min-h-96 max-h-96 overflow-y-auto custom-scrollbar">
+                                <div class="text-gray-500 text-center py-12">
+                                    <i class="fas fa-magic text-4xl mb-4 ghibli-text-blue"></i>
+                                    <p class="text-lg handwriting">Start editing to see the magic happen!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Showcase Section -->
+                    <div id="showcaseContent" class="section-container editor-section slide-in">
+                        <div class="section-header">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-xl font-bold ghibli-font">
+                                    <i class="fas fa-desktop mr-2"></i>Solution Showcase
+                                </h2>
+                                <button type="button" class="preview-toggle bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded-lg text-sm" data-section="showcase">
+                                    Preview <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Showcase Title</label>
+                                <input type="text" name="showcaseTitle" placeholder="Showcase" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Showcase Description</label>
+                                <textarea name="showcaseDescription" rows="3" placeholder="Describe your solution and its impact..." 
+                                          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Key Features</label>
+                                <div id="showcaseFeaturesContainer" class="space-y-3">
+                                    <div class="flex space-x-3 items-center">
+                                        <i class="fas fa-check-circle text-green-500"></i>
+                                        <input type="text" placeholder="Interactive user interface" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500">
+                                        <button type="button" onclick="removeShowcaseFeature(this)" class="text-red-500 hover:text-red-700 px-2">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addShowcaseFeature()" class="mt-3 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition">
+                                    <i class="fas fa-plus mr-1"></i>Add Feature
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reflection Section -->
+                    <div id="reflectionContent" class="section-container editor-section slide-in">
+                        <div class="section-header">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-xl font-bold ghibli-font">
+                                    <i class="fas fa-lightbulb mr-2"></i>Reflection
+                                </h2>
+                                <button type="button" class="preview-toggle bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded-lg text-sm" data-section="reflection">
+                                    Preview <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Reflection Title</label>
+                                <input type="text" name="reflectionTitle" placeholder="Reflection" 
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Reflection Content</label>
+                                <textarea name="reflectionContent" rows="4" placeholder="What did you learn from this project?" 
+                                          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500 transition-colors"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2 font-bold dark:text-gray-300 handwriting">Key Learnings</label>
+                                <div id="reflectionLearningsContainer" class="space-y-3">
+                                    <div class="flex space-x-3 items-center">
+                                        <i class="fas fa-star text-yellow-500"></i>
+                                        <input type="text" placeholder="User feedback is invaluable" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500">
+                                        <button type="button" onclick="removeReflectionLearning(this)" class="text-red-500 hover:text-red-700 px-2">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addReflectionLearning()" class="mt-3 bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg transition">
+                                    <i class="fas fa-plus mr-1"></i>Add Learning
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div> 
+   <!-- Load Scripts -->
+    <script src="js/cloudinary-config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-system.js"></script>
+
+    <script>
+        // Integrated Case Study Editor with Ghibli Design
+        class GhibliCaseStudyEditor {
+            constructor() {
+                this.currentCaseStudy = null;
+                this.isDirty = false;
+                this.autoSaveInterval = null;
+                this.editors = {}; // For rich text editors
+                
+                this.init();
+            }
+
+            async init() {
+                console.log('🌟 Initializing Ghibli Case Study Editor...');
+                
+                // Wait for dependencies
+                await this.waitForDependencies();
+                
+                // Setup event listeners
+                this.setupEventListeners();
+                
+                // Load existing case studies
+                await this.loadCaseStudies();
+                
+                // Setup auto-save
+                this.setupAutoSave();
+                
+                // Setup live preview
+                this.setupLivePreview();
+                
+                // Setup dark mode
+                this.setupDarkMode();
+                
+                // Initialize animations
+                this.initializeAnimations();
+                
+                console.log('✨ Ghibli Case Study Editor initialized successfully!');
+            }
+
+            async waitForDependencies() {
+                return new Promise((resolve) => {
+                    const checkDependencies = () => {
+                        if (window.cloudinaryManager && window.supabaseAPI && window.authSystem) {
+                            resolve();
+                        } else {
+                            setTimeout(checkDependencies, 100);
+                        }
+                    };
+                    checkDependencies();
+                });
+            }
+
+            setupEventListeners() {
+                // Save button
+                document.getElementById('saveBtn').addEventListener('click', () => this.saveCaseStudy());
+                
+                // Preview button
+                document.getElementById('previewBtn').addEventListener('click', () => this.openPreview());
+                
+                // Publish button
+                document.getElementById('publishBtn').addEventListener('click', () => this.publishCaseStudy());
+                
+                // Case study selection
+                document.getElementById('projectSelector').addEventListener('change', (e) => {
+                    if (e.target.value) {
+                        this.loadCaseStudy(e.target.value);
+                    } else {
+                        this.createNewCaseStudy();
+                    }
+                });
+
+                // Form change detection
+                const formElements = document.querySelectorAll('input, textarea, select');
+                formElements.forEach(element => {
+                    element.addEventListener('input', () => {
+                        this.isDirty = true;
+                        this.updateLivePreview();
+                    });
+                });
+
+                // Section toggles
+                const sectionToggles = document.querySelectorAll('.section-toggle');
+                sectionToggles.forEach(toggle => {
+                    toggle.addEventListener('change', () => {
+                        this.toggleSection(toggle.dataset.section);
+                        this.updateLivePreview();
+                    });
+                });
+
+                // Preview toggles
+                const previewToggles = document.querySelectorAll('.preview-toggle');
+                previewToggles.forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        this.togglePreview(toggle.dataset.section);
+                    });
+                });
+
+                // Prevent accidental navigation
+                window.addEventListener('beforeunload', (e) => {
+                    if (this.isDirty) {
+                        e.preventDefault();
+                        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                    }
+                });
+            }
+
+            setupDarkMode() {
+                const darkModeToggle = document.getElementById('darkModeToggle');
+                const body = document.body;
+                
+                // Check for saved dark mode preference
+                const isDarkMode = localStorage.getItem('darkMode') === 'true';
+                if (isDarkMode) {
+                    body.classList.add('dark-mode');
+                    darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                }
+                
+                darkModeToggle.addEventListener('click', () => {
+                    body.classList.toggle('dark-mode');
+                    const isDark = body.classList.contains('dark-mode');
+                    localStorage.setItem('darkMode', isDark);
+                    darkModeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                });
+            }
+
+            initializeAnimations() {
+                // Intersection Observer for slide-in animations
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateX(0)';
+                        }
+                    });
+                }, observerOptions);
+
+                document.querySelectorAll('.slide-in').forEach(el => {
+                    observer.observe(el);
+                });
+            }
+
+            async loadCaseStudies() {
+                try {
+                    const caseStudies = await window.supabaseAPI.getCaseStudies();
+                    const select = document.getElementById('projectSelector');
+                    
+                    // Clear existing options except the first one
+                    while (select.children.length > 1) {
+                        select.removeChild(select.lastChild);
+                    }
+                    
+                    // Add case studies
+                    caseStudies.forEach(caseStudy => {
+                        const option = document.createElement('option');
+                        option.value = caseStudy.id;
+                        option.textContent = caseStudy.project_title || 'Untitled Case Study';
+                        select.appendChild(option);
+                    });
+                    
+                    console.log(`✅ Loaded ${caseStudies.length} case studies`);
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load case studies:', error);
+                    this.showNotification('error', 'Load Failed', 'Failed to load existing case studies');
+                }
+            }
+
+            async loadCaseStudy(id) {
+                try {
+                    console.log(`📖 Loading case study: ${id}`);
+                    
+                    const caseStudy = await window.supabaseAPI.getCaseStudy(id);
+                    this.currentCaseStudy = caseStudy;
+                    
+                    // Populate form fields
+                    this.populateForm(caseStudy);
+                    
+                    // Update preview
+                    this.updateLivePreview();
+                    
+                    this.isDirty = false;
+                    console.log('✅ Case study loaded successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load case study:', error);
+                    this.showNotification('error', 'Load Failed', 'Failed to load case study');
+                }
+            }
+
+            populateForm(caseStudy) {
+                // Basic info
+                document.getElementById('caseStudyTitle').value = caseStudy.project_title || '';
+                
+                // Parse sections from JSON
+                const sections = caseStudy.sections || {};
+                
+                // Populate each section
+                this.populateSection('hero', sections.hero);
+                this.populateSection('overview', sections.overview);
+                this.populateSection('problem', sections.problem);
+                this.populateSection('process', sections.process);
+                this.populateSection('showcase', sections.showcase);
+                this.populateSection('reflection', sections.reflection);
+                
+                // Update section toggles
+                Object.keys(sections).forEach(sectionName => {
+                    const toggle = document.getElementById(`${sectionName}Section`) || 
+                                  document.getElementById(`${sectionName}SectionToggle`);
+                    if (toggle && sections[sectionName]) {
+                        toggle.checked = sections[sectionName].enabled !== false;
+                    }
+                });
+            }
+
+            populateSection(sectionName, sectionData) {
+                if (!sectionData) return;
+                
+                // Populate basic fields
+                Object.keys(sectionData).forEach(key => {
+                    if (key === 'enabled') return;
+                    
+                    const element = document.querySelector(`[name="${sectionName}${key.charAt(0).toUpperCase() + key.slice(1)}"]`);
+                    if (element && typeof sectionData[key] === 'string') {
+                        element.value = sectionData[key];
+                    }
+                });
+                
+                // Handle special cases
+                if (sectionName === 'overview' && sectionData.metrics) {
+                    this.populateMetrics(sectionData.metrics);
+                }
+                
+                if (sectionName === 'process' && sectionData.steps) {
+                    this.populateProcessSteps(sectionData.steps);
+                }
+                
+                if (sectionName === 'showcase' && sectionData.features) {
+                    this.populateShowcaseFeatures(sectionData.features);
+                }
+                
+                if (sectionName === 'reflection' && sectionData.learnings) {
+                    this.populateReflectionLearnings(sectionData.learnings);
+                }
+                
+                // Handle images
+                if (sectionData.image) {
+                    this.setImagePreview(sectionName, sectionData.image);
+                }
+            }
+
+            createNewCaseStudy() {
+                this.currentCaseStudy = null;
+                
+                // Clear all form fields
+                const formElements = document.querySelectorAll('input[type="text"], textarea');
+                formElements.forEach(element => {
+                    element.value = '';
+                });
+                
+                // Reset checkboxes to default
+                const defaultSections = ['hero', 'overview', 'problem', 'process', 'showcase', 'reflection'];
+                document.querySelectorAll('.section-toggle').forEach(toggle => {
+                    toggle.checked = defaultSections.includes(toggle.dataset.section);
+                });
+                
+                // Clear image previews
+                this.clearAllImagePreviews();
+                
+                // Reset dynamic lists
+                this.resetAllDynamicLists();
+                
+                // Update preview
+                this.updateLivePreview();
+                
+                this.isDirty = false;
+                console.log('📝 Created new case study');
+            }
+
+            async saveCaseStudy() {
+                try {
+                    console.log('💾 Saving case study...');
+                    
+                    const saveBtn = document.getElementById('saveBtn');
+                    const originalText = saveBtn.innerHTML;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+                    saveBtn.disabled = true;
+                    
+                    const caseStudyData = this.collectFormData();
+                    
+                    let result;
+                    if (this.currentCaseStudy) {
+                        // Update existing
+                        result = await window.supabaseAPI.updateCaseStudy(this.currentCaseStudy.id, caseStudyData);
+                    } else {
+                        // Create new
+                        result = await window.supabaseAPI.createCaseStudy(caseStudyData);
+                        this.currentCaseStudy = result;
+                        
+                        // Refresh the case study list
+                        await this.loadCaseStudies();
+                        document.getElementById('projectSelector').value = result.id;
+                    }
+                    
+                    this.isDirty = false;
+                    this.showNotification('success', 'Saved! ✨', 'Your magical case study has been saved successfully');
+                    console.log('✅ Case study saved successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to save case study:', error);
+                    this.showNotification('error', 'Save Failed', error.message);
+                } finally {
+                    const saveBtn = document.getElementById('saveBtn');
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                }
+            }
+
+            async publishCaseStudy() {
+                if (!this.currentCaseStudy) {
+                    this.showNotification('error', 'No Case Study', 'Please save the case study first');
+                    return;
+                }
+
+                try {
+                    const publishBtn = document.getElementById('publishBtn');
+                    const originalText = publishBtn.innerHTML;
+                    publishBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Publishing...';
+                    publishBtn.disabled = true;
+
+                    // Update status to published
+                    await window.supabaseAPI.updateCaseStudy(this.currentCaseStudy.id, {
+                        status: 'published',
+                        featured: true
+                    });
+
+                    this.showNotification('success', 'Published! 🚀', 'Your case study is now live and featured');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to publish case study:', error);
+                    this.showNotification('error', 'Publish Failed', error.message);
+                } finally {
+                    const publishBtn = document.getElementById('publishBtn');
+                    publishBtn.innerHTML = originalText;
+                    publishBtn.disabled = false;
+                }
+            }
+
+            collectFormData() {
+                const data = {
+                    project_title: document.getElementById('caseStudyTitle').value,
+                    project_description: document.querySelector('[name="heroText"]').value,
+                    project_image_url: document.querySelector('[name="heroImage"]').value,
+                    status: 'draft',
+                    sections: {}
+                };
+
+                // Collect all sections
+                const sections = ['hero', 'overview', 'problem', 'process', 'showcase', 'reflection'];
+                
+                sections.forEach(sectionName => {
+                    const toggle = document.getElementById(`${sectionName}Section`) || 
+                                  document.getElementById(`${sectionName}SectionToggle`);
+                    
+                    data.sections[sectionName] = {
+                        enabled: toggle ? toggle.checked : false,
+                        ...this.collectSectionData(sectionName)
+                    };
+                });
+
+                return data;
+            }
+
+            collectSectionData(sectionName) {
+                const sectionData = {};
+                
+                // Collect basic fields
+                const fields = document.querySelectorAll(`[name^="${sectionName}"]`);
+                fields.forEach(field => {
+                    const fieldName = field.name.replace(sectionName, '').toLowerCase();
+                    if (fieldName) {
+                        sectionData[fieldName] = field.value;
+                    }
+                });
+
+                // Handle special cases
+                if (sectionName === 'overview') {
+                    sectionData.metrics = this.collectMetrics();
+                }
+                
+                if (sectionName === 'process') {
+                    sectionData.steps = this.collectProcessSteps();
+                }
+                
+                if (sectionName === 'showcase') {
+                    sectionData.features = this.collectShowcaseFeatures();
+                }
+                
+                if (sectionName === 'reflection') {
+                    sectionData.learnings = this.collectReflectionLearnings();
+                }
+
+                return sectionData;
+            }
+
+            // Image upload functions
+            uploadHeroImage() {
+                window.uploadImage((result) => {
+                    this.setImagePreview('hero', result.secure_url);
+                    document.querySelector('[name="heroImage"]').value = result.secure_url;
+                    this.isDirty = true;
+                    this.updateLivePreview();
+                }, {
+                    folder: 'portfolio/case-studies/hero',
+                    tags: ['case-study', 'hero']
+                });
+            }
+
+            uploadProblemImage() {
+                window.uploadImage((result) => {
+                    this.setImagePreview('problem', result.secure_url);
+                    document.querySelector('[name="problemImage"]').value = result.secure_url;
+                    this.isDirty = true;
+                    this.updateLivePreview();
+                }, {
+                    folder: 'portfolio/case-studies/problem',
+                    tags: ['case-study', 'problem']
+                });
+            }
+
+            setImagePreview(section, imageUrl) {
+                const preview = document.getElementById(`${section}ImagePreview`);
+                const upload = document.getElementById(`${section}ImageUpload`);
+                const img = document.getElementById(`${section}ImageImg`);
+                
+                if (preview && upload && img) {
+                    img.src = imageUrl;
+                    preview.classList.remove('hidden');
+                    upload.classList.add('hidden');
+                }
+            }
+
+            clearImagePreview(section) {
+                const preview = document.getElementById(`${section}ImagePreview`);
+                const upload = document.getElementById(`${section}ImageUpload`);
+                const input = document.querySelector(`[name="${section}Image"]`);
+                
+                if (preview && upload) {
+                    preview.classList.add('hidden');
+                    upload.classList.remove('hidden');
+                }
+                if (input) {
+                    input.value = '';
+                }
+            }
+
+            clearAllImagePreviews() {
+                ['hero', 'problem'].forEach(section => {
+                    this.clearImagePreview(section);
+                });
+            }
+
+            // Dynamic list management
+            collectMetrics() {
+                const metrics = [];
+                const container = document.getElementById('metricsContainer');
+                const rows = container.querySelectorAll('div.flex');
+                
+                rows.forEach(row => {
+                    const inputs = row.querySelectorAll('input');
+                    if (inputs.length >= 2 && inputs[0].value && inputs[1].value) {
+                        metrics.push({
+                            name: inputs[0].value,
+                            value: inputs[1].value
+                        });
+                    }
+                });
+                
+                return metrics;
+            }
+
+            collectProcessSteps() {
+                const steps = [];
+                const container = document.getElementById('processStepsContainer');
+                const rows = container.querySelectorAll('div.flex');
+                
+                rows.forEach(row => {
+                    const input = row.querySelector('input');
+                    if (input && input.value) {
+                        steps.push(input.value);
+                    }
+                });
+                
+                return steps;
+            }
+
+            collectShowcaseFeatures() {
+                const features = [];
+                const container = document.getElementById('showcaseFeaturesContainer');
+                if (!container) return features;
+                
+                const rows = container.querySelectorAll('div.flex');
+                rows.forEach(row => {
+                    const input = row.querySelector('input');
+                    if (input && input.value) {
+                        features.push(input.value);
+                    }
+                });
+                
+                return features;
+            }
+
+            collectReflectionLearnings() {
+                const learnings = [];
+                const container = document.getElementById('reflectionLearningsContainer');
+                if (!container) return learnings;
+                
+                const rows = container.querySelectorAll('div.flex');
+                rows.forEach(row => {
+                    const input = row.querySelector('input');
+                    if (input && input.value) {
+                        learnings.push(input.value);
+                    }
+                });
+                
+                return learnings;
+            }
+
+            // Live preview functionality
+            setupLivePreview() {
+                this.updateLivePreview();
+            }
+
+            updateLivePreview() {
+                const preview = document.getElementById('livePreview');
+                const data = this.collectFormData();
+                
+                let html = '';
+                
+                // Generate preview HTML based on enabled sections
+                Object.keys(data.sections).forEach(sectionName => {
+                    const section = data.sections[sectionName];
+                    if (section.enabled) {
+                        html += this.generateSectionPreview(sectionName, section);
+                    }
+                });
+                
+                if (!html) {
+                    html = `
+                        <div class="text-gray-500 text-center py-12">
+                            <i class="fas fa-magic text-4xl mb-4 ghibli-text-blue"></i>
+                            <p class="text-lg handwriting">Start editing to see the magic happen!</p>
+                        </div>
+                    `;
+                }
+                
+                preview.innerHTML = html;
+            }
+
+            generateSectionPreview(sectionName, sectionData) {
+                switch (sectionName) {
+                    case 'hero':
+                        return this.generateHeroPreview(sectionData);
+                    case 'overview':
+                        return this.generateOverviewPreview(sectionData);
+                    case 'problem':
+                        return this.generateProblemPreview(sectionData);
+                    case 'process':
+                        return this.generateProcessPreview(sectionData);
+                    case 'showcase':
+                        return this.generateShowcasePreview(sectionData);
+                    case 'reflection':
+                        return this.generateReflectionPreview(sectionData);
+                    default:
+                        return '';
+                }
+            }
+
+            generateHeroPreview(data) {
+                if (!data.title && !data.subtitle && !data.text) return '';
+                
+                return `
+                    <div class="mb-8 p-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
+                        <h1 class="text-3xl font-bold ghibli-text-blue ghibli-font mb-2">${data.title || 'Untitled'}</h1>
+                        ${data.subtitle ? `<h2 class="text-xl ghibli-text-green mb-4">${data.subtitle}</h2>` : ''}
+                        ${data.image ? `<img src="${data.image}" class="w-full h-48 object-cover rounded-lg mb-4">` : ''}
+                        ${data.text ? `<p class="text-gray-700">${data.text}</p>` : ''}
+                    </div>
+                `;
+            }
+
+            generateOverviewPreview(data) {
+                if (!data.title && !data.summary && (!data.metrics || data.metrics.length === 0)) return '';
+                
+                return `
+                    <div class="mb-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg">
+                        <h2 class="text-2xl font-bold ghibli-text-green handwriting mb-4">${data.title || 'Overview'}</h2>
+                        ${data.summary ? `<p class="text-gray-700 mb-4">${data.summary}</p>` : ''}
+                        ${data.metrics && data.metrics.length > 0 ? `
+                            <div class="grid grid-cols-2 gap-4">
+                                ${data.metrics.map(metric => `
+                                    <div class="bg-white p-3 rounded-lg shadow-sm">
+                                        <div class="font-bold text-blue-600">${metric.value}</div>
+                                        <div class="text-sm text-gray-600">${metric.name}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            generateProblemPreview(data) {
+                if (!data.title && !data.description) return '';
+                
+                return `
+                    <div class="mb-8 p-6 bg-gradient-to-r from-red-50 to-yellow-50 rounded-lg">
+                        <h2 class="text-2xl font-bold ghibli-text-red handwriting mb-4">${data.title || 'Problem'}</h2>
+                        ${data.image ? `<img src="${data.image}" class="w-full h-32 object-cover rounded-lg mb-4">` : ''}
+                        ${data.description ? `<p class="text-gray-700">${data.description}</p>` : ''}
+                    </div>
+                `;
+            }
+
+            generateProcessPreview(data) {
+                if (!data.title && !data.description && (!data.steps || data.steps.length === 0)) return '';
+                
+                return `
+                    <div class="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+                        <h2 class="text-2xl font-bold text-purple-600 handwriting mb-4">${data.title || 'Process'}</h2>
+                        ${data.description ? `<p class="text-gray-700 mb-4">${data.description}</p>` : ''}
+                        ${data.steps && data.steps.length > 0 ? `
+                            <div class="space-y-3">
+                                ${data.steps.map((step, index) => `
+                                    <div class="flex items-center">
+                                        <span class="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">${index + 1}</span>
+                                        <span class="text-gray-700">${step}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            generateShowcasePreview(data) {
+                if (!data.title && !data.description && (!data.features || data.features.length === 0)) return '';
+                
+                return `
+                    <div class="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg">
+                        <h2 class="text-2xl font-bold text-indigo-600 handwriting mb-4">${data.title || 'Showcase'}</h2>
+                        ${data.description ? `<p class="text-gray-700 mb-4">${data.description}</p>` : ''}
+                        ${data.features && data.features.length > 0 ? `
+                            <div class="space-y-2">
+                                ${data.features.map(feature => `
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                        <span class="text-gray-700">${feature}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            generateReflectionPreview(data) {
+                if (!data.title && !data.content && (!data.learnings || data.learnings.length === 0)) return '';
+                
+                return `
+                    <div class="mb-8 p-6 bg-gradient-to-r from-pink-50 to-red-50 rounded-lg">
+                        <h2 class="text-2xl font-bold text-pink-600 handwriting mb-4">${data.title || 'Reflection'}</h2>
+                        ${data.content ? `<p class="text-gray-700 mb-4">${data.content}</p>` : ''}
+                        ${data.learnings && data.learnings.length > 0 ? `
+                            <div class="space-y-2">
+                                ${data.learnings.map(learning => `
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-500 mr-3"></i>
+                                        <span class="text-gray-700">${learning}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            toggleSection(sectionName) {
+                const content = document.getElementById(`${sectionName}Content`);
+                const toggle = document.getElementById(`${sectionName}Section`) || 
+                              document.getElementById(`${sectionName}SectionToggle`);
+                
+                if (content && toggle) {
+                    if (toggle.checked) {
+                        content.style.display = 'block';
+                        content.style.opacity = '0';
+                        setTimeout(() => {
+                            content.style.opacity = '1';
+                        }, 10);
+                    } else {
+                        content.style.opacity = '0';
+                        setTimeout(() => {
+                            content.style.display = 'none';
+                        }, 300);
+                    }
+                }
+            }
+
+            togglePreview(sectionName) {
+                const preview = document.getElementById(`${sectionName}-preview`);
+                if (preview) {
+                    preview.classList.toggle('active');
+                }
+            }
+
+            // Utility functions
+            showNotification(type, title, message) {
+                const notification = document.getElementById('notificationPopup');
+                const icon = document.getElementById('notificationIcon');
+                const titleEl = document.getElementById('notificationTitle');
+                const messageEl = document.getElementById('notificationMessage');
+                
+                // Set content
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                
+                // Set icon and style
+                if (type === 'success') {
+                    icon.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+                    notification.className = 'notification-popup notification-success';
+                } else {
+                    icon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i>';
+                    notification.className = 'notification-popup notification-error';
+                }
+                
+                // Show notification
+                notification.classList.add('show');
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 5000);
+            }
+
+            setupAutoSave() {
+                this.autoSaveInterval = setInterval(() => {
+                    if (this.isDirty && this.currentCaseStudy) {
+                        console.log('💾 Auto-saving...');
+                        this.saveCaseStudy();
+                    }
+                }, 30000); // Auto-save every 30 seconds
+            }
+
+            openPreview() {
+                if (!this.currentCaseStudy) {
+                    this.showNotification('error', 'No Case Study', 'Please save the case study first');
+                    return;
+                }
+                
+                const previewUrl = `/case_study_1.html?id=${this.currentCaseStudy.id}`;
+                window.open(previewUrl, '_blank');
+            }
+
+            resetAllDynamicLists() {
+                // Reset metrics
+                const metricsContainer = document.getElementById('metricsContainer');
+                if (metricsContainer) {
+                    metricsContainer.innerHTML = `
+                        <div class="flex space-x-3 items-center">
+                            <input type="text" placeholder="Metric Name (e.g., User Satisfaction)" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500">
+                            <input type="text" placeholder="Value (e.g., 95%)" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500">
+                            <button type="button" onclick="removeMetric(this)" class="text-red-500 hover:text-red-700 px-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                // Reset process steps
+                const processContainer = document.getElementById('processStepsContainer');
+                if (processContainer) {
+                    processContainer.innerHTML = `
+                        <div class="flex space-x-3 items-center">
+                            <span class="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">1</span>
+                            <input type="text" placeholder="Research and Discovery" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+                            <button type="button" onclick="removeProcessStep(this)" class="text-red-500 hover:text-red-700 px-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                // Reset other dynamic lists similarly...
+            }
+        }
+
+        // Global functions for dynamic content management
+        function addMetric() {
+            const container = document.getElementById('metricsContainer');
+            const div = document.createElement('div');
+            div.className = 'flex space-x-3 items-center';
+            div.innerHTML = `
+                <input type="text" placeholder="Metric Name" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500">
+                <input type="text" placeholder="Value" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500">
+                <button type="button" onclick="removeMetric(this)" class="text-red-500 hover:text-red-700 px-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            
+            // Add event listeners for live preview
+            div.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', () => {
+                    if (window.ghibliEditor) {
+                        window.ghibliEditor.isDirty = true;
+                        window.ghibliEditor.updateLivePreview();
+                    }
+                });
+            });
+        }
+
+        function removeMetric(button) {
+            button.parentElement.remove();
+            if (window.ghibliEditor) {
+                window.ghibliEditor.isDirty = true;
+                window.ghibliEditor.updateLivePreview();
+            }
+        }
+
+        function addProcessStep() {
+            const container = document.getElementById('processStepsContainer');
+            const stepNumber = container.children.length + 1;
+            const div = document.createElement('div');
+            div.className = 'flex space-x-3 items-center';
+            div.innerHTML = `
+                <span class="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">${stepNumber}</span>
+                <input type="text" placeholder="Process step description" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+                <button type="button" onclick="removeProcessStep(this)" class="text-red-500 hover:text-red-700 px-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            
+            // Add event listener for live preview
+            div.querySelector('input').addEventListener('input', () => {
+                if (window.ghibliEditor) {
+                    window.ghibliEditor.isDirty = true;
+                    window.ghibliEditor.updateLivePreview();
+                }
+            });
+        }
+
+        function removeProcessStep(button) {
+            button.parentElement.remove();
+            // Renumber remaining steps
+            const container = document.getElementById('processStepsContainer');
+            Array.from(container.children).forEach((step, index) => {
+                const numberSpan = step.querySelector('span');
+                if (numberSpan) {
+                    numberSpan.textContent = index + 1;
+                }
+            });
+            
+            if (window.ghibliEditor) {
+                window.ghibliEditor.isDirty = true;
+                window.ghibliEditor.updateLivePreview();
+            }
+        }
+
+        function addShowcaseFeature() {
+            const container = document.getElementById('showcaseFeaturesContainer');
+            if (!container) return;
+            
+            const div = document.createElement('div');
+            div.className = 'flex space-x-3 items-center';
+            div.innerHTML = `
+                <i class="fas fa-check-circle text-green-500"></i>
+                <input type="text" placeholder="Feature description" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500">
+                <button type="button" onclick="removeShowcaseFeature(this)" class="text-red-500 hover:text-red-700 px-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            
+            // Add event listener for live preview
+            div.querySelector('input').addEventListener('input', () => {
+                if (window.ghibliEditor) {
+                    window.ghibliEditor.isDirty = true;
+                    window.ghibliEditor.updateLivePreview();
+                }
+            });
+        }
+
+        function removeShowcaseFeature(button) {
+            button.parentElement.remove();
+            if (window.ghibliEditor) {
+                window.ghibliEditor.isDirty = true;
+                window.ghibliEditor.updateLivePreview();
+            }
+        }
+
+        function addReflectionLearning() {
+            const container = document.getElementById('reflectionLearningsContainer');
+            if (!container) return;
+            
+            const div = document.createElement('div');
+            div.className = 'flex space-x-3 items-center';
+            div.innerHTML = `
+                <i class="fas fa-star text-yellow-500"></i>
+                <input type="text" placeholder="Key learning or insight" class="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-pink-500">
+                <button type="button" onclick="removeReflectionLearning(this)" class="text-red-500 hover:text-red-700 px-2">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            
+            // Add event listener for live preview
+            div.querySelector('input').addEventListener('input', () => {
+                if (window.ghibliEditor) {
+                    window.ghibliEditor.isDirty = true;
+                    window.ghibliEditor.updateLivePreview();
+                }
+            });
+        }
+
+        function removeReflectionLearning(button) {
+            button.parentElement.remove();
+            if (window.ghibliEditor) {
+                window.ghibliEditor.isDirty = true;
+                window.ghibliEditor.updateLivePreview();
+            }
+        }
+
+        // Image upload functions
+        function uploadHeroImage() {
+            if (window.ghibliEditor) {
+                window.ghibliEditor.uploadHeroImage();
+            }
+        }
+
+        function uploadProblemImage() {
+            if (window.ghibliEditor) {
+                window.ghibliEditor.uploadProblemImage();
+            }
+        }
+
+        function removeHeroImage() {
+            if (window.ghibliEditor) {
+                window.ghibliEditor.clearImagePreview('hero');
+                window.ghibliEditor.isDirty = true;
+                window.ghibliEditor.updateLivePreview();
+            }
+        }
+
+        function removeProblemImage() {
+            if (window.ghibliEditor) {
+                window.ghibliEditor.clearImagePreview('problem');
+                window.ghibliEditor.isDirty = true;
+                window.ghibliEditor.updateLivePreview();
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.ghibliEditor = new GhibliCaseStudyEditor();
+        });
+    </script>
+</body>
+</html>

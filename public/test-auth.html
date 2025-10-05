@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">Authentication Test</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <h2 class="text-lg font-semibold">Authentication Status</h2>
+                <div id="authStatus" class="p-3 bg-gray-100 rounded">Loading...</div>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-semibold">Current User</h2>
+                <div id="currentUser" class="p-3 bg-gray-100 rounded">Loading...</div>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-semibold">Local Storage</h2>
+                <div id="localStorage" class="p-3 bg-gray-100 rounded text-xs">Loading...</div>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button id="testLogin" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Test Login
+                </button>
+                <button id="testLogout" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Test Logout
+                </button>
+                <button id="goToDashboard" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Go to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Load Authentication System -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-system.js"></script>
+    
+    <script>
+        function updateStatus() {
+            // Check authentication status
+            const isAuth = window.authSystem ? window.authSystem.isAuthenticated() : false;
+            document.getElementById('authStatus').innerHTML = `
+                <strong>Authenticated:</strong> ${isAuth ? '✅ Yes' : '❌ No'}<br>
+                <strong>Auth System Ready:</strong> ${window.authSystem ? '✅ Yes' : '❌ No'}<br>
+                <strong>Supabase API Ready:</strong> ${window.supabaseAPI ? '✅ Yes' : '❌ No'}
+            `;
+            
+            // Show current user
+            const user = window.authSystem ? window.authSystem.getCurrentUser() : null;
+            document.getElementById('currentUser').innerHTML = user ? 
+                `<pre>${JSON.stringify(user, null, 2)}</pre>` : 
+                'No user logged in';
+            
+            // Show local storage
+            const tokens = {
+                'portfolio_auth_token': localStorage.getItem('portfolio_auth_token'),
+                'portfolio_refresh_token': localStorage.getItem('portfolio_refresh_token'),
+                'supabase_session': localStorage.getItem('supabase_session')
+            };
+            document.getElementById('localStorage').innerHTML = `<pre>${JSON.stringify(tokens, null, 2)}</pre>`;
+        }
+        
+        // Update status every 2 seconds
+        setInterval(updateStatus, 2000);
+        
+        // Initial update
+        setTimeout(updateStatus, 1000);
+        
+        // Test buttons
+        document.getElementById('testLogin').addEventListener('click', async () => {
+            try {
+                const result = await window.authSystem.login({
+                    email: 'test@example.com',
+                    password: 'password123'
+                });
+                console.log('Login result:', result);
+                alert('Login successful!');
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed: ' + error.message);
+            }
+        });
+        
+        document.getElementById('testLogout').addEventListener('click', async () => {
+            try {
+                await window.authSystem.logout();
+                alert('Logout successful!');
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Logout failed: ' + error.message);
+            }
+        });
+        
+        document.getElementById('goToDashboard').addEventListener('click', () => {
+            window.location.href = '/admin-dashboard.html';
+        });
+    </script>
+</body>
+</html>

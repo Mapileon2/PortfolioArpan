@@ -1,0 +1,31 @@
+{
+  "name": "case-study-editor-saas",
+  "version": "1.0.0",
+  "description": "Production-ready case study editor with Supabase and Cloudinary integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'Build complete'",
+    "deploy": "npm run build && vercel --prod"
+  },
+  "keywords": [
+    "case-study",
+    "editor",
+    "saas",
+    "supabase",
+    "cloudinary",
+    "portfolio"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "compression": "^1.7.4"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

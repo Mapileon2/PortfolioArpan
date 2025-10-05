@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .activity-item {
+            transition: all 0.2s ease;
+        }
+        
+        .activity-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .permission-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .permission-admin {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .permission-editor {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .permission-viewer {
+            background-color: #f3e8ff;
+            color: #7c3aed;
+        }
+        
+        .security-indicator {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .security-indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition transform -translate-x-full lg:translate-x-0">
+        <div class="flex items-center justify-center h-16 bg-gradient-to-r from-blue-600 to-purple-600">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-magic text-white text-xl"></i>
+                <span class="text-white text-xl font-bold">Portfolio Admin</span>
+            </div>
+        </div>
+        
+        <nav class="mt-8">
+            <div class="px-4 space-y-2">
+                <a href="#dashboard" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 active">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#projects" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-folder-open mr-3"></i>
+                    Projects
+                </a>
+                <a href="#case-studies" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-book mr-3"></i>
+                    Case Studies
+                </a>
+                <a href="#carousel" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-images mr-3"></i>
+                    Carousel
+                </a>
+                <a href="#content" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-edit mr-3"></i>
+                    Content
+                </a>
+                <a href="#analytics" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Analytics
+                </a>
+                <a href="#settings" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-cog mr-3"></i>
+                    Settings
+                </a>
+            </div>
+            
+            <div class="px-4 mt-8">
+                <div class="border-t pt-4">
+                    <a href="#security" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-shield-alt mr-3"></i>
+                        Security
+                    </a>
+                    <a href="#profile" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-user mr-3"></i>
+                        Profile
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="lg:ml-64">
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center space-x-4">
+                    <button id="sidebarToggle" class="lg:hidden text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 id="pageTitle" class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notificationBtn" class="text-gray-600 hover:text-gray-900 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notificationBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">3</span>
+                        </button>
+                    </div>
+                    
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                            <img id="userAvatar" src="https://via.placeholder.com/32" alt="User" class="w-8 h-8 rounded-full">
+                            <span id="userName" class="hidden md:block">Loading...</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border hidden z-10">
+                            <div class="py-2">
+                                <a href="#profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2"></i>Profile
+                                </a>
+                                <a href="#settings" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>Settings
+                                </a>
+                                <a href="#security" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-shield-alt mr-2"></i>Security
+                                </a>
+                                <div class="border-t my-2"></div>
+                                <button id="logoutBtn" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="p-6">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="page-view">
+                <!-- Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="metric-card text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Total Projects</p>
+                                <p id="totalProjects" class="text-3xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-folder-open text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-500 text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Case Studies</p>
+                                <p id="totalCaseStudies" class="text-3xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-book text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-500 text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Carousel Images</p>
+                                <p id="totalCarouselImages" class="text-3xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-images text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-red-500 text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Page Views</p>
+                                <p id="totalPageViews" class="text-3xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-eye text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button class="quick-action-btn flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-plus text-blue-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-blue-600">New Project</span>
+                            </button>
+                            <button class="quick-action-btn flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                                <i class="fas fa-book-open text-green-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-green-600">New Case Study</span>
+                            </button>
+                            <button class="quick-action-btn flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                                <i class="fas fa-image text-purple-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-purple-600">Add Image</span>
+                            </button>
+                            <button class="quick-action-btn flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                                <i class="fas fa-edit text-yellow-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-yellow-600">Edit Content</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                        <div id="recentActivity" class="space-y-3">
+                            <!-- Activity items will be loaded here -->
+                            <div class="flex items-center space-x-3 activity-item p-2 rounded">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900">Loading recent activity...</p>
+                                    <p class="text-xs text-gray-500">Please wait</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">System Status</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="security-indicator inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
+                                <i class="fas fa-server text-green-600"></i>
+                            </div>
+                            <h4 class="font-medium text-gray-900">Server Status</h4>
+                            <p id="serverStatus" class="text-sm text-green-600">Online</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="security-indicator inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-3">
+                                <i class="fas fa-database text-blue-600"></i>
+                            </div>
+                            <h4 class="font-medium text-gray-900">Database</h4>
+                            <p id="databaseStatus" class="text-sm text-blue-600">Connected</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="security-indicator inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-3">
+                                <i class="fas fa-shield-alt text-purple-600"></i>
+                            </div>
+                            <h4 class="font-medium text-gray-900">Security</h4>
+                            <p id="securityStatus" class="text-sm text-purple-600">Protected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security View -->
+            <div id="securityView" class="page-view hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Security Overview -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Security Overview</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-shield-alt text-green-600"></i>
+                                    <span class="text-sm font-medium">Two-Factor Authentication</span>
+                                </div>
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Enabled</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-lock text-blue-600"></i>
+                                    <span class="text-sm font-medium">Password Strength</span>
+                                </div>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Strong</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-clock text-yellow-600"></i>
+                                    <span class="text-sm font-medium">Session Timeout</span>
+                                </div>
+                                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">24 hours</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Sessions -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Active Sessions</h3>
+                        <div id="activeSessions" class="space-y-3">
+                            <!-- Sessions will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Security Logs -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 lg:col-span-2">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Security Logs</h3>
+                        <div id="securityLogs" class="space-y-2">
+                            <!-- Logs will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile View -->
+            <div id="profileView" class="page-view hidden">
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Profile Settings</h3>
+                        
+                        <form id="profileForm" class="space-y-6">
+                            <div class="flex items-center space-x-6">
+                                <div class="relative">
+                                    <img id="profileAvatar" src="https://via.placeholder.com/80" alt="Profile" class="w-20 h-20 rounded-full">
+                                    <button type="button" class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                        <i class="fas fa-camera text-xs"></i>
+                                    </button>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Profile Picture</h4>
+                                    <p class="text-sm text-gray-500">Upload a new profile picture</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                    <input type="text" id="profileName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" id="profileEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                                <div id="userRole" class="permission-badge permission-admin">
+                                    <i class="fas fa-crown mr-1"></i>
+                                    Administrator
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 mt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Change Password</h3>
+                        
+                        <form id="passwordForm" class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                                <input type="password" id="currentPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                                <input type="password" id="newPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                                <input type="password" id="confirmNewPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                    Update Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Panel -->
+    <div id="notificationPanel" class="fixed top-16 right-4 w-80 bg-white rounded-lg shadow-lg border hidden z-50">
+        <div class="p-4 border-b">
+            <h3 class="font-semibold text-gray-900">Notifications</h3>
+        </div>
+        <div id="notificationList" class="max-h-96 overflow-y-auto">
+            <!-- Notifications will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Load Authentication System -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-system.js"></script>
+    
+    <script>
+        class AdminDashboard {
+            constructor() {
+                this.currentView = 'dashboard';
+                this.init();
+            }
+
+            async init() {
+                // Check authentication - simplified for immediate testing
+                const token = localStorage.getItem('portfolio_auth_token');
+                const userData = localStorage.getItem('portfolio_user_data');
+                
+                if (!token || !userData) {
+                    console.log('No authentication found, redirecting to login');
+                    window.location.href = '/admin-login-simple.html';
+                    return;
+                }
+
+                console.log('Authentication found, initializing dashboard');
+                this.setupEventListeners();
+                this.loadUserData();
+                this.loadDashboardData();
+                this.setupNavigation();
+            }
+
+            setupEventListeners() {
+                // Sidebar toggle
+                document.getElementById('sidebarToggle').addEventListener('click', () => {
+                    this.toggleSidebar();
+                });
+
+                // User menu
+                document.getElementById('userMenuBtn').addEventListener('click', () => {
+                    this.toggleUserMenu();
+                });
+
+                // Logout
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    this.logout();
+                });
+
+                // Notifications
+                document.getElementById('notificationBtn').addEventListener('click', () => {
+                    this.toggleNotifications();
+                });
+
+                // Navigation items
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const view = item.getAttribute('href').substring(1);
+                        this.switchView(view);
+                    });
+                });
+
+                // Quick actions
+                document.querySelectorAll('.quick-action-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const action = btn.querySelector('span').textContent;
+                        this.handleQuickAction(action);
+                    });
+                });
+
+                // Forms
+                document.getElementById('profileForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.updateProfile();
+                });
+
+                document.getElementById('passwordForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.changePassword();
+                });
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#userMenuBtn')) {
+                        document.getElementById('userDropdown').classList.add('hidden');
+                    }
+                    if (!e.target.closest('#notificationBtn')) {
+                        document.getElementById('notificationPanel').classList.add('hidden');
+                    }
+                });
+            }
+
+            async loadUserData() {
+                const user = window.authSystem.getCurrentUser();
+                if (user) {
+                    document.getElementById('userName').textContent = user.name || user.email;
+                    document.getElementById('profileName').value = user.name || '';
+                    document.getElementById('profileEmail').value = user.email || '';
+                    
+                    if (user.avatar) {
+                        document.getElementById('userAvatar').src = user.avatar;
+                        document.getElementById('profileAvatar').src = user.avatar;
+                    }
+                }
+            }
+
+            async loadDashboardData() {
+                try {
+                    // Load metrics
+                    const [projects, caseStudies, carouselImages] = await Promise.all([
+                        this.fetchData('/api/projects'),
+                        this.fetchData('/api/case-studies'),
+                        this.fetchData('/api/carousel-images')
+                    ]);
+
+                    document.getElementById('totalProjects').textContent = projects.length || 0;
+                    document.getElementById('totalCaseStudies').textContent = caseStudies.length || 0;
+                    document.getElementById('totalCarouselImages').textContent = carouselImages.length || 0;
+                    document.getElementById('totalPageViews').textContent = '1,234'; // Mock data
+
+                    // Load recent activity
+                    this.loadRecentActivity();
+
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                }
+            }
+
+            async fetchData(endpoint) {
+                try {
+                    const token = window.authSystem.getToken();
+                    const response = await fetch(endpoint, {
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                    });
+                    
+                    if (response.ok) {
+                        return await response.json();
+                    }
+                    return [];
+                } catch (error) {
+                    console.error(`Error fetching ${endpoint}:`, error);
+                    return [];
+                }
+            }
+
+            loadRecentActivity() {
+                const activities = [
+                    { type: 'project', message: 'New project "E-commerce Platform" created', time: '2 hours ago', color: 'blue' },
+                    { type: 'image', message: 'Carousel image uploaded', time: '4 hours ago', color: 'green' },
+                    { type: 'case-study', message: 'Case study "Mobile App Design" updated', time: '1 day ago', color: 'purple' },
+                    { type: 'security', message: 'Password changed successfully', time: '2 days ago', color: 'yellow' }
+                ];
+
+                const container = document.getElementById('recentActivity');
+                container.innerHTML = activities.map(activity => `
+                    <div class="flex items-center space-x-3 activity-item p-2 rounded">
+                        <div class="w-2 h-2 bg-${activity.color}-500 rounded-full"></div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-900">${activity.message}</p>
+                            <p class="text-xs text-gray-500">${activity.time}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            setupNavigation() {
+                // Set active nav item
+                this.updateActiveNav('dashboard');
+            }
+
+            switchView(view) {
+                // Hide all views
+                document.querySelectorAll('.page-view').forEach(v => v.classList.add('hidden'));
+                
+                // Show selected view
+                const viewElement = document.getElementById(`${view}View`);
+                if (viewElement) {
+                    viewElement.classList.remove('hidden');
+                    this.currentView = view;
+                    
+                    // Update page title
+                    const titles = {
+                        'dashboard': 'Dashboard',
+                        'security': 'Security',
+                        'profile': 'Profile',
+                        'projects': 'Projects',
+                        'case-studies': 'Case Studies',
+                        'carousel': 'Carousel',
+                        'content': 'Content',
+                        'analytics': 'Analytics',
+                        'settings': 'Settings'
+                    };
+                    
+                    document.getElementById('pageTitle').textContent = titles[view] || 'Dashboard';
+                    this.updateActiveNav(view);
+                    
+                    // Load view-specific data
+                    this.loadViewData(view);
+                }
+            }
+
+            async loadViewData(view) {
+                switch (view) {
+                    case 'security':
+                        await this.loadSecurityData();
+                        break;
+                    case 'profile':
+                        await this.loadProfileData();
+                        break;
+                }
+            }
+
+            async loadSecurityData() {
+                try {
+                    const [sessions, logs] = await Promise.all([
+                        window.authSystem.getActiveSessions(),
+                        window.authSystem.getSecurityLogs()
+                    ]);
+
+                    this.renderActiveSessions(sessions);
+                    this.renderSecurityLogs(logs);
+                } catch (error) {
+                    console.error('Error loading security data:', error);
+                }
+            }
+
+            renderActiveSessions(sessions) {
+                const container = document.getElementById('activeSessions');
+                
+                if (!sessions.length) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">No active sessions</p>';
+                    return;
+                }
+
+                container.innerHTML = sessions.map(session => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-desktop text-gray-600"></i>
+                            <div>
+                                <p class="text-sm font-medium">${session.device || 'Unknown Device'}</p>
+                                <p class="text-xs text-gray-500">${session.location || 'Unknown Location'}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs ${session.current ? 'text-green-600' : 'text-gray-500'}">
+                                ${session.current ? 'Current' : 'Active'}
+                            </span>
+                            ${!session.current ? `
+                                <button class="text-red-600 hover:text-red-800 text-xs">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderSecurityLogs(logs) {
+                const container = document.getElementById('securityLogs');
+                
+                if (!logs.length) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">No security logs</p>';
+                    return;
+                }
+
+                container.innerHTML = logs.slice(0, 10).map(log => `
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-${this.getLogIcon(log.event)} text-gray-600"></i>
+                            <div>
+                                <p class="text-sm">${this.getLogMessage(log)}</p>
+                                <p class="text-xs text-gray-500">${new Date(log.timestamp).toLocaleString()}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full ${this.getLogBadgeClass(log.event)}">
+                            ${log.event.replace('_', ' ')}
+                        </span>
+                    </div>
+                `).join('');
+            }
+
+            getLogIcon(event) {
+                const icons = {
+                    'login_success': 'sign-in-alt',
+                    'login_failed': 'exclamation-triangle',
+                    'logout': 'sign-out-alt',
+                    'password_changed': 'key',
+                    'session_timeout': 'clock',
+                    'device_change': 'mobile-alt',
+                    'location_change': 'map-marker-alt'
+                };
+                return icons[event] || 'info-circle';
+            }
+
+            getLogMessage(log) {
+                const messages = {
+                    'login_success': 'Successful login',
+                    'login_failed': 'Failed login attempt',
+                    'logout': 'User logged out',
+                    'password_changed': 'Password changed',
+                    'session_timeout': 'Session expired',
+                    'device_change': 'New device detected',
+                    'location_change': 'Location change detected'
+                };
+                return messages[log.event] || log.event;
+            }
+
+            getLogBadgeClass(event) {
+                const classes = {
+                    'login_success': 'bg-green-100 text-green-800',
+                    'login_failed': 'bg-red-100 text-red-800',
+                    'logout': 'bg-blue-100 text-blue-800',
+                    'password_changed': 'bg-yellow-100 text-yellow-800',
+                    'session_timeout': 'bg-gray-100 text-gray-800',
+                    'device_change': 'bg-purple-100 text-purple-800',
+                    'location_change': 'bg-orange-100 text-orange-800'
+                };
+                return classes[event] || 'bg-gray-100 text-gray-800';
+            }
+
+            updateActiveNav(view) {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active', 'bg-blue-100', 'text-blue-600');
+                });
+                
+                const activeItem = document.querySelector(`[href="#${view}"]`);
+                if (activeItem) {
+                    activeItem.classList.add('active', 'bg-blue-100', 'text-blue-600');
+                }
+            }
+
+            toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('-translate-x-full');
+            }
+
+            toggleUserMenu() {
+                const dropdown = document.getElementById('userDropdown');
+                dropdown.classList.toggle('hidden');
+            }
+
+            toggleNotifications() {
+                const panel = document.getElementById('notificationPanel');
+                panel.classList.toggle('hidden');
+                
+                if (!panel.classList.contains('hidden')) {
+                    this.loadNotifications();
+                }
+            }
+
+            loadNotifications() {
+                const notifications = [
+                    { type: 'info', message: 'New project created successfully', time: '5 min ago' },
+                    { type: 'warning', message: 'Carousel image needs optimization', time: '1 hour ago' },
+                    { type: 'success', message: 'Case study published', time: '2 hours ago' }
+                ];
+
+                const container = document.getElementById('notificationList');
+                container.innerHTML = notifications.map(notif => `
+                    <div class="p-4 border-b hover:bg-gray-50">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-${notif.type === 'info' ? 'info-circle text-blue-500' : 
+                                                notif.type === 'warning' ? 'exclamation-triangle text-yellow-500' : 
+                                                'check-circle text-green-500'} mt-1"></i>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-900">${notif.message}</p>
+                                <p class="text-xs text-gray-500 mt-1">${notif.time}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            handleQuickAction(action) {
+                const actions = {
+                    'New Project': () => this.switchView('projects'),
+                    'New Case Study': () => this.switchView('case-studies'),
+                    'Add Image': () => this.switchView('carousel'),
+                    'Edit Content': () => this.switchView('content')
+                };
+
+                if (actions[action]) {
+                    actions[action]();
+                }
+            }
+
+            async updateProfile() {
+                const name = document.getElementById('profileName').value;
+                const email = document.getElementById('profileEmail').value;
+
+                try {
+                    await window.authSystem.updateProfile({ name, email });
+                    this.showAlert('success', 'Profile updated successfully');
+                } catch (error) {
+                    this.showAlert('error', error.message);
+                }
+            }
+
+            async changePassword() {
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+                if (newPassword !== confirmPassword) {
+                    this.showAlert('error', 'New passwords do not match');
+                    return;
+                }
+
+                try {
+                    await window.authSystem.changePassword(currentPassword, newPassword);
+                    this.showAlert('success', 'Password changed successfully');
+                    
+                    // Clear form
+                    document.getElementById('passwordForm').reset();
+                } catch (error) {
+                    this.showAlert('error', error.message);
+                }
+            }
+
+            async logout() {
+                try {
+                    await window.authSystem.logout();
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    // Force redirect even if logout fails
+                    window.location.href = '/admin-login-v2.html';
+                }
+            }
+
+            showAlert(type, message) {
+                // Create alert element
+                const alert = document.createElement('div');
+                alert.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+                    type === 'success' ? 'bg-green-500' : 
+                    type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                } text-white transform translate-x-full transition-transform duration-300`;
+                
+                alert.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'}-circle"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+
+                document.body.appendChild(alert);
+
+                // Slide in
+                setTimeout(() => alert.classList.remove('translate-x-full'), 100);
+
+                // Auto remove
+                setTimeout(() => {
+                    alert.classList.add('translate-x-full');
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            }
+        }
+
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new AdminDashboard();
+        });
+    </script>
+</body>
+</html>

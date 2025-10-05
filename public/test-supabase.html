@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">Supabase Connection Test</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <h2 class="text-lg font-semibold">Connection Status</h2>
+                <div id="connectionStatus" class="p-3 bg-gray-100 rounded">Testing...</div>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-semibold">Test Results</h2>
+                <div id="testResults" class="p-3 bg-gray-100 rounded text-xs">
+                    <pre id="logOutput">Starting tests...</pre>
+                </div>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button id="testConnection" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Test Connection
+                </button>
+                <button id="testAuth" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Test Auth
+                </button>
+                <button id="clearLogs" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Clear Logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        const SUPABASE_URL = 'https://fzyrsurzgepeawvfjved.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6eXJzdXJ6Z2VwZWF3dmZqdmVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NjIyMDYsImV4cCI6MjA3NTIzODIwNn0.cKBp1Sw8l2mY3AxqXiazxe9BFaB3LaZmvzVZvod_42Y';
+        
+        let supabase;
+        let logOutput = [];
+        
+        function log(message, data = null) {
+            const timestamp = new Date().toISOString().substr(11, 8);
+            const logEntry = `[${timestamp}] ${message}`;
+            if (data) {
+                logOutput.push(logEntry + ': ' + JSON.stringify(data, null, 2));
+            } else {
+                logOutput.push(logEntry);
+            }
+            document.getElementById('logOutput').textContent = logOutput.join('\n');
+            console.log(message, data);
+        }
+        
+        async function initializeSupabase() {
+            try {
+                log('Initializing Supabase...');
+                
+                if (!window.supabase) {
+                    log('ERROR: Supabase not loaded from CDN');
+                    return false;
+                }
+                
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                log('Supabase client created');
+                
+                // Test basic connection
+                const { data, error } = await supabase.from('_test_').select('*').limit(1);
+                log('Connection test result', { hasError: !!error, errorMessage: error?.message });
+                
+                return true;
+            } catch (error) {
+                log('ERROR initializing Supabase', error.message);
+                return false;
+            }
+        }
+        
+        async function testConnection() {
+            log('=== Testing Connection ===');
+            
+            const success = await initializeSupabase();
+            
+            document.getElementById('connectionStatus').innerHTML = success ? 
+                '<span class="text-green-600">✅ Connected</span>' : 
+                '<span class="text-red-600">❌ Connection Failed</span>';
+        }
+        
+        async function testAuth() {
+            log('=== Testing Authentication ===');
+            
+            if (!supabase) {
+                log('ERROR: Supabase not initialized');
+                return;
+            }
+            
+            try {
+                // Test sign up with a dummy user
+                log('Testing sign up...');
+                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                    email: 'test@example.com',
+                    password: 'testpassword123'
+                });
+                
+                log('Sign up result', { 
+                    hasUser: !!signUpData.user, 
+                    hasSession: !!signUpData.session,
+                    error: signUpError?.message 
+                });
+                
+                // Test getting current session
+                log('Testing get session...');
+                const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+                
+                log('Get session result', { 
+                    hasSession: !!sessionData.session,
+                    error: sessionError?.message 
+                });
+                
+            } catch (error) {
+                log('ERROR in auth test', error.message);
+            }
+        }
+        
+        function clearLogs() {
+            logOutput = [];
+            document.getElementById('logOutput').textContent = 'Logs cleared.';
+        }
+        
+        // Event listeners
+        document.getElementById('testConnection').addEventListener('click', testConnection);
+        document.getElementById('testAuth').addEventListener('click', testAuth);
+        document.getElementById('clearLogs').addEventListener('click', clearLogs);
+        
+        // Auto-test on load
+        setTimeout(testConnection, 1000);
+    </script>
+</body>
+</html>

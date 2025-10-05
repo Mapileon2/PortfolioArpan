@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to New Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4 text-center">
+        <div class="mb-6">
+            <div class="spinner w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Upgrading Admin Panel</h1>
+            <p class="text-gray-600">Redirecting you to the new SaaS admin system...</p>
+        </div>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h2 class="font-semibold text-blue-800 mb-2">🚀 What's New:</h2>
+            <ul class="text-sm text-blue-700 text-left space-y-1">
+                <li>• Modern, responsive design</li>
+                <li>• Enhanced security with Supabase</li>
+                <li>• Role-based access control</li>
+                <li>• Real-time analytics</li>
+                <li>• API key management</li>
+                <li>• Backup & restore system</li>
+            </ul>
+        </div>
+        
+        <p class="text-xs text-gray-500">
+            If you're not redirected automatically, 
+            <a href="/admin-login-v2.html" class="text-blue-600 hover:underline">click here</a>
+        </p>
+    </div>
+
+    <script>
+        // Redirect after 3 seconds
+        setTimeout(() => {
+            window.location.href = '/admin-login-v2.html';
+        }, 3000);
+        
+        // Also redirect immediately if user clicks anywhere
+        document.addEventListener('click', () => {
+            window.location.href = '/admin-login-v2.html';
+        });
+    </script>
+</body>
+</html>

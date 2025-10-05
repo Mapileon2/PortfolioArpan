@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schema Verification Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">
+                🔍 Database Schema Verification
+            </h1>
+
+            <div id="results" class="space-y-4">
+                <div class="text-gray-600">Checking database schema...</div>
+            </div>
+
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold text-blue-800 mb-2">Instructions:</h3>
+                <ol class="text-sm text-blue-700 space-y-1">
+                    <li>1. Copy content from supabase-schema.sql</li>
+                    <li>2. Go to Supabase Dashboard → SQL Editor</li>
+                    <li>3. Paste and run the schema</li>
+                    <li>4. Refresh this page to verify</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://fzyrsurzgepeawvfjved.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6eXJzdXJ6Z2VwZWF3dmZqdmVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NjIyMDYsImV4cCI6MjA3NTIzODIwNn0.cKBp1Sw8l2mY3AxqXiazxe9BFaB3LaZmvzVZvod_42Y';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function checkSchema() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            const requiredTables = [
+                'user_profiles',
+                'projects', 
+                'case_studies',
+                'carousel_images',
+                'skills',
+                'testimonials',
+                'timeline',
+                'contact_info',
+                'site_settings',
+                'api_keys',
+                'analytics_events',
+                'security_logs',
+                'user_sessions',
+                'backups',
+                'integrations',
+                'support_tickets',
+                'subscriptions'
+            ];
+
+            let successCount = 0;
+            let totalTables = requiredTables.length;
+
+            for (const table of requiredTables) {
+                try {
+                    const { data, error } = await supabase
+                        .from(table)
+                        .select('*')
+                        .limit(1);
+                    
+                    const resultDiv = document.createElement('div');
+                    
+                    if (!error || error.code === 'PGRST116') {
+                        // PGRST116 means empty table, which is fine
+                        successCount++;
+                        resultDiv.className = 'flex items-center space-x-2 text-green-600';
+                        resultDiv.innerHTML = `
+                            <i class="fas fa-check-circle"></i>
+                            <span>✅ Table '${table}' exists and accessible</span>
+                        `;
+                    } else {
+                        resultDiv.className = 'flex items-center space-x-2 text-red-600';
+                        resultDiv.innerHTML = `
+                            <i class="fas fa-times-circle"></i>
+                            <span>❌ Table '${table}' error: ${error.message}</span>
+                        `;
+                    }
+                    
+                    resultsDiv.appendChild(resultDiv);
+                    
+                } catch (err) {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'flex items-center space-x-2 text-red-600';
+                    resultDiv.innerHTML = `
+                        <i class="fas fa-times-circle"></i>
+                        <span>❌ Table '${table}' error: ${err.message}</span>
+                    `;
+                    resultsDiv.appendChild(resultDiv);
+                }
+            }
+
+            // Summary
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'mt-6 p-4 rounded-lg';
+            
+            if (successCount === totalTables) {
+                summaryDiv.className += ' bg-green-50 border border-green-200';
+                summaryDiv.innerHTML = `
+                    <div class="flex items-center space-x-2 text-green-800">
+                        <i class="fas fa-check-circle text-xl"></i>
+                        <div>
+                            <h3 class="font-semibold">🎉 Schema Applied Successfully!</h3>
+                            <p class="text-sm">All ${totalTables} tables are ready. You can now use the full authentication system.</p>
+                            <div class="mt-2">
+                                <a href="/admin-login-v2.html" class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                    Go to Login Page →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (successCount > 0) {
+                summaryDiv.className += ' bg-yellow-50 border border-yellow-200';
+                summaryDiv.innerHTML = `
+                    <div class="flex items-center space-x-2 text-yellow-800">
+                        <i class="fas fa-exclamation-triangle text-xl"></i>
+                        <div>
+                            <h3 class="font-semibold">⚠️ Partial Schema Applied</h3>
+                            <p class="text-sm">${successCount}/${totalTables} tables found. Some tables may be missing.</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                summaryDiv.className += ' bg-red-50 border border-red-200';
+                summaryDiv.innerHTML = `
+                    <div class="flex items-center space-x-2 text-red-800">
+                        <i class="fas fa-times-circle text-xl"></i>
+                        <div>
+                            <h3 class="font-semibold">❌ Schema Not Applied</h3>
+                            <p class="text-sm">No tables found. Please apply the database schema first.</p>
+                            <div class="mt-2 text-sm">
+                                <strong>Steps:</strong>
+                                <ol class="list-decimal list-inside mt-1">
+                                    <li>Copy content from supabase-schema.sql</li>
+                                    <li>Go to <a href="https://fzyrsurzgepeawvfjved.supabase.co" target="_blank" class="text-blue-600 underline">Supabase Dashboard</a></li>
+                                    <li>Click SQL Editor → Paste → Run</li>
+                                    <li>Refresh this page</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.appendChild(summaryDiv);
+        }
+
+        // Run check when page loads
+        document.addEventListener('DOMContentLoaded', checkSchema);
+    </script>
+</body>
+</html>

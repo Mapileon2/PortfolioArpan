@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Admin - Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group input {
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .security-indicator {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .security-indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .strength-meter {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .strength-weak { background: #ef4444; width: 25%; }
+        .strength-fair { background: #f59e0b; width: 50%; }
+        .strength-good { background: #10b981; width: 75%; }
+        .strength-strong { background: #059669; width: 100%; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-white opacity-5 rounded-full floating"></div>
+        <div class="absolute top-3/4 right-1/4 w-32 h-32 bg-white opacity-5 rounded-full floating" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 right-1/3 w-48 h-48 bg-white opacity-5 rounded-full floating" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-md relative z-10">
+        <!-- Logo/Brand -->
+        <div class="text-center mb-8 slide-in">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-white bg-opacity-20 rounded-full mb-4">
+                <i class="fas fa-magic text-2xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Portfolio Admin</h1>
+            <p class="text-white text-opacity-80">Secure access to your dashboard</p>
+        </div>
+
+        <!-- Auth Tabs -->
+        <div class="glass-effect rounded-2xl p-8 slide-in" style="animation-delay: 0.2s;">
+            <!-- Tab Navigation -->
+            <div class="flex mb-6 bg-white bg-opacity-10 rounded-lg p-1">
+                <button id="loginTab" class="flex-1 py-2 px-4 text-sm font-medium text-white rounded-md transition-all duration-200 bg-white bg-opacity-20">
+                    Sign In
+                </button>
+                <button id="registerTab" class="flex-1 py-2 px-4 text-sm font-medium text-white text-opacity-70 rounded-md transition-all duration-200 hover:text-opacity-100">
+                    Sign Up
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-4">
+                <div class="input-group">
+                    <label class="block text-sm font-medium text-white text-opacity-90 mb-2">
+                        <i class="fas fa-envelope mr-2"></i>Email Address
+                    </label>
+                    <input type="email" id="loginEmail" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
+                           placeholder="Enter your email">
+                </div>
+
+                <div class="input-group">
+                    <label class="block text-sm font-medium text-white text-opacity-90 mb-2">
+                        <i class="fas fa-lock mr-2"></i>Password
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="loginPassword" required
+                               class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent pr-12"
+                               placeholder="Enter your password">
+                        <button type="button" id="toggleLoginPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-white text-opacity-70 hover:text-opacity-100">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="rememberMe" class="w-4 h-4 text-blue-600 bg-white bg-opacity-20 border-white border-opacity-30 rounded focus:ring-blue-500 focus:ring-2">
+                        <span class="ml-2 text-sm text-white text-opacity-80">Remember me</span>
+                    </label>
+                    <button type="button" id="forgotPassword" class="text-sm text-white text-opacity-80 hover:text-opacity-100 transition-colors">
+                        Forgot password?
+                    </button>
+                </div>
+
+                <button type="submit" id="loginBtn" class="w-full btn-primary text-white font-semibold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="btn-text">Sign In</span>
+                    <i class="fas fa-spinner fa-spin ml-2 hidden loading-icon"></i>
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="space-y-4 hidden">
+                <div class="input-group">
+                    <label class="block text-sm font-medium text-white text-opacity-90 mb-2">
+                        <i class="fas fa-user mr-2"></i>Full Name
+                    </label>
+                    <input type="text" id="registerName" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
+                           placeholder="Enter your full name">
+                </div>
+
+                <div class="input-group">
+                    <label class="block text-sm font-medium text-white text-opacity-90 mb-2">
+                        <i class="fas fa-envelope mr-2"></i>Email Address
+                    </label>
+                    <input type="email" id="registerEmail" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
+                           placeholder="Enter your email">
+                </div>
+
+                <div class="input-group">
+                    <label class="block text-sm font-medium text-white text-opacity-90 mb-2">
+                        <i class="fas fa-lock mr-2"></i>Password
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="registerPassword" required
+                               class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent pr-12"
+                               placeholder="Create a password">
+                        <button type="button" id="toggleRegisterPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-white text-opacity-70 hover:text-opacity-100">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <!-- Password Strength Meter -->
+                    <div class="mt-2">
+                        <div class="flex justify-between text-xs text-white text-opacity-70 mb-1">
+                            <span>Password Strength</span>
+                            <span id="strengthText">Weak</span>
+                        </div>
+                        <div class="w-full bg-white bg-opacity-20 rounded-full h-1">
+                            <div id="strengthMeter" class="strength-meter strength-weak"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="block text-sm font-medium text-white text-opacity-90 mb-2">
+                        <i class="fas fa-lock mr-2"></i>Confirm Password
+                    </label>
+                    <input type="password" id="confirmPassword" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
+                           placeholder="Confirm your password">
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="agreeTerms" required class="w-4 h-4 text-blue-600 bg-white bg-opacity-20 border-white border-opacity-30 rounded focus:ring-blue-500 focus:ring-2">
+                    <label for="agreeTerms" class="ml-2 text-sm text-white text-opacity-80">
+                        I agree to the <a href="#" class="text-white hover:underline">Terms of Service</a> and <a href="#" class="text-white hover:underline">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" id="registerBtn" class="w-full btn-primary text-white font-semibold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="btn-text">Create Account</span>
+                    <i class="fas fa-spinner fa-spin ml-2 hidden loading-icon"></i>
+                </button>
+            </form>
+
+            <!-- Security Features -->
+            <div class="mt-6 pt-6 border-t border-white border-opacity-20">
+                <div class="flex items-center justify-center space-x-4 text-xs text-white text-opacity-60">
+                    <div class="flex items-center security-indicator">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        <span>SSL Encrypted</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-lock mr-1"></i>
+                        <span>2FA Ready</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-eye-slash mr-1"></i>
+                        <span>Privacy First</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Options -->
+        <div class="text-center mt-6 slide-in" style="animation-delay: 0.4s;">
+            <p class="text-white text-opacity-70 text-sm">
+                Need help? <a href="#" class="text-white hover:underline">Contact Support</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-2xl p-8 w-full max-w-md mx-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-key text-4xl text-white mb-4"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">Reset Password</h2>
+                <p class="text-white text-opacity-80">Enter your email to receive reset instructions</p>
+            </div>
+            
+            <form id="forgotPasswordForm">
+                <div class="input-group mb-4">
+                    <input type="email" id="resetEmail" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-white placeholder-opacity-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
+                           placeholder="Enter your email address">
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="button" id="cancelReset" class="flex-1 py-3 px-4 bg-white bg-opacity-10 text-white rounded-lg hover:bg-opacity-20 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" id="sendResetBtn" class="flex-1 btn-primary text-white font-semibold py-3 px-4 rounded-lg">
+                        <span class="btn-text">Send Reset Link</span>
+                        <i class="fas fa-spinner fa-spin ml-2 hidden loading-icon"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Load Authentication System -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-system.js"></script>
+    
+    <script>
+        // UI Controller
+        class AuthUI {
+            constructor() {
+                this.currentTab = 'login';
+                this.init();
+            }
+
+            init() {
+                this.setupTabSwitching();
+                this.setupPasswordToggle();
+                this.setupPasswordStrength();
+                this.setupForms();
+                this.setupModals();
+                this.checkExistingAuth();
+            }
+
+            setupTabSwitching() {
+                const loginTab = document.getElementById('loginTab');
+                const registerTab = document.getElementById('registerTab');
+                const loginForm = document.getElementById('loginForm');
+                const registerForm = document.getElementById('registerForm');
+
+                loginTab.addEventListener('click', () => {
+                    this.switchTab('login');
+                });
+
+                registerTab.addEventListener('click', () => {
+                    this.switchTab('register');
+                });
+            }
+
+            switchTab(tab) {
+                const loginTab = document.getElementById('loginTab');
+                const registerTab = document.getElementById('registerTab');
+                const loginForm = document.getElementById('loginForm');
+                const registerForm = document.getElementById('registerForm');
+
+                if (tab === 'login') {
+                    loginTab.classList.add('bg-white', 'bg-opacity-20');
+                    loginTab.classList.remove('text-opacity-70');
+                    registerTab.classList.remove('bg-white', 'bg-opacity-20');
+                    registerTab.classList.add('text-opacity-70');
+                    
+                    loginForm.classList.remove('hidden');
+                    registerForm.classList.add('hidden');
+                } else {
+                    registerTab.classList.add('bg-white', 'bg-opacity-20');
+                    registerTab.classList.remove('text-opacity-70');
+                    loginTab.classList.remove('bg-white', 'bg-opacity-20');
+                    loginTab.classList.add('text-opacity-70');
+                    
+                    registerForm.classList.remove('hidden');
+                    loginForm.classList.add('hidden');
+                }
+
+                this.currentTab = tab;
+            }
+
+            setupPasswordToggle() {
+                const toggles = [
+                    { button: 'toggleLoginPassword', input: 'loginPassword' },
+                    { button: 'toggleRegisterPassword', input: 'registerPassword' }
+                ];
+
+                toggles.forEach(({ button, input }) => {
+                    document.getElementById(button).addEventListener('click', () => {
+                        const inputEl = document.getElementById(input);
+                        const buttonEl = document.getElementById(button);
+                        const icon = buttonEl.querySelector('i');
+
+                        if (inputEl.type === 'password') {
+                            inputEl.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            inputEl.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                });
+            }
+
+            setupPasswordStrength() {
+                const passwordInput = document.getElementById('registerPassword');
+                const strengthMeter = document.getElementById('strengthMeter');
+                const strengthText = document.getElementById('strengthText');
+
+                passwordInput.addEventListener('input', (e) => {
+                    const password = e.target.value;
+                    const strength = this.calculatePasswordStrength(password);
+                    
+                    strengthMeter.className = `strength-meter strength-${strength.level}`;
+                    strengthText.textContent = strength.text;
+                });
+            }
+
+            calculatePasswordStrength(password) {
+                let score = 0;
+                
+                if (password.length >= 8) score++;
+                if (password.length >= 12) score++;
+                if (/[a-z]/.test(password)) score++;
+                if (/[A-Z]/.test(password)) score++;
+                if (/[0-9]/.test(password)) score++;
+                if (/[^A-Za-z0-9]/.test(password)) score++;
+
+                if (score < 3) return { level: 'weak', text: 'Weak' };
+                if (score < 4) return { level: 'fair', text: 'Fair' };
+                if (score < 6) return { level: 'good', text: 'Good' };
+                return { level: 'strong', text: 'Strong' };
+            }
+
+            setupForms() {
+                // Login Form
+                document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.handleLogin();
+                });
+
+                // Register Form
+                document.getElementById('registerForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.handleRegister();
+                });
+
+                // Forgot Password Form
+                document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.handleForgotPassword();
+                });
+            }
+
+            setupModals() {
+                const forgotPasswordBtn = document.getElementById('forgotPassword');
+                const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+                const cancelResetBtn = document.getElementById('cancelReset');
+
+                forgotPasswordBtn.addEventListener('click', () => {
+                    forgotPasswordModal.classList.remove('hidden');
+                });
+
+                cancelResetBtn.addEventListener('click', () => {
+                    forgotPasswordModal.classList.add('hidden');
+                });
+
+                // Close modal on backdrop click
+                forgotPasswordModal.addEventListener('click', (e) => {
+                    if (e.target === forgotPasswordModal) {
+                        forgotPasswordModal.classList.add('hidden');
+                    }
+                });
+            }
+
+            async checkExistingAuth() {
+                console.log('Checking existing auth...');
+                console.log('Auth system available:', !!window.authSystem);
+                console.log('Supabase API available:', !!window.supabaseAPI);
+                
+                if (window.authSystem && window.authSystem.isAuthenticated()) {
+                    console.log('User already authenticated, redirecting...');
+                    this.redirectToDashboard();
+                } else {
+                    console.log('No existing authentication found');
+                }
+            }
+
+            async handleLogin() {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const rememberMe = document.getElementById('rememberMe').checked;
+
+                this.setLoading('loginBtn', true);
+
+                try {
+                    console.log('Attempting login with:', email);
+                    const result = await window.authSystem.login({
+                        email,
+                        password,
+                        rememberMe
+                    });
+
+                    console.log('Login result:', result);
+                    this.showAlert('success', 'Login successful! Redirecting...');
+                    
+                    setTimeout(() => {
+                        console.log('Redirecting to dashboard...');
+                        this.redirectToDashboard();
+                    }, 1000);
+
+                } catch (error) {
+                    console.error('Login error:', error);
+                    this.showAlert('error', error.message);
+                } finally {
+                    this.setLoading('loginBtn', false);
+                }
+            }
+
+            async handleRegister() {
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                // Validate passwords match
+                if (password !== confirmPassword) {
+                    this.showAlert('error', 'Passwords do not match');
+                    return;
+                }
+
+                // Validate password strength
+                const strength = this.calculatePasswordStrength(password);
+                if (strength.level === 'weak') {
+                    this.showAlert('error', 'Please choose a stronger password');
+                    return;
+                }
+
+                this.setLoading('registerBtn', true);
+
+                try {
+                    const result = await window.authSystem.register({
+                        name,
+                        email,
+                        password
+                    });
+
+                    if (result.requiresVerification) {
+                        this.showAlert('info', 'Please check your email to verify your account');
+                    } else {
+                        this.showAlert('success', 'Account created successfully! Redirecting...');
+                        setTimeout(() => {
+                            this.redirectToDashboard();
+                        }, 1000);
+                    }
+
+                } catch (error) {
+                    this.showAlert('error', error.message);
+                } finally {
+                    this.setLoading('registerBtn', false);
+                }
+            }
+
+            async handleForgotPassword() {
+                const email = document.getElementById('resetEmail').value;
+
+                this.setLoading('sendResetBtn', true);
+
+                try {
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    this.showAlert('success', 'Password reset instructions sent to your email');
+                    document.getElementById('forgotPasswordModal').classList.add('hidden');
+                    
+                } catch (error) {
+                    this.showAlert('error', error.message);
+                } finally {
+                    this.setLoading('sendResetBtn', false);
+                }
+            }
+
+            setLoading(buttonId, loading) {
+                const button = document.getElementById(buttonId);
+                const text = button.querySelector('.btn-text');
+                const icon = button.querySelector('.loading-icon');
+
+                if (loading) {
+                    button.disabled = true;
+                    text.textContent = 'Please wait...';
+                    icon.classList.remove('hidden');
+                } else {
+                    button.disabled = false;
+                    icon.classList.add('hidden');
+                    
+                    // Reset text based on button
+                    if (buttonId === 'loginBtn') text.textContent = 'Sign In';
+                    else if (buttonId === 'registerBtn') text.textContent = 'Create Account';
+                    else if (buttonId === 'sendResetBtn') text.textContent = 'Send Reset Link';
+                }
+            }
+
+            showAlert(type, message) {
+                const container = document.getElementById('alertContainer');
+                const alert = document.createElement('div');
+                
+                const colors = {
+                    success: 'bg-green-500',
+                    error: 'bg-red-500',
+                    info: 'bg-blue-500',
+                    warning: 'bg-yellow-500'
+                };
+
+                const icons = {
+                    success: 'fa-check-circle',
+                    error: 'fa-exclamation-circle',
+                    info: 'fa-info-circle',
+                    warning: 'fa-exclamation-triangle'
+                };
+
+                alert.className = `${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 transform translate-x-full transition-transform duration-300`;
+                alert.innerHTML = `
+                    <i class="fas ${icons[type]}"></i>
+                    <span>${message}</span>
+                    <button class="ml-auto text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                container.appendChild(alert);
+
+                // Slide in
+                setTimeout(() => {
+                    alert.classList.remove('translate-x-full');
+                }, 100);
+
+                // Auto remove
+                setTimeout(() => {
+                    alert.classList.add('translate-x-full');
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+
+                // Manual close
+                alert.querySelector('button').addEventListener('click', () => {
+                    alert.classList.add('translate-x-full');
+                    setTimeout(() => alert.remove(), 300);
+                });
+            }
+
+            redirectToDashboard() {
+                // Check if we're running on a specific port
+                const currentPort = window.location.port;
+                const baseUrl = currentPort ? `${window.location.protocol}//${window.location.hostname}:${currentPort}` : '';
+                
+                console.log('Redirecting to dashboard...');
+                window.location.href = `${baseUrl}/admin-dashboard.html`;
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing AuthUI...');
+            
+            // Wait for auth systems to be ready
+            const waitForAuthSystems = () => {
+                if (window.supabaseAPI && window.authSystem) {
+                    console.log('Auth systems ready, initializing UI...');
+                    new AuthUI();
+                } else {
+                    console.log('Waiting for auth systems...', {
+                        supabaseAPI: !!window.supabaseAPI,
+                        authSystem: !!window.authSystem
+                    });
+                    setTimeout(waitForAuthSystems, 500);
+                }
+            };
+            
+            waitForAuthSystems();
+        });
+    </script>
+</body>
+</html>
