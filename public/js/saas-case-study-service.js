@@ -221,9 +221,14 @@ class SaaSCaseStudyService {
         }
     }
 
-    // File upload methods
+    // File upload methods - FIXED VERSION
     async uploadImage(file, options = {}) {
         try {
+            // Fallback to direct Cloudinary upload if API server not available
+            if (!this.token || !await this.checkServerAvailability()) {
+                return await this.uploadToCloudinaryDirect(file, options);
+            }
+
             const formData = new FormData();
             formData.append('image', file);
             
@@ -244,7 +249,53 @@ class SaaSCaseStudyService {
                 body: formData
             });
         } catch (error) {
-            throw new Error(`Failed to upload image: ${error.message}`);
+            console.warn('API upload failed, falling back to direct Cloudinary:', error);
+            return await this.uploadToCloudinaryDirect(file, options);
+        }
+    }
+
+    async checkServerAvailability() {
+        try {
+            const response = await fetch(`${this.baseURL}/health`);
+            return response.ok;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async uploadToCloudinaryDirect(file, options = {}) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'ml_default');
+            formData.append('api_key', '951533987774134');
+            formData.append('folder', `portfolio/case-studies/${options.folder || 'general'}`);
+            formData.append('tags', `case-study,${options.folder || 'general'}`);
+
+            const response = await fetch('https://api.cloudinary.com/v1_1/dgymjtqil/image/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Cloudinary upload failed');
+            }
+
+            const result = await response.json();
+            
+            return {
+                data: {
+                    id: result.public_id,
+                    url: result.secure_url,
+                    publicId: result.public_id,
+                    width: result.width,
+                    height: result.height,
+                    size: result.bytes,
+                    folder: options.folder || 'general'
+                }
+            };
+        } catch (error) {
+            throw new Error(`Direct Cloudinary upload failed: ${error.message}`);
         }
     }
 
