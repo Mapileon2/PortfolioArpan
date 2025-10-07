@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - Case Studies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .ghibli-font { font-family: 'Gochi Hand', cursive; }
+        
+        .case-study-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .case-study-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .section-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        
+        .hero-badge { background: rgba(255, 255, 255, 0.2); color: white; }
+        .overview-badge { background: #e6fffa; color: #065f46; }
+        .problem-badge { background: #fef2f2; color: #991b1b; }
+        .process-badge { background: #f3e8ff; color: #581c87; }
+        .showcase-badge { background: #eff6ff; color: #1e40af; }
+        .reflection-badge { background: #fdf2f8; color: #be185d; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white bg-opacity-90 backdrop-filter backdrop-blur-lg shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold ghibli-font text-blue-600">
+                        <i class="fas fa-magic mr-2"></i>Portfolio
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/admin-dashboard-saas.html" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="max-w-4xl mx-auto px-4">
+            <h1 class="text-5xl font-bold mb-4 ghibli-font">My Case Studies</h1>
+            <p class="text-xl text-white text-opacity-90 mb-8">Showcasing real-world projects and solutions</p>
+            <div class="flex justify-center space-x-4">
+                <div class="text-center">
+                    <div class="text-3xl font-bold" id="totalStudies">0</div>
+                    <div class="text-white text-opacity-80">Case Studies</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold" id="totalViews">0</div>
+                    <div class="text-white text-opacity-80">Total Views</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Studies Grid -->
+    <section class="py-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+                <p class="text-xl text-gray-600">Loading case studies...</p>
+            </div>
+
+            <!-- Case Studies Container -->
+            <div id="caseStudiesContainer" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="caseStudiesGrid">
+                    <!-- Case studies will be populated here -->
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-12">
+                <i class="fas fa-file-alt text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-2xl font-bold text-gray-600 mb-2">No Case Studies Yet</h3>
+                <p class="text-gray-500 mb-6">Start creating your first case study to showcase your work.</p>
+                <a href="/case_study_editor_saas.html" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition">
+                    <i class="fas fa-plus mr-2"></i>Create First Case Study
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Study Modal -->
+    <div id="caseStudyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                <h2 id="modalTitle" class="text-2xl font-bold ghibli-font"></h2>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="p-6">
+                <!-- Case study content will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Load SaaS Service -->
+    <script src="js/saas-case-study-service.js"></script>
+    
+    <script>
+        /**
+         * SaaS Case Study Display - Public Portfolio
+         * Senior Software Engineer Implementation
+         */
+        class SaaSCaseStudyDisplay {
+            constructor() {
+                this.caseStudies = [];
+                this.init();
+            }
+
+            async init() {
+                try {
+                    console.log('🚀 Initializing SaaS Case Study Display...');
+                    
+                    // Setup event listeners
+                    this.setupEventListeners();
+                    
+                    // Load published case studies
+                    await this.loadCaseStudies();
+                    
+                    console.log('✅ SaaS Case Study Display ready!');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to initialize display:', error);
+                    this.showError('Failed to load case studies');
+                }
+            }
+
+            setupEventListeners() {
+                // Modal close
+                document.getElementById('closeModal').addEventListener('click', () => {
+                    this.closeModal();
+                });
+
+                // Close modal on backdrop click
+                document.getElementById('caseStudyModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'caseStudyModal') {
+                        this.closeModal();
+                    }
+                });
+
+                // Close modal on escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            async loadCaseStudies() {
+                try {
+                    // For public display, we'll load published case studies
+                    // This could be from a public API endpoint or cached data
+                    const response = await window.saasService.getCaseStudies({
+                        status: 'published'
+                    });
+                    
+                    this.caseStudies = response.data;
+                    
+                    // Update stats
+                    document.getElementById('totalStudies').textContent = this.caseStudies.length;
+                    
+                    const totalViews = this.caseStudies.reduce((sum, cs) => sum + (cs.view_count || 0), 0);
+                    document.getElementById('totalViews').textContent = totalViews.toLocaleString();
+                    
+                    // Display case studies
+                    this.displayCaseStudies();
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load case studies:', error);
+                    
+                    // Show demo data if API fails
+                    this.showDemoData();
+                }
+            }
+
+            displayCaseStudies() {
+                const loadingState = document.getElementById('loadingState');
+                const container = document.getElementById('caseStudiesContainer');
+                const emptyState = document.getElementById('emptyState');
+                const grid = document.getElementById('caseStudiesGrid');
+
+                loadingState.classList.add('hidden');
+
+                if (this.caseStudies.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                container.classList.remove('hidden');
+                
+                grid.innerHTML = this.caseStudies.map(caseStudy => this.createCaseStudyCard(caseStudy)).join('');
+            }
+
+            createCaseStudyCard(caseStudy) {
+                const sections = caseStudy.sections || {};
+                const heroSection = sections.hero || {};
+                
+                return `
+                    <div class="case-study-card cursor-pointer" onclick="window.caseStudyDisplay.openModal('${caseStudy.id}')">
+                        ${heroSection.image ? `
+                            <div class="h-48 bg-cover bg-center" style="background-image: url('${heroSection.image}')"></div>
+                        ` : `
+                            <div class="h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                <i class="fas fa-file-alt text-4xl text-white"></i>
+                            </div>
+                        `}
+                        
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2 text-gray-800">${caseStudy.project_title}</h3>
+                            <p class="text-gray-600 mb-4 line-clamp-3">${caseStudy.project_description || heroSection.description || 'No description available'}</p>
+                            
+                            <div class="flex justify-between items-center">
+                                <div class="flex space-x-2">
+                                    ${Object.keys(sections).filter(key => sections[key].enabled).map(sectionName => `
+                                        <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">${sectionName}</span>
+                                    `).slice(0, 3).join('')}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    <i class="fas fa-eye mr-1"></i>${caseStudy.view_count || 0}
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <div class="flex justify-between items-center text-sm text-gray-500">
+                                    <span>Updated ${new Date(caseStudy.updated_at).toLocaleDateString()}</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Published</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            openModal(caseStudyId) {
+                const caseStudy = this.caseStudies.find(cs => cs.id === caseStudyId);
+                if (!caseStudy) return;
+
+                // Track view (in a real app, this would be an API call)
+                this.trackView(caseStudyId);
+
+                // Populate modal
+                document.getElementById('modalTitle').textContent = caseStudy.project_title;
+                document.getElementById('modalContent').innerHTML = this.generateCaseStudyContent(caseStudy);
+                
+                // Show modal
+                document.getElementById('caseStudyModal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeModal() {
+                document.getElementById('caseStudyModal').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+
+            generateCaseStudyContent(caseStudy) {
+                const sections = caseStudy.sections || {};
+                let content = '';
+
+                // Generate content for each enabled section
+                Object.keys(sections).forEach(sectionName => {
+                    const section = sections[sectionName];
+                    if (section.enabled) {
+                        content += this.generateSectionContent(sectionName, section);
+                    }
+                });
+
+                return content || '<p class="text-gray-500 text-center py-8">No content available for this case study.</p>';
+            }
+
+            generateSectionContent(sectionName, sectionData) {
+                switch (sectionName) {
+                    case 'hero':
+                        return this.generateHeroSection(sectionData);
+                    case 'overview':
+                        return this.generateOverviewSection(sectionData);
+                    case 'problem':
+                        return this.generateProblemSection(sectionData);
+                    case 'process':
+                        return this.generateProcessSection(sectionData);
+                    case 'showcase':
+                        return this.generateShowcaseSection(sectionData);
+                    case 'reflection':
+                        return this.generateReflectionSection(sectionData);
+                    default:
+                        return '';
+                }
+            }
+
+            generateHeroSection(data) {
+                if (!data.title && !data.subtitle && !data.description && !data.image) return '';
+                
+                return `
+                    <section class="mb-8">
+                        <span class="section-badge hero-badge">Hero</span>
+                        ${data.title ? `<h1 class="text-4xl font-bold mb-4 ghibli-font text-gray-800">${data.title}</h1>` : ''}
+                        ${data.subtitle ? `<h2 class="text-2xl text-gray-600 mb-4">${data.subtitle}</h2>` : ''}
+                        ${data.image ? `<img src="${data.image}" class="w-full h-64 object-cover rounded-lg mb-4" alt="Hero image">` : ''}
+                        ${data.description ? `<p class="text-lg text-gray-700 leading-relaxed">${data.description}</p>` : ''}
+                    </section>
+                `;
+            }
+
+            generateOverviewSection(data) {
+                if (!data.title && !data.summary && (!data.metrics || data.metrics.length === 0)) return '';
+                
+                return `
+                    <section class="mb-8">
+                        <span class="section-badge overview-badge">Overview</span>
+                        ${data.title ? `<h2 class="text-3xl font-bold mb-4 text-gray-800">${data.title}</h2>` : ''}
+                        ${data.summary ? `<p class="text-lg text-gray-700 mb-6 leading-relaxed">${data.summary}</p>` : ''}
+                        ${data.metrics && data.metrics.length > 0 ? `
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                ${data.metrics.map(metric => `
+                                    <div class="bg-gradient-to-br from-green-50 to-blue-50 p-4 rounded-lg text-center">
+                                        <div class="text-2xl font-bold text-green-600">${metric.value}</div>
+                                        <div class="text-sm text-gray-600">${metric.name}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </section>
+                `;
+            }
+
+            generateProblemSection(data) {
+                if (!data.title && !data.description && !data.image) return '';
+                
+                return `
+                    <section class="mb-8">
+                        <span class="section-badge problem-badge">Problem</span>
+                        ${data.title ? `<h2 class="text-3xl font-bold mb-4 text-gray-800">${data.title}</h2>` : ''}
+                        ${data.image ? `<img src="${data.image}" class="w-full h-48 object-cover rounded-lg mb-4" alt="Problem illustration">` : ''}
+                        ${data.description ? `<p class="text-lg text-gray-700 leading-relaxed">${data.description}</p>` : ''}
+                    </section>
+                `;
+            }
+
+            generateProcessSection(data) {
+                if (!data.title && !data.description && (!data.steps || data.steps.length === 0)) return '';
+                
+                return `
+                    <section class="mb-8">
+                        <span class="section-badge process-badge">Process</span>
+                        ${data.title ? `<h2 class="text-3xl font-bold mb-4 text-gray-800">${data.title}</h2>` : ''}
+                        ${data.description ? `<p class="text-lg text-gray-700 mb-6 leading-relaxed">${data.description}</p>` : ''}
+                        ${data.steps && data.steps.length > 0 ? `
+                            <div class="space-y-4">
+                                ${data.steps.map((step, index) => `
+                                    <div class="flex items-start">
+                                        <div class="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-4 mt-1 flex-shrink-0">${index + 1}</div>
+                                        <p class="text-gray-700 leading-relaxed">${step}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </section>
+                `;
+            }
+
+            generateShowcaseSection(data) {
+                if (!data.title && !data.description && (!data.images || data.images.length === 0)) return '';
+                
+                return `
+                    <section class="mb-8">
+                        <span class="section-badge showcase-badge">Showcase</span>
+                        ${data.title ? `<h2 class="text-3xl font-bold mb-4 text-gray-800">${data.title}</h2>` : ''}
+                        ${data.description ? `<p class="text-lg text-gray-700 mb-6 leading-relaxed">${data.description}</p>` : ''}
+                        ${data.images && data.images.length > 0 ? `
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${data.images.map(image => `
+                                    <div class="relative">
+                                        <img src="${image.url}" class="w-full h-48 object-cover rounded-lg" alt="${image.caption || 'Showcase image'}">
+                                        ${image.caption ? `<p class="text-sm text-gray-600 mt-2">${image.caption}</p>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </section>
+                `;
+            }
+
+            generateReflectionSection(data) {
+                if (!data.title && !data.learnings && !data.improvements) return '';
+                
+                return `
+                    <section class="mb-8">
+                        <span class="section-badge reflection-badge">Reflection</span>
+                        ${data.title ? `<h2 class="text-3xl font-bold mb-4 text-gray-800">${data.title}</h2>` : ''}
+                        ${data.learnings ? `
+                            <div class="mb-6">
+                                <h3 class="text-xl font-semibold mb-2 text-gray-800">What I Learned</h3>
+                                <p class="text-lg text-gray-700 leading-relaxed">${data.learnings}</p>
+                            </div>
+                        ` : ''}
+                        ${data.improvements ? `
+                            <div>
+                                <h3 class="text-xl font-semibold mb-2 text-gray-800">What I'd Do Differently</h3>
+                                <p class="text-lg text-gray-700 leading-relaxed">${data.improvements}</p>
+                            </div>
+                        ` : ''}
+                    </section>
+                `;
+            }
+
+            trackView(caseStudyId) {
+                // In a real app, this would make an API call to track the view
+                console.log(`📊 Tracking view for case study: ${caseStudyId}`);
+            }
+
+            showDemoData() {
+                // Show demo case studies if API is not available
+                this.caseStudies = [
+                    {
+                        id: 'demo-1',
+                        project_title: 'E-commerce Platform Redesign',
+                        project_description: 'Complete redesign of a major e-commerce platform to improve user experience and conversion rates.',
+                        view_count: 1250,
+                        status: 'published',
+                        updated_at: new Date().toISOString(),
+                        sections: {
+                            hero: {
+                                enabled: true,
+                                title: 'E-commerce Platform Redesign',
+                                description: 'A comprehensive redesign project that increased conversion rates by 35% and improved user satisfaction scores.',
+                                image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800'
+                            },
+                            overview: {
+                                enabled: true,
+                                title: 'Project Overview',
+                                summary: 'This project involved redesigning the entire user experience of a major e-commerce platform, focusing on mobile-first design and conversion optimization.',
+                                metrics: [
+                                    { name: 'Conversion Rate Increase', value: '35%' },
+                                    { name: 'Page Load Speed', value: '2.1s' },
+                                    { name: 'User Satisfaction', value: '4.8/5' },
+                                    { name: 'Mobile Traffic', value: '68%' }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        id: 'demo-2',
+                        project_title: 'Mobile Banking App',
+                        project_description: 'Design and development of a secure, user-friendly mobile banking application.',
+                        view_count: 890,
+                        status: 'published',
+                        updated_at: new Date(Date.now() - 86400000).toISOString(),
+                        sections: {
+                            hero: {
+                                enabled: true,
+                                title: 'Mobile Banking App',
+                                description: 'A secure and intuitive mobile banking application that serves over 100,000 active users.',
+                                image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800'
+                            }
+                        }
+                    }
+                ];
+                
+                this.displayCaseStudies();
+                
+                // Update stats with demo data
+                document.getElementById('totalStudies').textContent = this.caseStudies.length;
+                const totalViews = this.caseStudies.reduce((sum, cs) => sum + (cs.view_count || 0), 0);
+                document.getElementById('totalViews').textContent = totalViews.toLocaleString();
+            }
+
+            showError(message) {
+                const loadingState = document.getElementById('loadingState');
+                loadingState.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                        <p class="text-xl text-gray-600">${message}</p>
+                        <button onclick="window.location.reload()" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-redo mr-2"></i>Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.caseStudyDisplay = new SaaSCaseStudyDisplay();
+        });
+    </script>
+</body>
+</html>
