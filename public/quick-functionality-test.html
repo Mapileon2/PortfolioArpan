@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Functionality Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center">
+            <i class="fas fa-rocket mr-2 text-green-500"></i>
+            Server Running - Functionality Test
+        </h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4 text-green-600">
+                <i class="fas fa-check-circle mr-2"></i>Server Status: RUNNING
+            </h2>
+            <p class="text-gray-700 mb-4">Your Node.js server is running on port 3003</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="/admin-dashboard.html" class="block p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition">
+                    <h3 class="font-bold text-blue-800 mb-2">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Admin Dashboard
+                    </h3>
+                    <p class="text-blue-600 text-sm">Access the main admin panel</p>
+                </a>
+                
+                <a href="/case_study_editor_fixed.html" class="block p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition">
+                    <h3 class="font-bold text-green-800 mb-2">
+                        <i class="fas fa-edit mr-2"></i>Fixed Case Study Editor
+                    </h3>
+                    <p class="text-green-600 text-sm">The fully functional editor</p>
+                </a>
+                
+                <a href="/test-case-study-editor.html" class="block p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition">
+                    <h3 class="font-bold text-purple-800 mb-2">
+                        <i class="fas fa-vial mr-2"></i>Test Suite
+                    </h3>
+                    <p class="text-purple-600 text-sm">Run comprehensive tests</p>
+                </a>
+                
+                <a href="/case_study_editor_production.html" class="block p-4 bg-yellow-50 border border-yellow-200 rounded-lg hover:bg-yellow-100 transition">
+                    <h3 class="font-bold text-yellow-800 mb-2">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Original Editor
+                    </h3>
+                    <p class="text-yellow-600 text-sm">Compare with the broken version</p>
+                </a>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4">
+                <i class="fas fa-clipboard-check mr-2"></i>Quick Functionality Check
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h3 class="font-bold text-green-800 mb-2">✅ What Should Work Now:</h3>
+                    <ul class="text-green-700 text-sm space-y-1">
+                        <li>• All section checkboxes toggle sections on/off</li>
+                        <li>• Live preview updates smoothly as you type</li>
+                        <li>• Add/remove buttons work for metrics and process steps</li>
+                        <li>• Image upload buttons respond (Cloudinary integration)</li>
+                        <li>• Form validation shows error messages</li>
+                        <li>• Save/Preview/Publish buttons are functional</li>
+                    </ul>
+                </div>
+                
+                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h3 class="font-bold text-blue-800 mb-2">🧪 How to Test:</h3>
+                    <ol class="text-blue-700 text-sm space-y-1">
+                        <li>1. Open the Fixed Case Study Editor above</li>
+                        <li>2. Click any section checkbox - section should show/hide</li>
+                        <li>3. Type in any input field - preview should update</li>
+                        <li>4. Click "Add Metric" - new metric field should appear</li>
+                        <li>5. Try uploading an image - upload dialog should open</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simple connectivity test
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('✅ Server is running and serving files correctly!');
+            
+            // Test if we can access the fixed editor
+            fetch('/case_study_editor_fixed.html')
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ Fixed case study editor is accessible');
+                    } else {
+                        console.error('❌ Fixed case study editor not found');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error accessing fixed editor:', error);
+                });
+        });
+    </script>
+</body>
+</html>
