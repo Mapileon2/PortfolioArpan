@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Portfolio Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
+        
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .gradient-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .gradient-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        .notification.show { transform: translateX(0); }
+        
+        .modal-backdrop {
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-online { background-color: #10b981; }
+        .status-offline { background-color: #ef4444; }
+        .status-warning { background-color: #f59e0b; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition transform -translate-x-full lg:translate-x-0">
+        <div class="flex items-center justify-center h-16 gradient-bg">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-rocket text-white text-xl"></i>
+                <span class="text-white text-xl font-bold">SaaS Portfolio</span>
+            </div>
+        </div>
+        
+        <nav class="mt-8">
+            <div class="px-4 space-y-2">
+                <a href="#dashboard" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 bg-blue-50 text-blue-700">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#projects" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-folder-open mr-3"></i>
+                    Projects
+                </a>
+                <a href="#case-studies" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-book mr-3"></i>
+                    Case Studies
+                </a>
+                <a href="#carousel" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-images mr-3"></i>
+                    Carousel
+                </a>
+                <a href="#content" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-edit mr-3"></i>
+                    Content
+                </a>
+                <a href="#analytics" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Analytics
+                </a>
+                <a href="#users" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-users mr-3"></i>
+                    Users
+                </a>
+                <a href="#api" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-key mr-3"></i>
+                    API Keys
+                </a>
+                <a href="#backups" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-database mr-3"></i>
+                    Backups
+                </a>
+                <a href="#integrations" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-plug mr-3"></i>
+                    Integrations
+                </a>
+                <a href="#billing" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-credit-card mr-3"></i>
+                    Billing
+                </a>
+                <a href="#support" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-life-ring mr-3"></i>
+                    Support
+                </a>
+                <a href="#settings" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-cog mr-3"></i>
+                    Settings
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="lg:ml-64">
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center space-x-4">
+                    <button id="sidebarToggle" class="lg:hidden text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 id="pageTitle" class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Plan Badge -->
+                    <div class="hidden md:flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm">
+                        <i class="fas fa-crown"></i>
+                        <span id="currentPlan">Pro Plan</span>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notificationBtn" class="text-gray-600 hover:text-gray-900 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notificationBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                        </button>
+                    </div>
+                    
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                            <img id="userAvatar" src="https://via.placeholder.com/32" alt="User" class="w-8 h-8 rounded-full">
+                            <span id="userName" class="hidden md:block">Admin User</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="p-6">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="page-view">
+                <!-- Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="gradient-bg text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Total Projects</p>
+                                <p id="totalProjects" class="text-3xl font-bold">12</p>
+                                <p class="text-sm text-white text-opacity-60">+2 this month</p>
+                            </div>
+                            <i class="fas fa-folder-open text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-success text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Case Studies</p>
+                                <p id="totalCaseStudies" class="text-3xl font-bold">8</p>
+                                <p class="text-sm text-white text-opacity-60">+1 this week</p>
+                            </div>
+                            <i class="fas fa-book text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-warning text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Page Views</p>
+                                <p id="totalPageViews" class="text-3xl font-bold">2.4K</p>
+                                <p class="text-sm text-white text-opacity-60">+15% this month</p>
+                            </div>
+                            <i class="fas fa-eye text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-danger text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Active Users</p>
+                                <p id="activeUsers" class="text-3xl font-bold">156</p>
+                                <p class="text-sm text-white text-opacity-60">+8% this week</p>
+                            </div>
+                            <i class="fas fa-users text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Projects Management -->
+                    <div class="feature-card p-6 cursor-pointer" onclick="window.saasAdmin.openProjectsManager()">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-folder-open text-blue-600 text-xl"></i>
+                            </div>
+                            <span class="status-indicator status-online"></span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Projects</h3>
+                        <p class="text-gray-600 text-sm mb-4">Manage your portfolio projects and showcase your work</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-gray-900">12</span>
+                            <span class="text-sm text-green-600">+2 new</span>
+                        </div>
+                    </div>
+
+                    <!-- Case Studies -->
+                    <div class="feature-card p-6 cursor-pointer" onclick="window.saasAdmin.openCaseStudiesManager()">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-book text-green-600 text-xl"></i>
+                            </div>
+                            <span class="status-indicator status-online"></span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Case Studies</h3>
+                        <p class="text-gray-600 text-sm mb-4">Create detailed case studies with rich content</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-gray-900">8</span>
+                            <span class="text-sm text-blue-600">View Editor</span>
+                        </div>
+                    </div>
+
+                    <!-- Analytics -->
+                    <div class="feature-card p-6 cursor-pointer" onclick="window.saasAdmin.openAnalytics()">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-bar text-purple-600 text-xl"></i>
+                            </div>
+                            <span class="status-indicator status-online"></span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Analytics</h3>
+                        <p class="text-gray-600 text-sm mb-4">Track performance and visitor insights</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-gray-900">2.4K</span>
+                            <span class="text-sm text-green-600">+15%</span>
+                        </div>
+                    </div>
+
+                    <!-- User Management -->
+                    <div class="feature-card p-6 cursor-pointer" onclick="window.saasAdmin.openUserManagement()">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-yellow-600 text-xl"></i>
+                            </div>
+                            <span class="status-indicator status-online"></span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Users</h3>
+                        <p class="text-gray-600 text-sm mb-4">Manage team members and permissions</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-gray-900">5</span>
+                            <span class="text-sm text-blue-600">Manage</span>
+                        </div>
+                    </div>
+
+                    <!-- API Management -->
+                    <div class="feature-card p-6 cursor-pointer" onclick="window.saasAdmin.openAPIManagement()">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-key text-red-600 text-xl"></i>
+                            </div>
+                            <span class="status-indicator status-online"></span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">API Keys</h3>
+                        <p class="text-gray-600 text-sm mb-4">Manage API access and integrations</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-gray-900">3</span>
+                            <span class="text-sm text-green-600">Active</span>
+                        </div>
+                    </div>
+
+                    <!-- Billing -->
+                    <div class="feature-card p-6 cursor-pointer" onclick="window.saasAdmin.openBilling()">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-credit-card text-indigo-600 text-xl"></i>
+                            </div>
+                            <span class="status-indicator status-online"></span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Billing</h3>
+                        <p class="text-gray-600 text-sm mb-4">Manage subscription and payments</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-gray-900">$29</span>
+                            <span class="text-sm text-green-600">Pro Plan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- System Health -->
+                    <div class="feature-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="status-indicator status-online"></span>
+                                    <span class="text-sm font-medium">Server Status</span>
+                                </div>
+                                <span class="text-sm text-green-600">Online</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="status-indicator status-online"></span>
+                                    <span class="text-sm font-medium">Database</span>
+                                </div>
+                                <span class="text-sm text-green-600">Connected</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="status-indicator status-online"></span>
+                                    <span class="text-sm font-medium">CDN</span>
+                                </div>
+                                <span class="text-sm text-green-600">Active</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="status-indicator status-warning"></span>
+                                    <span class="text-sm font-medium">Backup</span>
+                                </div>
+                                <span class="text-sm text-yellow-600">Scheduled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="feature-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">New project created</p>
+                                    <p class="text-xs text-gray-500">2 hours ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Case study published</p>
+                                    <p class="text-xs text-gray-500">5 hours ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">User invited</p>
+                                    <p class="text-xs text-gray-500">1 day ago</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Backup completed</p>
+                                    <p class="text-xs text-gray-500">2 days ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modalContainer"></div>
+
+    <!-- Load Services -->
+    <script src="js/working-supabase-client.js"></script>
+    <script src="js/working-upload-service.js"></script>
+    <script src="js/saas-features.js"></script>
+    <script src="js/carousel-manager.js"></script> 
+   <script src="js/saas-admin-controller.js"></script>
+    
+    <script>
+        // Additional initialization and event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile sidebar toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            }
+            
+            // Close sidebar on mobile when clicking outside
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth < 1024) {
+                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                        sidebar.classList.add('-translate-x-full');
+                    }
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 1024) {
+                    sidebar.classList.remove('-translate-x-full');
+                }
+            });
+            
+            // Initialize tooltips and other UI enhancements
+            initializeUIEnhancements();
+        });
+        
+        function initializeUIEnhancements() {
+            // Add hover effects to cards
+            document.querySelectorAll('.feature-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Add loading states to buttons
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (!this.disabled && !this.classList.contains('no-loading')) {
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+                        this.disabled = true;
+                        
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                            this.disabled = false;
+                        }, 1000);
+                    }
+                });
+            });
+        }
+        
+        // Global utility functions
+        window.utils = {
+            formatCurrency: function(amount) {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }).format(amount);
+            },
+            
+            formatDate: function(date) {
+                return new Intl.DateTimeFormat('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }).format(new Date(date));
+            },
+            
+            formatRelativeTime: function(date) {
+                const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+                const diff = new Date(date) - new Date();
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                
+                if (Math.abs(days) < 1) {
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    return rtf.format(hours, 'hour');
+                }
+                return rtf.format(days, 'day');
+            },
+            
+            debounce: function(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+        };
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K for search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                // Implement search functionality
+                console.log('Search shortcut triggered');
+            }
+            
+            // Escape to close modals
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('activeModal');
+                if (modal && window.saasAdmin) {
+                    window.saasAdmin.closeModal();
+                }
+            }
+        });
+        
+        // Performance monitoring
+        window.addEventListener('load', function() {
+            // Log performance metrics
+            const perfData = performance.getEntriesByType('navigation')[0];
+            console.log('🚀 Dashboard Performance:', {
+                loadTime: Math.round(perfData.loadEventEnd - perfData.loadEventStart),
+                domContentLoaded: Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart),
+                totalTime: Math.round(perfData.loadEventEnd - perfData.fetchStart)
+            });
+        });
+        
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('Dashboard Error:', e.error);
+            
+            // Show user-friendly error message
+            if (window.saasAdmin) {
+                window.saasAdmin.showNotification('error', 'An error occurred. Please try again.');
+            }
+        });
+        
+        // Service worker registration for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

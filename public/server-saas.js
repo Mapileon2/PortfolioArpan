@@ -87,8 +87,9 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/case-studies', caseStudyRoutes);
-app.use('/api/upload', uploadRoutes);// Error ha
-ndling middleware
+app.use('/api/upload', uploadRoutes);
+
+// Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
     

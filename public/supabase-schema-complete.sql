@@ -305,3 +305,67 @@ GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
+-- =====
+=============== CAROUSEL SLIDES TABLE ====================
+
+-- Create carousel_slides table for homepage carousel management
+CREATE TABLE IF NOT EXISTS carousel_slides (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    image_url TEXT NOT NULL,
+    link_url TEXT,
+    order_index INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_carousel_slides_order ON carousel_slides(order_index);
+CREATE INDEX IF NOT EXISTS idx_carousel_slides_active ON carousel_slides(is_active);
+CREATE INDEX IF NOT EXISTS idx_carousel_slides_created ON carousel_slides(created_at);
+
+-- Create trigger to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_carousel_slides_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_carousel_slides_updated_at
+    BEFORE UPDATE ON carousel_slides
+    FOR EACH ROW
+    EXECUTE FUNCTION update_carousel_slides_updated_at();
+
+-- Insert sample carousel slides
+INSERT INTO carousel_slides (title, description, image_url, link_url, order_index, is_active) VALUES
+('Welcome to My Portfolio', 'Discover my journey in product management and consulting', 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200', '#about', 0, true),
+('Featured Case Study', 'Explore my latest project and its impact', 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200', '#case-studies', 1, true),
+('My Expertise', 'Learn about my skills and experience', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200', '#expertise', 2, true)
+ON CONFLICT DO NOTHING;
+
+-- Enable RLS (Row Level Security)
+ALTER TABLE carousel_slides ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for carousel_slides
+CREATE POLICY "Allow public read access to active carousel slides" ON carousel_slides
+    FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Allow authenticated users full access to carousel slides" ON carousel_slides
+    FOR ALL USING (auth.role() = 'authenticated');
+
+-- Grant permissions
+GRANT ALL ON carousel_slides TO authenticated;
+GRANT SELECT ON carousel_slides TO anon;
+
+-- Add comments for documentation
+COMMENT ON TABLE carousel_slides IS 'Stores carousel slides for the homepage with ordering and activation controls';
+COMMENT ON COLUMN carousel_slides.title IS 'Display title for the carousel slide';
+COMMENT ON COLUMN carousel_slides.description IS 'Optional description text for the slide';
+COMMENT ON COLUMN carousel_slides.image_url IS 'URL of the slide image (typically from Cloudinary)';
+COMMENT ON COLUMN carousel_slides.link_url IS 'Optional URL to navigate to when slide is clicked';
+COMMENT ON COLUMN carousel_slides.order_index IS 'Display order of the slide (0-based)';
+COMMENT ON COLUMN carousel_slides.is_active IS 'Whether the slide is currently active and should be displayed';

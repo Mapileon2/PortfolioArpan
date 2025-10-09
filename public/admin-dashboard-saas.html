@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Admin Dashboard - Portfolio Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .ghibli-font { font-family: 'Gochi Hand', cursive; }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Check -->
+    <div id="authCheck" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="text-center">
+                <i class="fas fa-lock text-4xl text-blue-500 mb-4"></i>
+                <h2 class="text-2xl font-bold mb-4">Authentication Required</h2>
+                <p class="text-gray-600 mb-6">Please log in to access the admin dashboard.</p>
+                <button id="loginBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg w-full transition">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Go to Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (Hidden until authenticated) -->
+    <div id="mainDashboard" class="hidden">
+        <!-- Header -->
+        <header class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white ghibli-font">
+                            <i class="fas fa-magic mr-3"></i>SaaS Portfolio Dashboard
+                        </h1>
+                        <p class="text-white text-opacity-80 mt-1">Manage your portfolio with enterprise-grade tools</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-white text-right">
+                            <p class="font-semibold" id="userName">Loading...</p>
+                            <p class="text-sm text-white text-opacity-80" id="userTier">Loading...</p>
+                        </div>
+                        <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card">
+                    <i class="fas fa-file-alt text-3xl mb-3"></i>
+                    <h3 class="text-2xl font-bold" id="totalCaseStudies">0</h3>
+                    <p class="text-white text-opacity-80">Case Studies</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-eye text-3xl mb-3"></i>
+                    <h3 class="text-2xl font-bold" id="totalViews">0</h3>
+                    <p class="text-white text-opacity-80">Total Views</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-cloud text-3xl mb-3"></i>
+                    <h3 class="text-2xl font-bold" id="storageUsed">0 MB</h3>
+                    <p class="text-white text-opacity-80">Storage Used</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-rocket text-3xl mb-3"></i>
+                    <h3 class="text-2xl font-bold" id="publishedCount">0</h3>
+                    <p class="text-white text-opacity-80">Published</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Main Navigation -->
+                <div class="lg:col-span-2">
+                    <div class="dashboard-card p-8">
+                        <h2 class="text-2xl font-bold mb-6 ghibli-font text-gray-800">
+                            <i class="fas fa-compass mr-3 text-blue-500"></i>Navigation
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Projects -->
+                            <a href="admin-dashboard-complete.html" class="block p-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <i class="fas fa-project-diagram text-3xl mb-3"></i>
+                                        <h3 class="text-xl font-bold mb-2">Projects</h3>
+                                        <p class="text-indigo-100">Manage all your projects and portfolios</p>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                                </div>
+                            </a>
+
+                            <!-- Case Study Editor -->
+                            <a href="case_study_editor_complete.html" class="block p-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl text-white hover:from-blue-600 hover:to-cyan-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <i class="fas fa-edit text-3xl mb-3"></i>
+                                        <h3 class="text-xl font-bold mb-2">Case Studies</h3>
+                                        <p class="text-blue-100">Create and edit detailed case studies</p>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                                </div>
+                            </a>
+
+                            <!-- Carousel -->
+                            <a href="admin-dashboard-complete.html" class="block p-6 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl text-white hover:from-green-600 hover:to-teal-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <i class="fas fa-images text-3xl mb-3"></i>
+                                        <h3 class="text-xl font-bold mb-2">Carousel</h3>
+                                        <p class="text-green-100">Manage homepage carousel and featured content</p>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                                </div>
+                            </a>
+
+                            <!-- Content Management -->
+                            <a href="admin-dashboard-complete.html" class="block p-6 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl text-white hover:from-yellow-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <i class="fas fa-edit text-3xl mb-3"></i>
+                                        <h3 class="text-xl font-bold mb-2">Content</h3>
+                                        <p class="text-yellow-100">Manage pages, blogs, and site content</p>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                                </div>
+                            </a>
+
+                            <!-- Analytics -->
+                            <a href="admin-dashboard-complete.html" class="block p-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl text-white hover:from-purple-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <i class="fas fa-chart-bar text-3xl mb-3"></i>
+                                        <h3 class="text-xl font-bold mb-2">Analytics</h3>
+                                        <p class="text-purple-100">View detailed performance metrics</p>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                                </div>
+                            </a>
+
+                            <!-- User Management -->
+                            <a href="admin-dashboard-complete.html" class="block p-6 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl text-white hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <i class="fas fa-users-cog text-3xl mb-3"></i>
+                                        <h3 class="text-xl font-bold mb-2">User Management</h3>
+                                        <p class="text-red-100">Manage users, roles, and permissions</p>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity & Quick Actions -->
+                <div class="space-y-6">
+                    <!-- Recent Case Studies -->
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-lg font-bold mb-4 text-gray-800">
+                            <i class="fas fa-clock mr-2 text-blue-500"></i>Recent Case Studies
+                        </h3>
+                        <div id="recentCaseStudies" class="space-y-3">
+                            <div class="text-center text-gray-500 py-4">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p>Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Storage Usage -->
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-lg font-bold mb-4 text-gray-800">
+                            <i class="fas fa-hdd mr-2 text-green-500"></i>Storage Usage
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span>Used</span>
+                                <span id="storagePercentage">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="storageBar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-600">
+                                <span id="storageUsedText">0 MB used</span>
+                                <span id="storageLimitText">100 MB total</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-lg font-bold mb-4 text-gray-800">
+                            <i class="fas fa-bolt mr-2 text-yellow-500"></i>Quick Actions
+                        </h3>
+                        <div class="space-y-3">
+                            <button id="newCaseStudyBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition">
+                                <i class="fas fa-plus mr-2"></i>New Case Study
+                            </button>
+                            <button id="uploadImageBtn" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg transition">
+                                <i class="fas fa-upload mr-2"></i>Upload Image
+                            </button>
+                            <button id="viewPublicBtn" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg transition">
+                                <i class="fas fa-external-link-alt mr-2"></i>View Public Portfolio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load SaaS Service -->
+    <script src="js/saas-case-study-service.js"></script>
+    
+    <script>
+        /**
+         * SaaS Admin Dashboard - Complete Integration
+         * Senior Software Engineer Implementation
+         */
+        class SaaSAdminDashboard {
+            constructor() {
+                this.init();
+            }
+
+            async init() {
+                try {
+                    console.log('🚀 Initializing SaaS Admin Dashboard...');
+                    
+                    // Check authentication
+                    if (!window.saasService.isAuthenticated()) {
+                        this.showAuthRequired();
+                        return;
+                    }
+                    
+                    // Show main dashboard
+                    this.showMainDashboard();
+                    
+                    // Setup event listeners
+                    this.setupEventListeners();
+                    
+                    // Load dashboard data
+                    await this.loadDashboardData();
+                    
+                    console.log('✅ SaaS Admin Dashboard ready!');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to initialize dashboard:', error);
+                }
+            }
+
+            showAuthRequired() {
+                document.getElementById('authCheck').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
+            }
+
+            showMainDashboard() {
+                document.getElementById('authCheck').classList.add('hidden');
+                document.getElementById('mainDashboard').classList.remove('hidden');
+            }
+
+            setupEventListeners() {
+                // Authentication
+                document.getElementById('loginBtn').addEventListener('click', () => {
+                    window.location.href = '/admin-login-v2.html';
+                });
+
+                document.getElementById('logoutBtn').addEventListener('click', async () => {
+                    await window.saasService.logout();
+                    window.location.href = '/admin-login-v2.html';
+                });
+
+                // Quick actions
+                document.getElementById('newCaseStudyBtn').addEventListener('click', () => {
+                    window.location.href = '/case_study_editor_saas.html';
+                });
+
+                document.getElementById('uploadImageBtn').addEventListener('click', () => {
+                    this.showUploadDialog();
+                });
+
+                document.getElementById('viewPublicBtn').addEventListener('click', () => {
+                    window.open('/case_study_display_saas.html', '_blank');
+                });
+
+                // Navigation buttons
+                document.getElementById('fileManagerBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showFileManager();
+                });
+
+                document.getElementById('analyticsBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showAnalytics();
+                });
+
+                document.getElementById('settingsBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showSettings();
+                });
+            }
+
+            async loadDashboardData() {
+                try {
+                    // Load user info
+                    const user = window.saasService.getCurrentUser();
+                    if (user) {
+                        document.getElementById('userName').textContent = user.full_name;
+                        document.getElementById('userTier').textContent = `${user.subscription_tier.toUpperCase()} Plan`;
+                    }
+
+                    // Load case studies
+                    const caseStudiesResponse = await window.saasService.getCaseStudies();
+                    const caseStudies = caseStudiesResponse.data;
+                    
+                    // Update stats
+                    document.getElementById('totalCaseStudies').textContent = caseStudies.length;
+                    
+                    const publishedCount = caseStudies.filter(cs => cs.status === 'published').length;
+                    document.getElementById('publishedCount').textContent = publishedCount;
+                    
+                    const totalViews = caseStudies.reduce((sum, cs) => sum + (cs.view_count || 0), 0);
+                    document.getElementById('totalViews').textContent = totalViews.toLocaleString();
+
+                    // Load storage usage
+                    const storageResponse = await window.saasService.getStorageUsage();
+                    const storage = storageResponse.data;
+                    
+                    document.getElementById('storageUsed').textContent = `${storage.used} MB`;
+                    document.getElementById('storagePercentage').textContent = `${storage.percentage}%`;
+                    document.getElementById('storageBar').style.width = `${storage.percentage}%`;
+                    document.getElementById('storageUsedText').textContent = `${storage.used} MB used`;
+                    document.getElementById('storageLimitText').textContent = `${storage.limit} MB total`;
+
+                    // Update storage bar color based on usage
+                    const storageBar = document.getElementById('storageBar');
+                    if (storage.percentage > 90) {
+                        storageBar.className = 'bg-red-500 h-2 rounded-full';
+                    } else if (storage.percentage > 75) {
+                        storageBar.className = 'bg-yellow-500 h-2 rounded-full';
+                    } else {
+                        storageBar.className = 'bg-blue-500 h-2 rounded-full';
+                    }
+
+                    // Load recent case studies
+                    this.displayRecentCaseStudies(caseStudies.slice(0, 5));
+
+                } catch (error) {
+                    console.error('❌ Failed to load dashboard data:', error);
+                }
+            }
+
+            displayRecentCaseStudies(caseStudies) {
+                const container = document.getElementById('recentCaseStudies');
+                
+                if (caseStudies.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 py-4">
+                            <i class="fas fa-file-alt text-2xl mb-2"></i>
+                            <p>No case studies yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = caseStudies.map(cs => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer" onclick="window.location.href='/case_study_editor_saas.html?id=${cs.id}'">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${cs.project_title}</h4>
+                            <p class="text-xs text-gray-600">${new Date(cs.updated_at).toLocaleDateString()}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 text-xs rounded-full ${cs.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${cs.status}</span>
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            showUploadDialog() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.multiple = true;
+                input.style.display = 'none';
+                
+                input.onchange = async (e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0) {
+                        try {
+                            const response = await window.saasService.uploadMultipleImages(files, {
+                                folder: 'general',
+                                optimize: true
+                            });
+                            
+                            alert(`Successfully uploaded ${response.data.successful.length} images`);
+                            this.loadDashboardData(); // Refresh storage usage
+                            
+                        } catch (error) {
+                            alert(`Upload failed: ${error.message}`);
+                        }
+                    }
+                };
+                
+                document.body.appendChild(input);
+                input.click();
+                document.body.removeChild(input);
+            }
+
+            showFileManager() {
+                alert('File Manager - Coming Soon!\n\nThis will show all your uploaded files with options to organize, delete, and manage them.');
+            }
+
+            showAnalytics() {
+                alert('Analytics Dashboard - Coming Soon!\n\nThis will show detailed analytics including:\n- Page views and engagement\n- Popular case studies\n- Traffic sources\n- Performance metrics');
+            }
+
+            showSettings() {
+                alert('Settings Panel - Coming Soon!\n\nThis will include:\n- Account settings\n- Subscription management\n- Notification preferences\n- API keys\n- Export options');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.saasDashboard = new SaaSAdminDashboard();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Portfolio Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .ghibli-font { font-family: 'Gochi Hand', cursive; }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, var(--from-color), var(--to-color));
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal {
+            backdrop-filter: blur(10px);
+        }
+        
+        .upload-zone {
+            border: 3px dashed #6bb2e2;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-zone:hover {
+            border-color: #a5d6a7;
+            background: linear-gradient(135deg, rgba(107, 178, 226, 0.1), rgba(165, 214, 167, 0.1));
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: white;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show { transform: translateX(0); }
+        .notification.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .notification.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .notification.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    </style>
+</head>
+<body>
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Header -->
+    <header class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white ghibli-font">
+                        <i class="fas fa-magic mr-3"></i>Complete Portfolio Dashboard
+                    </h1>
+                    <p class="text-white text-opacity-80 mt-1">Full-featured SaaS management system with working integrations</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-white text-right">
+                        <p class="font-semibold" id="userName">Admin User</p>
+                        <p class="text-sm text-white text-opacity-80" id="userTier">Enterprise Plan</p>
+                    </div>
+                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="dashboard-card p-6 text-center">
+                <i class="fas fa-project-diagram text-3xl text-blue-500 mb-3"></i>
+                <h3 class="text-2xl font-bold text-gray-800" id="projectCount">8</h3>
+                <p class="text-gray-600">Projects</p>
+            </div>
+            <div class="dashboard-card p-6 text-center">
+                <i class="fas fa-file-alt text-3xl text-green-500 mb-3"></i>
+                <h3 class="text-2xl font-bold text-gray-800" id="caseStudyCount">12</h3>
+                <p class="text-gray-600">Case Studies</p>
+            </div>
+            <div class="dashboard-card p-6 text-center">
+                <i class="fas fa-images text-3xl text-purple-500 mb-3"></i>
+                <h3 class="text-2xl font-bold text-gray-800" id="carouselCount">5</h3>
+                <p class="text-gray-600">Carousel Items</p>
+            </div>
+            <div class="dashboard-card p-6 text-center">
+                <i class="fas fa-eye text-3xl text-orange-500 mb-3"></i>
+                <h3 class="text-2xl font-bold text-gray-800" id="viewCount">2.4K</h3>
+                <p class="text-gray-600">Total Views</p>
+            </div>
+            <div class="dashboard-card p-6 text-center">
+                <i class="fas fa-users text-3xl text-teal-500 mb-3"></i>
+                <h3 class="text-2xl font-bold text-gray-800" id="userCount">156</h3>
+                <p class="text-gray-600">Users</p>
+            </div>
+        </div>
+
+        <!-- Integration Status -->
+        <div class="dashboard-card p-6 mb-8">
+            <h3 class="text-xl font-bold mb-4 ghibli-font">
+                <i class="fas fa-plug mr-2 text-blue-500"></i>Integration Status
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="flex items-center space-x-4 p-4 bg-green-50 rounded-lg">
+                    <i class="fas fa-cloud text-2xl text-green-500"></i>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Cloudinary</h4>
+                        <p class="text-sm text-green-600" id="cloudinaryStatus">Connected (dgymjtqil)</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg">
+                    <i class="fas fa-database text-2xl text-blue-500"></i>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Supabase</h4>
+                        <p class="text-sm text-blue-600" id="supabaseStatus">Connected</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 p-4 bg-purple-50 rounded-lg">
+                    <i class="fas fa-server text-2xl text-purple-500"></i>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">SaaS API</h4>
+                        <p class="text-sm text-purple-600" id="apiStatus">Running</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Projects Management -->
+            <div class="feature-card" style="--from-color: #667eea; --to-color: #764ba2;" onclick="openProjectsModal()">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <i class="fas fa-project-diagram text-4xl mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2">Projects</h3>
+                        <p class="text-white text-opacity-90">Manage all your projects and portfolios</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                </div>
+            </div>
+
+            <!-- Case Studies -->
+            <div class="feature-card" style="--from-color: #f093fb; --to-color: #f5576c;" onclick="window.location.href='case_study_editor_complete.html'">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <i class="fas fa-file-alt text-4xl mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2">Case Studies</h3>
+                        <p class="text-white text-opacity-90">Create and manage detailed case studies</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                </div>
+            </div>
+
+            <!-- Carousel Management -->
+            <div class="feature-card" style="--from-color: #4facfe; --to-color: #00f2fe;" onclick="openCarouselModal()">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <i class="fas fa-images text-4xl mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2">Carousel</h3>
+                        <p class="text-white text-opacity-90">Manage homepage carousel and featured content</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                </div>
+            </div>
+
+            <!-- Content Management -->
+            <div class="feature-card" style="--from-color: #43e97b; --to-color: #38f9d7;" onclick="openContentModal()">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <i class="fas fa-edit text-4xl mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2">Content</h3>
+                        <p class="text-white text-opacity-90">Manage pages, blogs, and site content</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                </div>
+            </div>
+
+            <!-- Analytics -->
+            <div class="feature-card" style="--from-color: #fa709a; --to-color: #fee140;" onclick="openAnalyticsModal()">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <i class="fas fa-chart-bar text-4xl mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2">Analytics</h3>
+                        <p class="text-white text-opacity-90">View detailed performance metrics</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                </div>
+            </div>
+
+            <!-- User Management -->
+            <div class="feature-card" style="--from-color: #a8edea; --to-color: #fed6e3;" onclick="openUserManagementModal()">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <i class="fas fa-users-cog text-4xl mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2">User Management</h3>
+                        <p class="text-white text-opacity-90">Manage users, roles, and permissions</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-2xl opacity-70"></i>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-card p-6 mt-8">
+            <h3 class="text-xl font-bold mb-4 ghibli-font">
+                <i class="fas fa-bolt mr-2 text-yellow-500"></i>Quick Actions
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button onclick="testImageUpload()" class="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition text-center">
+                    <i class="fas fa-upload text-2xl text-blue-500 mb-2"></i>
+                    <p class="text-sm font-medium text-blue-600">Test Upload</p>
+                </button>
+                <button onclick="checkIntegrations()" class="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition text-center">
+                    <i class="fas fa-plug text-2xl text-green-500 mb-2"></i>
+                    <p class="text-sm font-medium text-green-600">Check Integrations</p>
+                </button>
+                <button onclick="window.location.href='case_study_editor_complete.html'" class="p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition text-center">
+                    <i class="fas fa-plus text-2xl text-purple-500 mb-2"></i>
+                    <p class="text-sm font-medium text-purple-600">New Case Study</p>
+                </button>
+                <button onclick="window.location.href='test-image-upload.html'" class="p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition text-center">
+                    <i class="fas fa-vial text-2xl text-orange-500 mb-2"></i>
+                    <p class="text-sm font-medium text-orange-600">Upload Test Page</p>
+                </button>
+            </div>
+        </div>
+    </div>

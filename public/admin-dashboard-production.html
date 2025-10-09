@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio SaaS Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
+        
+        .gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .gradient-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .gradient-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        
+        .notification {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            transform: translateX(100%); transition: transform 0.3s ease;
+        }
+        .notification.show { transform: translateX(0); }
+        
+        .modal-backdrop { backdrop-filter: blur(10px); background: rgba(0, 0, 0, 0.5); }
+        
+        .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .status-online { background-color: #10b981; }
+        .status-offline { background-color: #ef4444; }
+        .status-warning { background-color: #f59e0b; }
+        
+        .nav-item.active { background-color: #eff6ff; color: #2563eb; }
+        .nav-item:hover { background-color: #f8fafc; }
+        
+        .feature-card {
+            background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease; cursor: pointer;
+        }
+        .feature-card:hover { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); transform: translateY(-2px); }
+        
+        .loading { opacity: 0.6; pointer-events: none; }
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition transform -translate-x-full lg:translate-x-0">
+        <div class="flex items-center justify-center h-16 gradient-primary">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-rocket text-white text-xl"></i>
+                <span class="text-white text-xl font-bold">Portfolio SaaS</span>
+            </div>
+        </div>
+        
+        <nav class="mt-8">
+            <div class="px-4 space-y-2">
+                <a href="#" data-view="dashboard" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg active">
+                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                </a>
+                <a href="#" data-view="projects" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-folder-open mr-3"></i>Projects
+                </a>
+                <a href="#" data-view="case-studies" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-book mr-3"></i>Case Studies
+                </a>
+                <a href="#" data-view="carousel" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-images mr-3"></i>Carousel
+                </a>
+                <a href="#" data-view="content" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-edit mr-3"></i>Content
+                </a>
+                <a href="#" data-view="analytics" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>Analytics
+                </a>
+                <a href="#" data-view="users" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-users mr-3"></i>Users
+                </a>
+                <a href="#" data-view="api" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-key mr-3"></i>API Keys
+                </a>
+                <a href="#" data-view="backups" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-database mr-3"></i>Backups
+                </a>
+                <a href="#" data-view="integrations" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-plug mr-3"></i>Integrations
+                </a>
+                <a href="#" data-view="billing" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-credit-card mr-3"></i>Billing
+                </a>
+                <a href="#" data-view="support" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-life-ring mr-3"></i>Support
+                </a>
+                <a href="#" data-view="settings" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>Settings
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="lg:ml-64">
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center space-x-4">
+                    <button id="sidebarToggle" class="lg:hidden text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 id="pageTitle" class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Plan Badge -->
+                    <div class="hidden md:flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm">
+                        <i class="fas fa-crown"></i>
+                        <span id="currentPlan">Pro Plan</span>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notificationBtn" class="text-gray-600 hover:text-gray-900 relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notificationBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                        </button>
+                    </div>
+                    
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                            <img id="userAvatar" src="https://via.placeholder.com/32" alt="User" class="w-8 h-8 rounded-full">
+                            <span id="userName" class="hidden md:block">Admin User</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                        
+                        <!-- User Dropdown -->
+                        <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border hidden z-10">
+                            <div class="py-2">
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2"></i>Profile
+                                </a>
+                                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>Settings
+                                </a>
+                                <div class="border-t my-2"></div>
+                                <button id="logoutBtn" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="p-6">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view-content">
+                <!-- Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="gradient-primary text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Total Projects</p>
+                                <p id="totalProjects" class="text-3xl font-bold">12</p>
+                                <p class="text-sm text-white text-opacity-60">+2 this month</p>
+                            </div>
+                            <i class="fas fa-folder-open text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-success text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Case Studies</p>
+                                <p id="totalCaseStudies" class="text-3xl font-bold">8</p>
+                                <p class="text-sm text-white text-opacity-60">+1 this week</p>
+                            </div>
+                            <i class="fas fa-book text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-warning text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Page Views</p>
+                                <p id="totalPageViews" class="text-3xl font-bold">2.4K</p>
+                                <p class="text-sm text-white text-opacity-60">+15% this month</p>
+                            </div>
+                            <i class="fas fa-eye text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-danger text-white rounded-xl p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white text-opacity-80">Active Users</p>
+                                <p id="activeUsers" class="text-3xl font-bold">156</p>
+                                <p class="text-sm text-white text-opacity-60">+8% this week</p>
+                            </div>
+                            <i class="fas fa-users text-3xl text-white text-opacity-60"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="feature-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="AdminDashboard.createProject()" class="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-plus text-blue-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-blue-600">New Project</span>
+                            </button>
+                            <button onclick="AdminDashboard.createCaseStudy()" class="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                                <i class="fas fa-book-open text-green-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-green-600">New Case Study</span>
+                            </button>
+                            <button onclick="AdminDashboard.uploadImage()" class="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                                <i class="fas fa-image text-purple-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-purple-600">Upload Image</span>
+                            </button>
+                            <button onclick="AdminDashboard.viewAnalytics()" class="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                                <i class="fas fa-chart-line text-yellow-600 text-2xl mb-2"></i>
+                                <span class="text-sm font-medium text-yellow-600">View Analytics</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                        <div id="recentActivity" class="space-y-3">
+                            <!-- Activity items will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="feature-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">System Status</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
+                                <i class="fas fa-server text-green-600"></i>
+                            </div>
+                            <h4 class="font-medium text-gray-900">Server</h4>
+                            <p id="serverStatus" class="text-sm text-green-600">Online</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-3">
+                                <i class="fas fa-database text-blue-600"></i>
+                            </div>
+                            <h4 class="font-medium text-gray-900">Database</h4>
+                            <p id="databaseStatus" class="text-sm text-blue-600">Connected</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-3">
+                                <i class="fas fa-cloud text-purple-600"></i>
+                            </div>
+                            <h4 class="font-medium text-gray-900">CDN</h4>
+                            <p id="cdnStatus" class="text-sm text-purple-600">Active</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full mb-3">
+                                <i class="fas fa-shield-alt text-yellow-600"></i>
+                            </div>
+                            <h4 class="font-medium text-gray-900">Security</h4>
+                            <p id="securityStatus" class="text-sm text-yellow-600">Protected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Views (Hidden by default) -->
+            <div id="projectsView" class="view-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Projects Management</h2>
+                    <button onclick="AdminDashboard.createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-plus mr-2"></i>New Project
+                    </button>
+                </div>
+                <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </div>
+
+            <div id="case-studiesView" class="view-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Case Studies</h2>
+                    <button onclick="AdminDashboard.createCaseStudy()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-plus mr-2"></i>New Case Study
+                    </button>
+                </div>
+                <div id="caseStudiesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Case studies will be loaded here -->
+                </div>
+            </div>
+
+            <div id="analyticsView" class="view-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
+                    <button onclick="AdminDashboard.exportAnalytics()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-download mr-2"></i>Export Data
+                    </button>
+                </div>
+                
+                <!-- Analytics Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="feature-card p-6 text-center">
+                        <i class="fas fa-eye text-3xl text-blue-600 mb-3"></i>
+                        <div class="text-2xl font-bold text-gray-900">2,456</div>
+                        <div class="text-sm text-gray-600">Page Views</div>
+                    </div>
+                    <div class="feature-card p-6 text-center">
+                        <i class="fas fa-users text-3xl text-green-600 mb-3"></i>
+                        <div class="text-2xl font-bold text-gray-900">567</div>
+                        <div class="text-sm text-gray-600">Unique Visitors</div>
+                    </div>
+                    <div class="feature-card p-6 text-center">
+                        <i class="fas fa-clock text-3xl text-purple-600 mb-3"></i>
+                        <div class="text-2xl font-bold text-gray-900">3:24</div>
+                        <div class="text-sm text-gray-600">Avg. Session</div>
+                    </div>
+                    <div class="feature-card p-6 text-center">
+                        <i class="fas fa-percentage text-3xl text-orange-600 mb-3"></i>
+                        <div class="text-2xl font-bold text-gray-900">45%</div>
+                        <div class="text-sm text-gray-600">Bounce Rate</div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="feature-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Traffic Overview</h3>
+                    <canvas id="analyticsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Additional views for other sections -->
+            <div id="usersView" class="view-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">User Management</h2>
+                    <button onclick="AdminDashboard.inviteUser()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-user-plus mr-2"></i>Invite User
+                    </button>
+                </div>
+                <div id="usersTable" class="feature-card overflow-hidden">
+                    <!-- Users table will be loaded here -->
+                </div>
+            </div>
+
+            <!-- More views... -->
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modalContainer"></div>
+
+    <!-- Load Services -->
+    <script src="js/working-supabase-client.js"></script>
+    <script src="js/working-upload-service.js"></script>

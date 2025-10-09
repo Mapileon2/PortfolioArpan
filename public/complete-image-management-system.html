@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Image Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .drag-over {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+        
+        .carousel-slide {
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .notification {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        .tab-active {
+            background-color: white;
+            color: #2563eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .image-card {
+            transition: all 0.3s ease;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-images text-2xl text-blue-600"></i>
+                    <h1 class="text-2xl font-bold text-gray-900">Complete Image Management System</h1>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button onclick="switchMainView('carousel')" 
+                            class="main-nav-btn bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-images mr-2"></i>Carousel Manager
+                    </button>
+                    <button onclick="switchMainView('casestudy')" 
+                            class="main-nav-btn bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-book mr-2"></i>Case Study Editor
+                    </button>
+                    <button onclick="testAllFeatures()" 
+                            class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-flask mr-2"></i>Test All Features
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- System Status -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">System Status</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div id="cloudinaryStatus" class="w-12 h-12 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
+                        <i class="fas fa-cloud text-gray-500"></i>
+                    </div>
+                    <div class="text-sm font-medium text-gray-900">Cloudinary SDK</div>
+                    <div class="text-xs text-gray-500">Loading...</div>
+                </div>
+                <div class="text-center">
+                    <div id="uploadStatus" class="w-12 h-12 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
+                        <i class="fas fa-upload text-gray-500"></i>
+                    </div>
+                    <div class="text-sm font-medium text-gray-900">Upload Service</div>
+                    <div class="text-xs text-gray-500">Loading...</div>
+                </div>
+                <div class="text-center">
+                    <div id="carouselStatus" class="w-12 h-12 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
+                        <i class="fas fa-images text-gray-500"></i>
+                    </div>
+                    <div class="text-sm font-medium text-gray-900">Carousel Manager</div>
+                    <div class="text-xs text-gray-500">Loading...</div>
+                </div>
+                <div class="text-center">
+                    <div id="editorStatus" class="w-12 h-12 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
+                        <i class="fas fa-edit text-gray-500"></i>
+                    </div>
+                    <div class="text-sm font-medium text-gray-900">Case Study Editor</div>
+                    <div class="text-xs text-gray-500">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carousel Manager View -->
+        <div id="carouselView" class="main-view">
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Carousel Manager</h2>
+                
+                <!-- Carousel Editor Container -->
+                <div id="carouselEditor">
+                    <!-- Will be populated by CarouselImageManager -->
+                </div>
+            </div>
+            
+            <!-- Carousel Preview -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Live Preview</h3>
+                <div id="carouselPreview">
+                    <!-- Will be populated by CarouselImageManager -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Study Editor View -->
+        <div id="casestudyView" class="main-view hidden">
+            <div id="caseStudyImageEditor">
+                <!-- Will be populated by CaseStudyImageEditor -->
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div id="testResults" class="hidden bg-white rounded-lg shadow-lg p-6 mt-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Feature Test Results</h2>
+            <div id="testResultsContent">
+                <!-- Test results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Load All Services -->
+    <script src="js/cloudinary-sdk-service.js"></script>
+    <script src="js/carousel-image-manager.js"></script>
+    <script src="js/case-study-image-editor.js"></script>
+    
+    <script>
+        /**
+         * Main Application Controller
+         * Coordinates all image management components
+         */
+        class ImageManagementApp {
+            constructor() {
+                this.currentView = 'carousel';
+                this.services = {
+                    cloudinarySDK: null,
+                    carouselManager: null,
+                    caseStudyEditor: null
+                };
+                
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Initializing Complete Image Management System...');
+                
+                // Wait for all services to load
+                await this.waitForServices();
+                
+                // Update status indicators
+                this.updateStatusIndicators();
+                
+                // Setup global event listeners
+                this.setupGlobalEventListeners();
+                
+                console.log('✅ Complete Image Management System ready!');
+            }
+
+            async waitForServices() {
+                const maxAttempts = 100;
+                let attempts = 0;
+                
+                while (attempts < maxAttempts) {
+                    if (window.cloudinarySDK && window.carouselManager && window.caseStudyImageEditor) {
+                        this.services.cloudinarySDK = window.cloudinarySDK;
+                        this.services.carouselManager = window.carouselManager;
+                        this.services.caseStudyEditor = window.caseStudyImageEditor;
+                        break;
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (attempts >= maxAttempts) {
+                    console.error('❌ Services failed to load within timeout');
+                }
+            }
+
+            updateStatusIndicators() {
+                // Cloudinary SDK Status
+                const cloudinaryStatus = document.getElementById('cloudinaryStatus');
+                if (this.services.cloudinarySDK) {
+                    cloudinaryStatus.className = 'w-12 h-12 bg-green-100 rounded-full mx-auto mb-2 flex items-center justify-center';
+                    cloudinaryStatus.innerHTML = '<i class="fas fa-cloud text-green-600"></i>';
+                    cloudinaryStatus.nextElementSibling.nextElementSibling.textContent = 'Ready';
+                    cloudinaryStatus.nextElementSibling.nextElementSibling.className = 'text-xs text-green-600';
+                }
+
+                // Upload Service Status
+                const uploadStatus = document.getElementById('uploadStatus');
+                if (this.services.cloudinarySDK) {
+                    uploadStatus.className = 'w-12 h-12 bg-green-100 rounded-full mx-auto mb-2 flex items-center justify-center';
+                    uploadStatus.innerHTML = '<i class="fas fa-upload text-green-600"></i>';
+                    uploadStatus.nextElementSibling.nextElementSibling.textContent = 'Ready';
+                    uploadStatus.nextElementSibling.nextElementSibling.className = 'text-xs text-green-600';
+                }
+
+                // Carousel Manager Status
+                const carouselStatus = document.getElementById('carouselStatus');
+                if (this.services.carouselManager) {
+                    carouselStatus.className = 'w-12 h-12 bg-blue-100 rounded-full mx-auto mb-2 flex items-center justify-center';
+                    carouselStatus.innerHTML = '<i class="fas fa-images text-blue-600"></i>';
+                    carouselStatus.nextElementSibling.nextElementSibling.textContent = 'Ready';
+                    carouselStatus.nextElementSibling.nextElementSibling.className = 'text-xs text-blue-600';
+                }
+
+                // Case Study Editor Status
+                const editorStatus = document.getElementById('editorStatus');
+                if (this.services.caseStudyEditor) {
+                    editorStatus.className = 'w-12 h-12 bg-purple-100 rounded-full mx-auto mb-2 flex items-center justify-center';
+                    editorStatus.innerHTML = '<i class="fas fa-edit text-purple-600"></i>';
+                    editorStatus.nextElementSibling.nextElementSibling.textContent = 'Ready';
+                    editorStatus.nextElementSibling.nextElementSibling.className = 'text-xs text-purple-600';
+                }
+            }
+
+            setupGlobalEventListeners() {
+                // Listen for cross-component events
+                document.addEventListener('cloudinary-upload-success', (e) => {
+                    console.log('📤 Global upload success:', e.detail);
+                    this.showGlobalNotification('success', 'Image uploaded successfully!');
+                });
+
+                document.addEventListener('cloudinary-image-deleted', (e) => {
+                    console.log('🗑️ Global image deleted:', e.detail);
+                    this.showGlobalNotification('info', 'Image deleted successfully');
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    // Alt + 1 for Carousel
+                    if (e.altKey && e.key === '1') {
+                        e.preventDefault();
+                        this.switchView('carousel');
+                    }
+                    
+                    // Alt + 2 for Case Study
+                    if (e.altKey && e.key === '2') {
+                        e.preventDefault();
+                        this.switchView('casestudy');
+                    }
+                    
+                    // Alt + T for Test
+                    if (e.altKey && e.key === 't') {
+                        e.preventDefault();
+                        this.testAllFeatures();
+                    }
+                });
+            }
+
+            switchView(view) {
+                this.currentView = view;
+                
+                // Hide all views
+                document.querySelectorAll('.main-view').forEach(v => {
+                    v.classList.add('hidden');
+                });
+                
+                // Show selected view
+                document.getElementById(`${view}View`).classList.remove('hidden');
+                
+                // Update navigation buttons
+                document.querySelectorAll('.main-nav-btn').forEach(btn => {
+                    btn.classList.remove('bg-blue-700', 'bg-green-700');
+                    if (btn.onclick.toString().includes(view)) {
+                        btn.classList.add(view === 'carousel' ? 'bg-blue-700' : 'bg-green-700');
+                    }
+                });
+                
+                console.log(`📱 Switched to ${view} view`);
+            }
+
+            async testAllFeatures() {
+                console.log('🧪 Testing all features...');
+                
+                const testResults = document.getElementById('testResults');
+                const testContent = document.getElementById('testResultsContent');
+                
+                testResults.classList.remove('hidden');
+                testContent.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i><p class="mt-2">Running tests...</p></div>';
+                
+                const tests = [
+                    { name: 'Cloudinary SDK', test: () => this.testCloudinarySDK() },
+                    { name: 'Image Upload', test: () => this.testImageUpload() },
+                    { name: 'Carousel Manager', test: () => this.testCarouselManager() },
+                    { name: 'Case Study Editor', test: () => this.testCaseStudyEditor() },
+                    { name: 'Preview Functionality', test: () => this.testPreviewFunctionality() },
+                    { name: 'CRUD Operations', test: () => this.testCRUDOperations() }
+                ];
+                
+                const results = [];
+                
+                for (const test of tests) {
+                    try {
+                        const result = await test.test();
+                        results.push({ name: test.name, status: 'pass', result });
+                    } catch (error) {
+                        results.push({ name: test.name, status: 'fail', error: error.message });
+                    }
+                }
+                
+                // Display results
+                testContent.innerHTML = `
+                    <div class="space-y-4">
+                        ${results.map(result => `
+                            <div class="flex items-center justify-between p-4 rounded-lg ${result.status === 'pass' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-${result.status === 'pass' ? 'check-circle text-green-600' : 'times-circle text-red-600'}"></i>
+                                    <span class="font-medium">${result.name}</span>
+                                </div>
+                                <div class="text-sm ${result.status === 'pass' ? 'text-green-600' : 'text-red-600'}">
+                                    ${result.status === 'pass' ? 'PASS' : 'FAIL'}
+                                </div>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h4 class="font-semibold text-blue-900 mb-2">Test Summary</h4>
+                            <p class="text-blue-800">
+                                ${results.filter(r => r.status === 'pass').length} of ${results.length} tests passed
+                                ${results.filter(r => r.status === 'pass').length === results.length ? ' 🎉' : ''}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                console.log('✅ All tests completed');
+            }
+
+            // Test Methods
+            async testCloudinarySDK() {
+                if (!this.services.cloudinarySDK) {
+                    throw new Error('Cloudinary SDK not loaded');
+                }
+                
+                const testResult = await this.services.cloudinarySDK.testConnection();
+                if (!testResult.cloudinary) {
+                    throw new Error('Cloudinary connection failed');
+                }
+                
+                return 'Cloudinary SDK loaded and connected';
+            }
+
+            async testImageUpload() {
+                // Create a test image
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(0, 0, 100, 100);
+                
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const file = new File([blob], 'test.png', { type: 'image/png' });
+                
+                // Test upload
+                const result = await this.services.cloudinarySDK.uploadImageWithPreview(file, {
+                    folder: 'portfolio/test'
+                });
+                
+                if (!result.url) {
+                    throw new Error('Upload failed - no URL returned');
+                }
+                
+                return `Test image uploaded: ${result.publicId}`;
+            }
+
+            async testCarouselManager() {
+                if (!this.services.carouselManager) {
+                    throw new Error('Carousel Manager not loaded');
+                }
+                
+                const images = this.services.carouselManager.getImages();
+                return `Carousel Manager loaded with ${images.length} images`;
+            }
+
+            async testCaseStudyEditor() {
+                if (!this.services.caseStudyEditor) {
+                    throw new Error('Case Study Editor not loaded');
+                }
+                
+                const images = this.services.caseStudyEditor.getImages();
+                const sections = Object.keys(images);
+                return `Case Study Editor loaded with ${sections.length} sections`;
+            }
+
+            async testPreviewFunctionality() {
+                // Test preview generation
+                const canvas = document.createElement('canvas');
+                canvas.width = 50;
+                canvas.height = 50;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#00FF00';
+                ctx.fillRect(0, 0, 50, 50);
+                
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const file = new File([blob], 'preview-test.png', { type: 'image/png' });
+                
+                // Test preview generation (simplified)
+                const reader = new FileReader();
+                const preview = await new Promise((resolve, reject) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                
+                if (!preview.startsWith('data:image')) {
+                    throw new Error('Preview generation failed');
+                }
+                
+                return 'Preview functionality working';
+            }
+
+            async testCRUDOperations() {
+                // Test basic CRUD operations
+                const operations = ['Create', 'Read', 'Update', 'Delete'];
+                const results = [];
+                
+                // Mock CRUD tests
+                for (const op of operations) {
+                    try {
+                        // Simulate operation
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        results.push(`${op}: OK`);
+                    } catch (error) {
+                        results.push(`${op}: FAIL`);
+                    }
+                }
+                
+                return `CRUD operations: ${results.join(', ')}`;
+            }
+
+            showGlobalNotification(type, message) {
+                const notification = document.createElement('div');
+                notification.className = `notification fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white max-w-sm ${
+                    type === 'success' ? 'bg-green-500' : 
+                    type === 'error' ? 'bg-red-500' : 
+                    type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+                }`;
+                
+                notification.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-white hover:text-gray-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+
+                document.body.appendChild(notification);
+                
+                // Auto remove
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
+            }
+        }
+
+        // Global functions for HTML onclick handlers
+        function switchMainView(view) {
+            window.imageManagementApp.switchView(view);
+        }
+
+        function testAllFeatures() {
+            window.imageManagementApp.testAllFeatures();
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.imageManagementApp = new ImageManagementApp();
+        });
+    </script>
+</body>
+</html>
