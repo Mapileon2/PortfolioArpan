@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Admin Dashboard Blank Issue</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h1 class="text-2xl font-bold mb-4">🔍 Debug Admin Dashboard Blank Issue</h1>
+            <p class="text-gray-600 mb-4">This will help diagnose why the case studies section is showing blank.</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <button onclick="checkScripts()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    📜 Check Scripts
+                </button>
+                <button onclick="checkLocalStorage()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    📦 Check localStorage
+                </button>
+                <button onclick="checkDOMElements()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    🏗️ Check DOM Elements
+                </button>
+                <button onclick="simulateNavigation()" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                    🧭 Simulate Navigation
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">📝 Debug Results</h2>
+            <div id="debugResults" class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm h-96 overflow-y-auto">
+                <div>Debug session started...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('debugResults');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: 'text-blue-400',
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400'
+            };
+            
+            const entry = document.createElement('div');
+            entry.className = colors[type] || 'text-green-400';
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function checkScripts() {
+            log('📜 Checking script loading...', 'info');
+            
+            const scripts = [
+                'js/api-consolidator.js',
+                'js/standardized-hooks.js',
+                'fix-case-study-sync-improved.js',
+                'fix-admin-dashboard-case-studies-now.js'
+            ];
+            
+            scripts.forEach(script => {
+                const scriptElement = document.querySelector(`script[src="${script}"]`);
+                if (scriptElement) {
+                    log(`✅ Script found: ${script}`, 'success');
+                } else {
+                    log(`❌ Script missing: ${script}`, 'error');
+                }
+            });
+            
+            // Check if our fix functions exist
+            if (typeof window.caseStudyStorage !== 'undefined') {
+                log('✅ caseStudyStorage is available', 'success');
+            } else {
+                log('❌ caseStudyStorage is not available', 'error');
+            }
+            
+            // Check console for errors
+            log('💡 Check browser console for JavaScript errors', 'warning');
+        }
+
+        function checkLocalStorage() {
+            log('📦 Checking localStorage...', 'info');
+            
+            try {
+                const storedData = localStorage.getItem('portfolio_case_studies');
+                
+                if (!storedData) {
+                    log('📭 No case studies found in localStorage', 'warning');
+                    log('💡 Try creating test data first', 'info');
+                    return;
+                }
+                
+                const caseStudies = JSON.parse(storedData);
+                log(`📚 Found ${caseStudies.length} case studies in localStorage`, 'success');
+                
+                caseStudies.forEach((cs, index) => {
+                    log(`   ${index + 1}. ${cs.project_title || cs.caseStudyTitle || 'Untitled'}`, 'info');
+                });
+                
+            } catch (error) {
+                log(`❌ Error checking localStorage: ${error.message}`, 'error');
+            }
+        }
+
+        function checkDOMElements() {
+            log('🏗️ Checking DOM elements...', 'info');
+            
+            // Check if case studies view exists
+            const caseStudiesView = document.getElementById('case-studiesView');
+            if (caseStudiesView) {
+                log('✅ case-studiesView element found', 'success');
+            } else {
+                log('❌ case-studiesView element not found', 'error');
+            }
+            
+            // Check if navigation link exists
+            const navLink = document.querySelector('a[href="#case-studies"]');
+            if (navLink) {
+                log('✅ Case studies navigation link found', 'success');
+            } else {
+                log('❌ Case studies navigation link not found', 'error');
+            }
+            
+            // Check if grid container exists
+            const gridContainer = document.querySelector('#case-studiesView .grid');
+            if (gridContainer) {
+                log('✅ Grid container found', 'success');
+                log(`📏 Container innerHTML length: ${gridContainer.innerHTML.length}`, 'info');
+            } else {
+                log('❌ Grid container not found', 'error');
+            }
+            
+            // Check page views
+            const pageViews = document.querySelectorAll('.page-view');
+            log(`📄 Found ${pageViews.length} page views`, 'info');
+            
+            pageViews.forEach((view, index) => {
+                const isHidden = view.classList.contains('hidden');
+                log(`   ${index + 1}. ${view.id} - ${isHidden ? 'hidden' : 'visible'}`, 'info');
+            });
+        }
+
+        function simulateNavigation() {
+            log('🧭 Simulating case studies navigation...', 'info');
+            
+            try {
+                // Hide all views
+                document.querySelectorAll('.page-view').forEach(view => {
+                    view.classList.add('hidden');
+                });
+                log('✅ All views hidden', 'success');
+                
+                // Show case studies view
+                const caseStudiesView = document.getElementById('case-studiesView');
+                if (caseStudiesView) {
+                    caseStudiesView.classList.remove('hidden');
+                    log('✅ Case studies view shown', 'success');
+                } else {
+                    log('❌ Could not find case studies view', 'error');
+                    return;
+                }
+                
+                // Check if content is visible
+                const gridContainer = document.querySelector('#case-studiesView .grid');
+                if (gridContainer) {
+                    log(`📏 Grid container content: ${gridContainer.innerHTML.length} characters`, 'info');
+                    
+                    if (gridContainer.innerHTML.trim().length === 0) {
+                        log('⚠️ Grid container is empty - this is the problem!', 'warning');
+                        
+                        // Try to manually add content
+                        gridContainer.innerHTML = `
+                            <div class="bg-white rounded-xl shadow-sm p-6 text-center col-span-full">
+                                <i class="fas fa-file-alt text-4xl text-gray-400 mb-4"></i>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Debug: No Case Studies Yet</h3>
+                                <p class="text-gray-600 mb-4">This is a debug message - the container was empty</p>
+                                <button onclick="window.open('create-test-case-studies-now.html', '_blank')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                                    Create Test Data
+                                </button>
+                            </div>
+                        `;
+                        log('🔧 Added debug content to empty container', 'success');
+                    } else {
+                        log('✅ Grid container has content', 'success');
+                    }
+                } else {
+                    log('❌ Grid container not found', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Error during navigation simulation: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic checks on load
+        window.addEventListener('load', () => {
+            log('🚀 Debug tool loaded', 'success');
+            setTimeout(() => {
+                log('🔍 Running automatic checks...', 'info');
+                checkScripts();
+                checkLocalStorage();
+                checkDOMElements();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

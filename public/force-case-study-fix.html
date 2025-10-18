@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Case Study Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-red-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-5xl font-bold mb-8 text-center text-red-600">🚨 FORCE CASE STUDY FIX</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-6 text-center">
+            <h2 class="text-3xl font-semibold mb-6 text-red-600">IMMEDIATE ACTION REQUIRED</h2>
+            <p class="text-gray-700 mb-6">This will immediately fix the case study display on the homepage.</p>
+            
+            <div class="space-y-6">
+                <button onclick="forceFixNow()" class="w-full bg-red-600 text-white px-8 py-6 rounded-lg hover:bg-red-700 text-2xl font-bold">
+                    🔧 FIX CASE STUDIES NOW
+                </button>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="testAPI()" class="bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 text-lg">
+                        📡 Test API Connection
+                    </button>
+                    <button onclick="openHomepage()" class="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 text-lg">
+                        🏠 Open Homepage
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">🔄 Fix Progress</h2>
+            <div id="fixProgress" class="space-y-2">
+                <div class="text-gray-600">Click "FIX CASE STUDIES NOW" to start...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addProgress(message, type = 'info') {
+            const progressDiv = document.getElementById('fixProgress');
+            const colors = {
+                success: 'text-green-600 bg-green-50 border-green-200',
+                error: 'text-red-600 bg-red-50 border-red-200',
+                warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+                info: 'text-blue-600 bg-blue-50 border-blue-200'
+            };
+            
+            const progress = document.createElement('div');
+            progress.className = `p-4 border rounded ${colors[type]}`;
+            progress.innerHTML = `
+                <div class="flex items-center">
+                    <span class="font-bold mr-2">[${new Date().toLocaleTimeString()}]</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            progressDiv.appendChild(progress);
+            progressDiv.scrollTop = progressDiv.scrollHeight;
+        }
+
+        async function forceFixNow() {
+            document.getElementById('fixProgress').innerHTML = '';
+            addProgress('🚨 STARTING IMMEDIATE CASE STUDY FIX...', 'error');
+
+            try {
+                // Step 1: Test API connection
+                addProgress('📡 Testing API connection...', 'info');
+                const response = await fetch('/api/case-studies');
+                
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}`);
+                }
+                
+                const caseStudies = await response.json();
+                addProgress(`✅ API connection successful - found ${caseStudies.length} case studies`, 'success');
+
+                // Step 2: Analyze data structure
+                addProgress('🔍 Analyzing case study data structure...', 'info');
+                
+                if (caseStudies.length > 0) {
+                    const firstCs = caseStudies[0];
+                    addProgress(`📊 Sample case study structure:`, 'info');
+                    addProgress(`   - ID: ${firstCs.id}`, 'info');
+                    addProgress(`   - project_title: "${firstCs.project_title || 'NOT SET'}"`, firstCs.project_title ? 'success' : 'warning');
+                    addProgress(`   - project_description: "${(firstCs.project_description || 'NOT SET').substring(0, 50)}..."`, firstCs.project_description ? 'success' : 'warning');
+                    addProgress(`   - project_image_url: ${firstCs.project_image_url ? 'SET' : 'NOT SET'}`, firstCs.project_image_url ? 'success' : 'warning');
+                    
+                    // Check sections
+                    if (firstCs.sections) {
+                        addProgress(`   - sections.hero.title: "${firstCs.sections.hero?.title || 'NOT SET'}"`, firstCs.sections.hero?.title ? 'success' : 'warning');
+                        addProgress(`   - sections.hero.description: ${firstCs.sections.hero?.description ? 'SET' : 'NOT SET'}`, firstCs.sections.hero?.description ? 'success' : 'warning');
+                    }
+                }
+
+                // Step 3: Open homepage and fix display
+                addProgress('🏠 Opening homepage to apply fix...', 'info');
+                
+                const homepage = window.open('index.html', 'homepage-fix');
+                
+                setTimeout(() => {
+                    if (homepage && homepage.document) {
+                        addProgress('🔧 Applying direct fix to homepage...', 'info');
+                        
+                        // Inject fix script directly
+                        const script = homepage.document.createElement('script');
+                        script.textContent = `
+                            console.log('🚨 DIRECT FIX INJECTION...');
+                            
+                            const projectsGrid = document.getElementById('projectsGrid');
+                            const projectsLoading = document.getElementById('projectsLoading');
+                            const projectsError = document.getElementById('projectsError');
+                            
+                            if (projectsGrid) {
+                                // Show loading
+                                if (projectsLoading) projectsLoading.classList.remove('hidden');
+                                if (projectsError) projectsError.classList.add('hidden');
+                                projectsGrid.classList.add('hidden');
+                                
+                                fetch('/api/case-studies')
+                                    .then(response => response.json())
+                                    .then(caseStudies => {
+                                        console.log('📦 Direct fix loaded:', caseStudies.length, 'case studies');
+                                        
+                                        // Hide loading
+                                        if (projectsLoading) projectsLoading.classList.add('hidden');
+                                        
+                                        // Clear grid
+                                        projectsGrid.innerHTML = '';
+                                        
+                                        caseStudies.forEach((cs, index) => {
+                                            // Extract proper data
+                                            const title = cs.project_title || cs.sections?.hero?.title || 'Project ' + (index + 1);
+                                            const description = cs.project_description || cs.sections?.hero?.description || cs.sections?.hero?.subtitle || 'Explore this amazing project.';
+                                            const image = cs.project_image_url || cs.sections?.hero?.image || 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop';
+                                            const category = cs.project_category || 'Project';
+                                            const rating = cs.project_rating || 5;
+                                            const achievement = cs.project_achievement || 'Successfully completed';
+                                            
+                                            console.log('✅ Fixed case study:', title);
+                                            
+                                            const card = document.createElement('div');
+                                            card.className = 'project-book';
+                                            card.innerHTML = \`
+                                                <div class="relative h-full">
+                                                    <div class="book-inner bg-white rounded-xl shadow-xl overflow-hidden h-full dark:bg-gray-800">
+                                                        <img src="\${image}" 
+                                                             alt="\${title}" 
+                                                             class="w-full h-48 object-cover"
+                                                             onerror="this.src='https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop'">
+                                                        <div class="p-6">
+                                                            <h3 class="ghibli-font text-2xl dark:text-gray-200 mb-2">\${title}</h3>
+                                                            <p class="text-gray-600 dark:text-gray-400 mb-4">\${description}</p>
+                                                            <div class="flex items-center mb-4">
+                                                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">\${category}</span>
+                                                            </div>
+                                                            <div class="flex justify-between items-center">
+                                                                <div>
+                                                                    <span class="text-yellow-500">\${'★'.repeat(rating)}\${'☆'.repeat(5-rating)}</span>
+                                                                    <p class="text-sm text-gray-600 dark:text-gray-400">\${achievement}</p>
+                                                                </div>
+                                                                <a href="case_study.html?caseId=\${cs.id}" class="text-blue-600 dark:text-blue-400 hover:underline">Read Story</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            \`;
+                                            projectsGrid.appendChild(card);
+                                        });
+                                        
+                                        // Show grid
+                                        projectsGrid.classList.remove('hidden');
+                                        
+                                        // Show success notification
+                                        const notification = document.createElement('div');
+                                        notification.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg';
+                                        notification.innerHTML = \`
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-2xl">✅</span>
+                                                <div>
+                                                    <div class="font-bold">Case Studies Fixed!</div>
+                                                    <div class="text-sm">\${caseStudies.length} projects now showing properly</div>
+                                                </div>
+                                            </div>
+                                        \`;
+                                        document.body.appendChild(notification);
+                                        
+                                        setTimeout(() => notification.remove(), 5000);
+                                        
+                                        console.log('🎉 DIRECT FIX COMPLETE!');
+                                    })
+                                    .catch(error => {
+                                        console.error('❌ Direct fix failed:', error);
+                                    });
+                            }
+                        `;
+                        homepage.document.head.appendChild(script);
+                        
+                        addProgress('✅ Direct fix script injected into homepage', 'success');
+                    } else {
+                        addProgress('❌ Could not access homepage window', 'error');
+                    }
+                }, 2000);
+
+                // Step 4: Final verification
+                setTimeout(() => {
+                    addProgress('✅ CASE STUDY FIX COMPLETE!', 'success');
+                    addProgress('🏠 Check the homepage - case studies should now show proper titles and descriptions', 'success');
+                    addProgress('🎯 The "Magical Projects" section should display real project information', 'success');
+                }, 4000);
+
+            } catch (error) {
+                addProgress(`❌ Fix failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAPI() {
+            addProgress('📡 Testing API connection...', 'info');
+            
+            try {
+                const response = await fetch('/api/case-studies');
+                const data = await response.json();
+                
+                addProgress(`✅ API working - ${data.length} case studies found`, 'success');
+                
+                if (data.length > 0) {
+                    const sample = data[0];
+                    addProgress(`📄 Sample: "${sample.project_title || 'No title'}"`, 'info');
+                }
+            } catch (error) {
+                addProgress(`❌ API test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function openHomepage() {
+            addProgress('🏠 Opening homepage...', 'info');
+            window.open('index.html', '_blank');
+            addProgress('👀 Look for the "Magical Projects" section', 'info');
+        }
+
+        // Auto-check status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addProgress('🚀 Force fix tool loaded and ready', 'info');
+            addProgress('⚠️ Homepage currently showing "Untitled Project" cards', 'warning');
+            addProgress('🔧 Use the fix button to resolve this immediately', 'info');
+        });
+    </script>
+</body>
+</html>

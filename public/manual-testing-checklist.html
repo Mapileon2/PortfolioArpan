@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Testing Checklist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .checklist-item {
+            transition: all 0.2s ease;
+        }
+        .checklist-item:hover {
+            background-color: #f8fafc;
+        }
+        .completed {
+            background-color: #dcfce7;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .failed {
+            background-color: #fee2e2;
+        }
+        .test-section {
+            border-left: 4px solid #3b82f6;
+            padding-left: 1rem;
+        }
+        .test-section.completed {
+            border-left-color: #10b981;
+        }
+        .test-section.failed {
+            border-left-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">🧪 Manual Testing Checklist</h1>
+            <p class="text-gray-600 mb-4">
+                Comprehensive manual testing for the SaaS System Audit and Refactor project.
+                Test all user workflows, UI/UX functionality, and cross-browser compatibility.
+            </p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-600" id="totalTests">0</div>
+                    <div class="text-sm text-gray-600">Total Tests</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600" id="passedTests">0</div>
+                    <div class="text-sm text-gray-600">Passed</div>
+                </div>
+                <div class="text-center p-4 bg-red-50 rounded-lg">
+                    <div class="text-2xl font-bold text-red-600" id="failedTests">0</div>
+                    <div class="text-sm text-gray-600">Failed</div>
+                </div>
+                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div class="text-2xl font-bold text-yellow-600" id="progressPercent">0%</div>
+                    <div class="text-sm text-gray-600">Progress</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Sections -->
+        <div class="space-y-8">
+            <!-- 1. Homepage Testing -->
+            <div class="bg-white rounded-lg shadow-lg p-6 test-section" id="homepage-section">
+                <h2 class="text-xl font-semibold mb-4 text-blue-600">🏠 Homepage Testing</h2>
+                <div class="space-y-3">
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="homepage-load">
+                        <input type="checkbox" class="mr-3"> Homepage loads without errors
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="homepage-carousel">
+                        <input type="checkbox" class="mr-3"> Carousel displays and functions properly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="homepage-navigation">
+                        <input type="checkbox" class="mr-3"> Navigation links work correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="homepage-responsive">
+                        <input type="checkbox" class="mr-3"> Homepage is responsive on mobile/tablet
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="homepage-case-studies">
+                        <input type="checkbox" class="mr-3"> Case studies display correctly
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Case Study Editor Testing -->
+            <div class="bg-white rounded-lg shadow-lg p-6 test-section" id="editor-section">
+                <h2 class="text-xl font-semibold mb-4 text-green-600">📝 Case Study Editor Testing</h2>
+                <div class="space-y-3">
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="editor-load">
+                        <input type="checkbox" class="mr-3"> Editor loads without errors
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="editor-dropdown">
+                        <input type="checkbox" class="mr-3"> Case study dropdown populates correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="editor-sections">
+                        <input type="checkbox" class="mr-3"> All sections can be enabled/disabled
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="editor-content">
+                        <input type="checkbox" class="mr-3"> Content can be entered in all fields
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="editor-preview">
+                        <input type="checkbox" class="mr-3"> Preview functionality works
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="editor-save">
+                        <input type="checkbox" class="mr-3"> Save functionality works (uses standardized hooks)
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="editor-image-upload">
+                        <input type="checkbox" class="mr-3"> Image upload works correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="editor-notifications">
+                        <input type="checkbox" class="mr-3"> Success/error notifications display
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Admin Dashboard Testing -->
+            <div class="bg-white rounded-lg shadow-lg p-6 test-section" id="dashboard-section">
+                <h2 class="text-xl font-semibold mb-4 text-purple-600">⚙️ Admin Dashboard Testing</h2>
+                <div class="space-y-3">
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="dashboard-load">
+                        <input type="checkbox" class="mr-3"> Dashboard loads without errors
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="dashboard-navigation">
+                        <input type="checkbox" class="mr-3"> Navigation between sections works
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="dashboard-case-studies">
+                        <input type="checkbox" class="mr-3"> Case studies section displays data
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="dashboard-delete">
+                        <input type="checkbox" class="mr-3"> Delete functionality works (uses standardized hooks)
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="dashboard-carousel">
+                        <input type="checkbox" class="mr-3"> Carousel management works
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="dashboard-responsive">
+                        <input type="checkbox" class="mr-3"> Dashboard is responsive
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. API Integration Testing -->
+            <div class="bg-white rounded-lg shadow-lg p-6 test-section" id="api-section">
+                <h2 class="text-xl font-semibold mb-4 text-yellow-600">🔗 API Integration Testing</h2>
+                <div class="space-y-3">
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="api-consolidator">
+                        <input type="checkbox" class="mr-3"> API Consolidator loads correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="api-hooks">
+                        <input type="checkbox" class="mr-3"> Standardized hooks are available
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="api-fetch">
+                        <input type="checkbox" class="mr-3"> Fetch operations work correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="api-create">
+                        <input type="checkbox" class="mr-3"> Create operations work correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="api-update">
+                        <input type="checkbox" class="mr-3"> Update operations work correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="api-delete">
+                        <input type="checkbox" class="mr-3"> Delete operations work correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="api-error-handling">
+                        <input type="checkbox" class="mr-3"> Error handling works properly
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Image Flow Testing -->
+            <div class="bg-white rounded-lg shadow-lg p-6 test-section" id="image-section">
+                <h2 class="text-xl font-semibold mb-4 text-red-600">🖼️ Image Flow Testing</h2>
+                <div class="space-y-3">
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="image-upload">
+                        <input type="checkbox" class="mr-3"> Image upload to Cloudinary works
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="image-storage">
+                        <input type="checkbox" class="mr-3"> Image URLs stored in Supabase correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="image-display">
+                        <input type="checkbox" class="mr-3"> Images display correctly on frontend
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="image-fallback">
+                        <input type="checkbox" class="mr-3"> Fallback images work for failed loads
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="image-lazy-loading">
+                        <input type="checkbox" class="mr-3"> Lazy loading works correctly
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="image-deletion">
+                        <input type="checkbox" class="mr-3"> Image deletion cleanup works
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Cross-Browser Testing -->
+            <div class="bg-white rounded-lg shadow-lg p-6 test-section" id="browser-section">
+                <h2 class="text-xl font-semibold mb-4 text-indigo-600">🌐 Cross-Browser Testing</h2>
+                <div class="space-y-3">
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="browser-chrome">
+                        <input type="checkbox" class="mr-3"> Works correctly in Chrome
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="browser-firefox">
+                        <input type="checkbox" class="mr-3"> Works correctly in Firefox
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="browser-safari">
+                        <input type="checkbox" class="mr-3"> Works correctly in Safari
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="browser-edge">
+                        <input type="checkbox" class="mr-3"> Works correctly in Edge
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Device Testing -->
+            <div class="bg-white rounded-lg shadow-lg p-6 test-section" id="device-section">
+                <h2 class="text-xl font-semibold mb-4 text-pink-600">📱 Device Testing</h2>
+                <div class="space-y-3">
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="device-desktop">
+                        <input type="checkbox" class="mr-3"> Works on desktop (1920x1080)
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="device-laptop">
+                        <input type="checkbox" class="mr-3"> Works on laptop (1366x768)
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="device-tablet">
+                        <input type="checkbox" class="mr-3"> Works on tablet (768x1024)
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="device-mobile">
+                        <input type="checkbox" class="mr-3"> Works on mobile (375x667)
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Performance Testing -->
+            <div class="bg-white rounded-lg shadow-lg p-6 test-section" id="performance-section">
+                <h2 class="text-xl font-semibold mb-4 text-teal-600">⚡ Performance Testing</h2>
+                <div class="space-y-3">
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="performance-load-time">
+                        <input type="checkbox" class="mr-3"> Pages load within 3 seconds
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="performance-image-loading">
+                        <input type="checkbox" class="mr-3"> Images load efficiently
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="performance-api-response">
+                        <input type="checkbox" class="mr-3"> API responses are fast (< 2s)
+                    </div>
+                    <div class="checklist-item p-3 border rounded-lg cursor-pointer" data-test="performance-no-memory-leaks">
+                        <input type="checkbox" class="mr-3"> No memory leaks detected
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results Summary -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-8">
+            <h2 class="text-xl font-semibold mb-4">📊 Test Results Summary</h2>
+            <div id="testResults" class="space-y-4">
+                <div class="text-gray-500">Complete the tests above to see results...</div>
+            </div>
+            
+            <div class="mt-6 flex space-x-4">
+                <button id="exportResults" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
+                    📄 Export Results
+                </button>
+                <button id="resetTests" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg">
+                    🔄 Reset All Tests
+                </button>
+                <button id="markAllPassed" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg">
+                    ✅ Mark All Passed (Demo)
+                </button>
+            </div>
+        </div>
+
+        <!-- Testing Instructions -->
+        <div class="bg-blue-50 rounded-lg p-6 mt-8">
+            <h3 class="text-lg font-semibold mb-3 text-blue-800">📋 Testing Instructions</h3>
+            <div class="text-blue-700 space-y-2">
+                <p><strong>1. Homepage Testing:</strong> Open index.html and verify all functionality</p>
+                <p><strong>2. Case Study Editor:</strong> Open case_study_editor.html and test all features</p>
+                <p><strong>3. Admin Dashboard:</strong> Open admin-dashboard.html and test management features</p>
+                <p><strong>4. API Testing:</strong> Use browser dev tools to verify API calls use standardized hooks</p>
+                <p><strong>5. Cross-Browser:</strong> Test in different browsers (Chrome, Firefox, Safari, Edge)</p>
+                <p><strong>6. Device Testing:</strong> Use browser dev tools to test different screen sizes</p>
+                <p><strong>7. Performance:</strong> Use browser dev tools to check load times and performance</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ManualTestingManager {
+            constructor() {
+                this.tests = {};
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadTestState();
+                this.updateStats();
+            }
+
+            setupEventListeners() {
+                // Checkbox event listeners
+                document.querySelectorAll('.checklist-item').forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    const testId = item.dataset.test;
+                    
+                    checkbox.addEventListener('change', () => {
+                        this.updateTestStatus(testId, checkbox.checked);
+                    });
+                    
+                    item.addEventListener('click', (e) => {
+                        if (e.target !== checkbox) {
+                            checkbox.checked = !checkbox.checked;
+                            this.updateTestStatus(testId, checkbox.checked);
+                        }
+                    });
+                });
+
+                // Button event listeners
+                document.getElementById('exportResults').addEventListener('click', () => this.exportResults());
+                document.getElementById('resetTests').addEventListener('click', () => this.resetTests());
+                document.getElementById('markAllPassed').addEventListener('click', () => this.markAllPassed());
+            }
+
+            updateTestStatus(testId, passed) {
+                this.tests[testId] = passed;
+                this.saveTestState();
+                this.updateItemAppearance(testId, passed);
+                this.updateStats();
+                this.updateSectionStatus();
+            }
+
+            updateItemAppearance(testId, passed) {
+                const item = document.querySelector(`[data-test="${testId}"]`);
+                if (item) {
+                    item.classList.remove('completed', 'failed');
+                    if (passed) {
+                        item.classList.add('completed');
+                    }
+                }
+            }
+
+            updateStats() {
+                const totalTests = document.querySelectorAll('.checklist-item').length;
+                const passedTests = Object.values(this.tests).filter(status => status === true).length;
+                const failedTests = Object.values(this.tests).filter(status => status === false).length;
+                const progress = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+
+                document.getElementById('totalTests').textContent = totalTests;
+                document.getElementById('passedTests').textContent = passedTests;
+                document.getElementById('failedTests').textContent = failedTests;
+                document.getElementById('progressPercent').textContent = `${progress}%`;
+            }
+
+            updateSectionStatus() {
+                const sections = document.querySelectorAll('.test-section');
+                
+                sections.forEach(section => {
+                    const items = section.querySelectorAll('.checklist-item');
+                    const checkboxes = section.querySelectorAll('input[type="checkbox"]');
+                    const checkedBoxes = section.querySelectorAll('input[type="checkbox"]:checked');
+                    
+                    section.classList.remove('completed', 'failed');
+                    
+                    if (checkedBoxes.length === checkboxes.length && checkboxes.length > 0) {
+                        section.classList.add('completed');
+                    } else if (checkedBoxes.length > 0) {
+                        // Partially completed - no special class
+                    }
+                });
+            }
+
+            saveTestState() {
+                localStorage.setItem('manualTestState', JSON.stringify(this.tests));
+            }
+
+            loadTestState() {
+                const saved = localStorage.getItem('manualTestState');
+                if (saved) {
+                    this.tests = JSON.parse(saved);
+                    
+                    // Apply saved state to checkboxes
+                    Object.entries(this.tests).forEach(([testId, status]) => {
+                        const item = document.querySelector(`[data-test="${testId}"]`);
+                        if (item) {
+                            const checkbox = item.querySelector('input[type="checkbox"]');
+                            checkbox.checked = status;
+                            this.updateItemAppearance(testId, status);
+                        }
+                    });
+                    
+                    this.updateSectionStatus();
+                }
+            }
+
+            resetTests() {
+                if (confirm('Are you sure you want to reset all test results?')) {
+                    this.tests = {};
+                    localStorage.removeItem('manualTestState');
+                    
+                    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    
+                    document.querySelectorAll('.checklist-item').forEach(item => {
+                        item.classList.remove('completed', 'failed');
+                    });
+                    
+                    document.querySelectorAll('.test-section').forEach(section => {
+                        section.classList.remove('completed', 'failed');
+                    });
+                    
+                    this.updateStats();
+                }
+            }
+
+            markAllPassed() {
+                if (confirm('Mark all tests as passed? (For demonstration purposes)')) {
+                    document.querySelectorAll('.checklist-item').forEach(item => {
+                        const testId = item.dataset.test;
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        checkbox.checked = true;
+                        this.updateTestStatus(testId, true);
+                    });
+                }
+            }
+
+            exportResults() {
+                const results = {
+                    timestamp: new Date().toISOString(),
+                    testResults: this.tests,
+                    summary: {
+                        total: document.querySelectorAll('.checklist-item').length,
+                        passed: Object.values(this.tests).filter(status => status === true).length,
+                        failed: Object.values(this.tests).filter(status => status === false).length
+                    }
+                };
+
+                const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `manual-test-results-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.manualTestingManager = new ManualTestingManager();
+        });
+    </script>
+</body>
+</html>

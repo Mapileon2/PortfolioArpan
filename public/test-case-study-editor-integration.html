@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Case Study Editor Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-blue-600">Case Study Editor Integration Test</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Test Database Connection -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 text-green-600">
+                    <i class="fas fa-database mr-2"></i>Database Connection Test
+                </h2>
+                <button onclick="testDatabase()" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold mb-4">
+                    Test Database Connection
+                </button>
+                <div id="dbResult" class="text-sm"></div>
+            </div>
+            
+            <!-- Quick Case Study Creation -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 text-blue-600">
+                    <i class="fas fa-plus mr-2"></i>Quick Case Study Test
+                </h2>
+                <button onclick="createTestCaseStudy()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-semibold mb-4">
+                    Create Test Case Study
+                </button>
+                <div id="createResult" class="text-sm"></div>
+            </div>
+        </div>
+        
+        <!-- Editor Links -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4 text-purple-600">
+                <i class="fas fa-external-link-alt mr-2"></i>Editor Access
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="/case_study_editor_complete.html" target="_blank" 
+                   class="bg-purple-500 hover:bg-purple-600 text-white py-3 px-6 rounded-lg text-center font-semibold">
+                    <i class="fas fa-edit mr-2"></i>Complete Case Study Editor
+                </a>
+                <a href="/create-test-case-study.html" target="_blank" 
+                   class="bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-lg text-center font-semibold">
+                    <i class="fas fa-flask mr-2"></i>Simple Test Creator
+                </a>
+            </div>
+        </div>
+        
+        <!-- Integration Status -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4 text-indigo-600">
+                <i class="fas fa-check-circle mr-2"></i>Integration Status
+            </h2>
+            <div id="integrationStatus" class="space-y-2">
+                <div class="flex items-center">
+                    <i class="fas fa-spinner fa-spin text-gray-400 mr-2"></i>
+                    <span>Checking integration status...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testDatabase() {
+            const resultDiv = document.getElementById('dbResult');
+            resultDiv.innerHTML = '<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Testing connection...</div>';
+            
+            try {
+                const response = await fetch('/api/case-studies');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <strong>Connection Successful!</strong><br>
+                            Found ${Array.isArray(data) ? data.length : 0} case studies
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="text-red-600">
+                            <i class="fas fa-times-circle mr-2"></i>
+                            <strong>Connection Failed!</strong><br>
+                            Status: ${response.status}<br>
+                            Error: ${data.error || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>Network Error!</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        async function createTestCaseStudy() {
+            const resultDiv = document.getElementById('createResult');
+            resultDiv.innerHTML = '<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Creating test case study...</div>';
+            
+            const testData = {
+                project_title: 'Integration Test Case Study',
+                project_description: 'This is a test case study created to verify the editor integration with the database.',
+                project_category: 'web-design',
+                project_rating: 5,
+                project_achievement: 'Successfully tested integration',
+                status: 'published',
+                sections: {
+                    hero: {
+                        enabled: true,
+                        title: 'Integration Test',
+                        subtitle: 'Testing Editor Integration',
+                        description: 'This case study was created to test the integration between the case study editor and the database.'
+                    },
+                    overview: {
+                        enabled: true,
+                        title: 'Test Overview',
+                        summary: 'This is a comprehensive test of the case study editor integration.'
+                    }
+                }
+            };
+            
+            try {
+                const response = await fetch('/api/case-studies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <strong>Case Study Created!</strong><br>
+                            ID: ${result.id}<br>
+                            Title: ${result.project_title}<br>
+                            Status: ${result.status}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="text-red-600">
+                            <i class="fas fa-times-circle mr-2"></i>
+                            <strong>Creation Failed!</strong><br>
+                            Status: ${response.status}<br>
+                            Error: ${result.error || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>Network Error!</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        async function checkIntegrationStatus() {
+            const statusDiv = document.getElementById('integrationStatus');
+            
+            const checks = [
+                { name: 'Server Running', test: () => fetch('/api/case-studies') },
+                { name: 'Database Connection', test: () => fetch('/api/case-studies') },
+                { name: 'Case Study Editor', test: () => fetch('/case_study_editor_complete.html') },
+                { name: 'Test Creator', test: () => fetch('/create-test-case-study.html') }
+            ];
+            
+            let html = '';
+            
+            for (const check of checks) {
+                try {
+                    const response = await check.test();
+                    if (response.ok) {
+                        html += `
+                            <div class="flex items-center text-green-600">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <span>${check.name}: Working</span>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="flex items-center text-red-600">
+                                <i class="fas fa-times-circle mr-2"></i>
+                                <span>${check.name}: Failed (${response.status})</span>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    html += `
+                        <div class="flex items-center text-red-600">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span>${check.name}: Error (${error.message})</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            statusDiv.innerHTML = html;
+        }
+        
+        // Auto-check integration status on load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkIntegrationStatus();
+        });
+    </script>
+</body>
+</html>

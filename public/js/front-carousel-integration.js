@@ -48,7 +48,21 @@ class FrontCarouselIntegration {
         // Try localStorage first (updated by admin)
         const localSlides = this.getLocalStorageSlides();
         if (localSlides.length > 0) {
+            console.log('📸 Using slides from localStorage (admin managed)');
             return localSlides;
+        }
+
+        // Try admin integration system
+        if (window.carouselAdminIntegration) {
+            try {
+                const adminSlides = window.carouselAdminIntegration.getActiveSlides();
+                if (adminSlides.length > 0) {
+                    console.log('📸 Using slides from admin integration');
+                    return adminSlides;
+                }
+            } catch (error) {
+                console.warn('Failed to load from admin integration:', error);
+            }
         }
 
         // Try Supabase if available
@@ -63,15 +77,17 @@ class FrontCarouselIntegration {
             }
         }
 
-        // Try API endpoint
-        try {
-            const response = await fetch('/api/carousel-slides');
-            if (response.ok) {
-                const apiSlides = await response.json();
-                return apiSlides.filter(slide => slide.is_active);
+        // Try API endpoint (only works with server)
+        if (window.location.protocol !== 'file:') {
+            try {
+                const response = await fetch('/api/carousel-slides');
+                if (response.ok) {
+                    const apiSlides = await response.json();
+                    return apiSlides.filter(slide => slide.is_active);
+                }
+            } catch (error) {
+                console.warn('Failed to load from API:', error);
             }
-        } catch (error) {
-            console.warn('Failed to load from API:', error);
         }
 
         return [];

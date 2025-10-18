@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Async Image Loading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .image-test {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .stats-panel {
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="test-container">
+        <h1 class="text-3xl font-bold text-center mb-8">Async Image Loading Test</h1>
+        
+        <!-- Stats Panel -->
+        <div id="statsPanel" class="stats-panel">
+            <h3 class="font-bold mb-2">Loading Statistics:</h3>
+            <div id="statsContent">Initializing...</div>
+        </div>
+        
+        <!-- Test 1: Basic Async Loading -->
+        <div class="image-test">
+            <h2 class="text-xl font-semibold mb-4">Test 1: Basic Async Loading with Loading States</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <h3 class="font-medium mb-2">Valid Image (should load)</h3>
+                    <img id="test1-valid" 
+                         data-async="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop"
+                         data-show-progress="true"
+                         data-show-indicator="true"
+                         alt="Valid test image"
+                         class="w-full h-48 object-cover rounded border">
+                </div>
+                <div>
+                    <h3 class="font-medium mb-2">Invalid Image (should show error)</h3>
+                    <img id="test1-invalid" 
+                         data-async="https://invalid-url-that-does-not-exist.com/image.jpg"
+                         data-show-progress="true"
+                         data-show-indicator="true"
+                         data-fallback="https://via.placeholder.com/400x300/ef4444/ffffff?text=Error"
+                         alt="Invalid test image"
+                         class="w-full h-48 object-cover rounded border">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test 2: Race Condition Protection -->
+        <div class="image-test">
+            <h2 class="text-xl font-semibold mb-4">Test 2: Race Condition Protection</h2>
+            <div class="mb-4">
+                <button id="raceTest" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Trigger Rapid Image Changes
+                </button>
+                <span class="ml-4 text-sm text-gray-600">This will rapidly change the image source to test race condition handling</span>
+            </div>
+            <img id="test2-race" 
+                 data-async="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop"
+                 data-race-protection="true"
+                 data-show-indicator="true"
+                 alt="Race condition test image"
+                 class="w-full h-48 object-cover rounded border">
+        </div>
+        
+        <!-- Test 3: Gallery Loading -->
+        <div class="image-test">
+            <h2 class="text-xl font-semibold mb-4">Test 3: Gallery Loading with Progress</h2>
+            <div class="mb-4">
+                <button id="loadGallery" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Load Gallery Images
+                </button>
+                <div id="galleryProgress" class="mt-2 text-sm text-gray-600"></div>
+            </div>
+            <div id="galleryContainer" class="grid grid-cols-3 gap-4">
+                <!-- Gallery images will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Test 4: Manual Loading -->
+        <div class="image-test">
+            <h2 class="text-xl font-semibold mb-4">Test 4: Manual Loading Control</h2>
+            <div class="mb-4">
+                <input id="imageUrl" type="url" placeholder="Enter image URL" 
+                       value="https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=400&h=300&fit=crop"
+                       class="border rounded px-3 py-2 w-64 mr-2">
+                <button id="loadManual" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    Load Image
+                </button>
+            </div>
+            <img id="test4-manual" 
+                 alt="Manual load test image"
+                 class="w-full h-48 object-cover rounded border"
+                 style="background: #f3f4f6;">
+        </div>
+        
+        <!-- Event Log -->
+        <div class="image-test">
+            <h2 class="text-xl font-semibold mb-4">Event Log</h2>
+            <div id="eventLog" class="bg-gray-100 p-4 rounded h-32 overflow-y-auto text-sm font-mono">
+                <!-- Events will be logged here -->
+            </div>
+            <button id="clearLog" class="mt-2 bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">
+                Clear Log
+            </button>
+        </div>
+    </div>
+
+    <!-- Include the async image loading scripts -->
+    <script src="js/async-image-loader.js"></script>
+    <script src="js/async-image-integration.js"></script>
+    
+    <script>
+        // Test script
+        let eventLogElement;
+        let statsUpdateInterval;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            eventLogElement = document.getElementById('eventLog');
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Setup stats updates
+            setupStatsUpdates();
+            
+            // Setup image event listeners
+            setupImageEventListeners();
+            
+            logEvent('🚀 Test page initialized');
+        });
+        
+        function setupEventListeners() {
+            // Race condition test
+            document.getElementById('raceTest').addEventListener('click', function() {
+                const img = document.getElementById('test2-race');
+                const urls = [
+                    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+                    'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=400&h=300&fit=crop',
+                    'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400&h=300&fit=crop',
+                    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop'
+                ];
+                
+                logEvent('🏃 Starting race condition test...');
+                
+                // Rapidly change image sources
+                urls.forEach((url, index) => {
+                    setTimeout(() => {
+                        img.dataset.async = url;
+                        if (window.asyncImageIntegration) {
+                            window.asyncImageIntegration.loadImageAsync(img, url);
+                        }
+                        logEvent(`📸 Triggered load ${index + 1}: ${url.substring(0, 50)}...`);
+                    }, index * 100); // 100ms apart
+                });
+            });
+            
+            // Gallery loading test
+            document.getElementById('loadGallery').addEventListener('click', function() {
+                const galleryUrls = [
+                    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop',
+                    'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=300&h=200&fit=crop',
+                    'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=300&h=200&fit=crop',
+                    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=200&fit=crop',
+                    'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=300&h=200&fit=crop',
+                    'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=300&h=200&fit=crop'
+                ];
+                
+                logEvent('🖼️ Loading gallery images...');
+                
+                if (window.asyncImageIntegration) {
+                    window.asyncImageIntegration.loadGallery(galleryUrls, '#galleryContainer', {
+                        onBatchProgress: (completed, total, percentage) => {
+                            document.getElementById('galleryProgress').textContent = 
+                                `Loading: ${completed}/${total} (${percentage.toFixed(1)}%)`;
+                        }
+                    }).then(result => {
+                        logEvent(`✅ Gallery loaded: ${result.successful} successful, ${result.failed} failed`);
+                        document.getElementById('galleryProgress').textContent = 
+                            `Complete: ${result.successful}/${result.total} images loaded`;
+                    });
+                }
+            });
+            
+            // Manual loading test
+            document.getElementById('loadManual').addEventListener('click', function() {
+                const url = document.getElementById('imageUrl').value;
+                if (!url) {
+                    logEvent('❌ No URL provided for manual load');
+                    return;
+                }
+                
+                logEvent(`🔄 Manual loading: ${url}`);
+                
+                if (window.asyncImageIntegration) {
+                    window.asyncImageIntegration.loadImage(url, 'test4-manual')
+                        .then(() => {
+                            logEvent('✅ Manual load successful');
+                        })
+                        .catch(error => {
+                            logEvent(`❌ Manual load failed: ${error.message}`);
+                        });
+                }
+            });
+            
+            // Clear log
+            document.getElementById('clearLog').addEventListener('click', function() {
+                eventLogElement.innerHTML = '';
+                logEvent('🧹 Log cleared');
+            });
+        }
+        
+        function setupStatsUpdates() {
+            statsUpdateInterval = setInterval(updateStats, 1000);
+            updateStats(); // Initial update
+        }
+        
+        function updateStats() {
+            if (window.asyncImageLoader) {
+                const stats = window.asyncImageLoader.getStats();
+                const statsContent = document.getElementById('statsContent');
+                
+                statsContent.innerHTML = `
+                    <div>Cached Images: ${stats.cached}</div>
+                    <div>Currently Loading: ${stats.loading}</div>
+                    <div>Failed Images: ${stats.failed}</div>
+                    <div>Total States: ${stats.totalStates || 0}</div>
+                    <div>Active Loading: ${stats.activeLoading || 0}</div>
+                    <div>Completed: ${stats.completed || 0}</div>
+                    <div>Memory Usage: ${JSON.stringify(stats.memoryUsage || {})}</div>
+                `;
+            }
+        }
+        
+        function setupImageEventListeners() {
+            // Listen for async image events
+            document.addEventListener('asyncImageLoadStart', function(e) {
+                logEvent(`🔄 Load started: ${e.detail.url.substring(0, 50)}...`);
+            });
+            
+            document.addEventListener('asyncImageProgress', function(e) {
+                if (e.detail.progress % 25 === 0) { // Log every 25%
+                    logEvent(`📊 Progress ${e.detail.progress}%: ${e.detail.url.substring(0, 30)}...`);
+                }
+            });
+            
+            document.addEventListener('asyncImageLoaded', function(e) {
+                logEvent(`✅ Load completed: ${e.detail.url.substring(0, 50)}...`);
+            });
+            
+            document.addEventListener('asyncImageError', function(e) {
+                logEvent(`❌ Load failed: ${e.detail.error} - ${e.detail.url.substring(0, 30)}...`);
+            });
+            
+            document.addEventListener('galleryLoadProgress', function(e) {
+                logEvent(`📊 Gallery progress: ${e.detail.completed}/${e.detail.total} (${e.detail.percentage.toFixed(1)}%)`);
+            });
+        }
+        
+        function logEvent(message) {
+            if (!eventLogElement) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            eventLogElement.appendChild(logEntry);
+            eventLogElement.scrollTop = eventLogElement.scrollHeight;
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (statsUpdateInterval) {
+                clearInterval(statsUpdateInterval);
+            }
+        });
+    </script>
+</body>
+</html>

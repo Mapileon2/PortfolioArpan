@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel Management - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .drag-handle {
+            cursor: move;
+        }
+        .slide-card {
+            transition: all 0.3s ease;
+        }
+        .slide-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">🎠 Carousel Management</h1>
+                    <p class="text-gray-600 mt-2">Manage carousel slides for your homepage</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="addNewSlide()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-plus mr-2"></i>Add New Slide
+                    </button>
+                    <button onclick="previewCarousel()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-eye mr-2"></i>Preview
+                    </button>
+                    <a href="index.html" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-home mr-2"></i>View Site
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-images text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Total Slides</h3>
+                        <p id="totalSlides" class="text-2xl font-bold text-blue-600">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Active</h3>
+                        <p id="activeSlides" class="text-2xl font-bold text-green-600">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-pause-circle text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Inactive</h3>
+                        <p id="inactiveSlides" class="text-2xl font-bold text-yellow-600">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-sync text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Last Sync</h3>
+                        <p id="lastSync" class="text-sm font-medium text-purple-600">Just now</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slides Management -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Manage Slides</h2>
+                <div class="flex space-x-2">
+                    <button onclick="refreshSlides()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-sync mr-2"></i>Refresh
+                    </button>
+                    <button onclick="exportSlides()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                </div>
+            </div>
+            
+            <div id="slidesContainer">
+                <!-- Slides will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Slide Modal -->
+    <div id="slideModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 id="modalTitle" class="text-2xl font-bold text-gray-900">Add New Slide</h3>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="slideForm" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                        <input type="text" id="slideTitle" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Link URL (Optional)</label>
+                        <input type="url" id="slideLink" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea id="slideDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Image URL *</label>
+                    <input type="url" id="slideImage" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://example.com/image.jpg">
+                    <p class="text-sm text-gray-500 mt-1">Recommended size: 1200x600px</p>
+                </div>
+                
+                <div class="mt-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="slideActive" checked class="mr-2 rounded">
+                        <span class="text-sm font-medium text-gray-700">Active (show in carousel)</span>
+                    </label>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6 pt-6 border-t">
+                    <button type="button" onclick="closeModal()" class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-save mr-2"></i>Save Slide
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-2xl font-bold text-gray-900">Carousel Preview</h3>
+                    <button onclick="closePreview()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div id="previewContainer" class="bg-gray-100 rounded-lg overflow-hidden">
+                    <!-- Preview will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="js/carousel-admin-integration.js"></script>
+    
+    <script>
+        let currentEditingSlide = null;
+
+        // Initialize admin panel
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSlides();
+            updateStats();
+        });
+
+        function loadSlides() {
+            const slides = window.carouselAdminIntegration.getSlides();
+            renderSlides(slides);
+            updateStats();
+        }
+
+        function renderSlides(slides) {
+            const container = document.getElementById('slidesContainer');
+            
+            if (slides.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-images text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">No slides yet</h3>
+                        <p class="text-gray-500 mb-4">Create your first carousel slide to get started</p>
+                        <button onclick="addNewSlide()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-2"></i>Add First Slide
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedSlides = [...slides].sort((a, b) => a.order_index - b.order_index);
+            
+            container.innerHTML = sortedSlides.map(slide => `
+                <div class="slide-card bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4" data-slide-id="${slide.id}">
+                    <div class="flex items-start space-x-4">
+                        <div class="drag-handle text-gray-400 hover:text-gray-600 pt-2">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        
+                        <div class="flex-shrink-0">
+                            <img src="${slide.image_url}" alt="${slide.title}" 
+                                 class="w-24 h-16 object-cover rounded-lg border"
+                                 onerror="this.src='https://via.placeholder.com/150x100?text=No+Image'">
+                        </div>
+                        
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h4 class="text-lg font-semibold text-gray-900 truncate">${slide.title}</h4>
+                                    <p class="text-sm text-gray-600 mt-1 line-clamp-2">${slide.description || 'No description'}</p>
+                                    <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                        <span>Order: ${slide.order_index + 1}</span>
+                                        <span>Created: ${new Date(slide.created_at).toLocaleDateString()}</span>
+                                        ${slide.link_url ? `<span><i class="fas fa-link mr-1"></i>Has Link</span>` : ''}
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-2 ml-4">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="checkbox" ${slide.is_active ? 'checked' : ''} 
+                                               onchange="toggleSlideStatus('${slide.id}')"
+                                               class="sr-only">
+                                        <div class="relative">
+                                            <div class="w-10 h-6 bg-gray-200 rounded-full shadow-inner transition-colors ${slide.is_active ? 'bg-green-400' : ''}"></div>
+                                            <div class="absolute w-4 h-4 bg-white rounded-full shadow top-1 left-1 transition-transform ${slide.is_active ? 'transform translate-x-4' : ''}"></div>
+                                        </div>
+                                    </label>
+                                    <span class="text-xs ${slide.is_active ? 'text-green-600' : 'text-gray-500'}">${slide.is_active ? 'Active' : 'Inactive'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col space-y-2">
+                            <button onclick="editSlide('${slide.id}')" 
+                                    class="text-blue-600 hover:text-blue-800 text-sm">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </button>
+                            <button onclick="previewSlide('${slide.id}')" 
+                                    class="text-green-600 hover:text-green-800 text-sm">
+                                <i class="fas fa-eye mr-1"></i>Preview
+                            </button>
+                            <button onclick="deleteSlide('${slide.id}')" 
+                                    class="text-red-600 hover:text-red-800 text-sm">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            const slides = window.carouselAdminIntegration.getSlides();
+            const activeSlides = slides.filter(s => s.is_active);
+            const inactiveSlides = slides.filter(s => !s.is_active);
+            
+            document.getElementById('totalSlides').textContent = slides.length;
+            document.getElementById('activeSlides').textContent = activeSlides.length;
+            document.getElementById('inactiveSlides').textContent = inactiveSlides.length;
+            document.getElementById('lastSync').textContent = 'Just now';
+        }
+
+        function addNewSlide() {
+            currentEditingSlide = null;
+            document.getElementById('modalTitle').textContent = 'Add New Slide';
+            document.getElementById('slideForm').reset();
+            document.getElementById('slideActive').checked = true;
+            document.getElementById('slideModal').classList.remove('hidden');
+        }
+
+        function editSlide(slideId) {
+            const slides = window.carouselAdminIntegration.getSlides();
+            const slide = slides.find(s => s.id === slideId);
+            
+            if (!slide) return;
+            
+            currentEditingSlide = slideId;
+            document.getElementById('modalTitle').textContent = 'Edit Slide';
+            document.getElementById('slideTitle').value = slide.title;
+            document.getElementById('slideDescription').value = slide.description || '';
+            document.getElementById('slideImage').value = slide.image_url;
+            document.getElementById('slideLink').value = slide.link_url || '';
+            document.getElementById('slideActive').checked = slide.is_active;
+            document.getElementById('slideModal').classList.remove('hidden');
+        }
+
+        function deleteSlide(slideId) {
+            if (confirm('Are you sure you want to delete this slide?')) {
+                window.carouselAdminIntegration.deleteSlide(slideId);
+                loadSlides();
+                showNotification('Slide deleted successfully', 'success');
+            }
+        }
+
+        function toggleSlideStatus(slideId) {
+            const slides = window.carouselAdminIntegration.getSlides();
+            const slide = slides.find(s => s.id === slideId);
+            
+            if (slide) {
+                window.carouselAdminIntegration.updateSlide(slideId, { is_active: !slide.is_active });
+                loadSlides();
+                showNotification(`Slide ${!slide.is_active ? 'activated' : 'deactivated'}`, 'success');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('slideModal').classList.add('hidden');
+        }
+
+        function refreshSlides() {
+            loadSlides();
+            showNotification('Slides refreshed', 'info');
+        }
+
+        function exportSlides() {
+            const slidesJson = window.carouselAdminIntegration.exportSlides();
+            const blob = new Blob([slidesJson], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'carousel-slides.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('Slides exported successfully', 'success');
+        }
+
+        function previewCarousel() {
+            const activeSlides = window.carouselAdminIntegration.getActiveSlides();
+            
+            if (activeSlides.length === 0) {
+                showNotification('No active slides to preview', 'warning');
+                return;
+            }
+            
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+                <div class="relative h-64">
+                    ${activeSlides.map((slide, index) => `
+                        <div class="absolute inset-0 ${index === 0 ? 'opacity-100' : 'opacity-0'}" 
+                             style="transition: opacity 0.5s ease-in-out;">
+                            <img src="${slide.image_url}" alt="${slide.title}" class="w-full h-full object-cover">
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                                <h3 class="text-white text-lg font-semibold">${slide.title}</h3>
+                                <p class="text-white text-sm opacity-90">${slide.description}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="p-4 text-center">
+                    <p class="text-gray-600">Preview of ${activeSlides.length} active slides</p>
+                </div>
+            `;
+            
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        function previewSlide(slideId) {
+            const slides = window.carouselAdminIntegration.getSlides();
+            const slide = slides.find(s => s.id === slideId);
+            
+            if (!slide) return;
+            
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+                <div class="text-center">
+                    <img src="${slide.image_url}" alt="${slide.title}" class="max-w-full h-64 object-cover mx-auto rounded-lg mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">${slide.title}</h3>
+                    <p class="text-gray-600 mb-4">${slide.description || 'No description'}</p>
+                    ${slide.link_url ? `<a href="${slide.link_url}" target="_blank" class="text-blue-600 hover:text-blue-800"><i class="fas fa-external-link-alt mr-1"></i>View Link</a>` : ''}
+                    <div class="mt-6 pt-4 border-t text-sm text-gray-500">
+                        Status: <span class="${slide.is_active ? 'text-green-600' : 'text-red-600'}">${slide.is_active ? 'Active' : 'Inactive'}</span> | 
+                        Order: ${slide.order_index + 1} | 
+                        Created: ${new Date(slide.created_at).toLocaleDateString()}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        // Handle form submission
+        document.getElementById('slideForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const slideData = {
+                title: document.getElementById('slideTitle').value,
+                description: document.getElementById('slideDescription').value,
+                image_url: document.getElementById('slideImage').value,
+                link_url: document.getElementById('slideLink').value,
+                is_active: document.getElementById('slideActive').checked
+            };
+            
+            if (currentEditingSlide) {
+                window.carouselAdminIntegration.updateSlide(currentEditingSlide, slideData);
+                showNotification('Slide updated successfully', 'success');
+            } else {
+                window.carouselAdminIntegration.addSlide(slideData);
+                showNotification('Slide added successfully', 'success');
+            }
+            
+            closeModal();
+            loadSlides();
+        });
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white transform translate-x-full transition-transform duration-300 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+            }`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            setTimeout(() => notification.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Case Study Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center text-blue-600">🧪 Case Study Integration Test</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Test Actions -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">🔧 Test Actions</h2>
+                <div class="space-y-3">
+                    <button onclick="testCaseStudySync()" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        🔄 Test Case Study Sync
+                    </button>
+                    <button onclick="createTestCaseStudy()" class="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        📝 Create Test Case Study
+                    </button>
+                    <button onclick="checkHomepageProjects()" class="w-full bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                        🏠 Check Homepage Projects
+                    </button>
+                    <button onclick="clearTestData()" class="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        🗑️ Clear Test Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Current Status -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">📊 Current Status</h2>
+                <div id="statusInfo" class="space-y-2">
+                    <div class="text-gray-600">Loading status...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">📋 Test Results</h2>
+            <div id="testResults" class="space-y-3">
+                <div class="text-gray-600">Run tests to see results...</div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">🔗 Quick Navigation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <a href="index.html" target="_blank" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-center block">
+                    🏠 Homepage
+                </a>
+                <a href="admin-dashboard.html#case-studies" target="_blank" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 text-center block">
+                    📊 Admin Dashboard
+                </a>
+                <a href="case_study_editor_complete.html" target="_blank" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center block">
+                    📝 Case Study Editor
+                </a>
+                <a href="case_study_display.html" target="_blank" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 text-center block">
+                    👁️ Case Study Display
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const colors = {
+                success: 'text-green-600 bg-green-50 border-green-200',
+                error: 'text-red-600 bg-red-50 border-red-200',
+                warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+                info: 'text-blue-600 bg-blue-50 border-blue-200'
+            };
+            
+            const result = document.createElement('div');
+            result.className = `p-3 border rounded ${colors[type]}`;
+            result.innerHTML = `
+                <div class="flex items-start">
+                    <span class="font-semibold mr-2">[${new Date().toLocaleTimeString()}]</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            resultsDiv.appendChild(result);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function updateStatus() {
+            const statusDiv = document.getElementById('statusInfo');
+            
+            // Check localStorage data
+            const caseStudyData = localStorage.getItem('homepageCaseStudyData');
+            const lastSync = localStorage.getItem('caseStudyLastSync');
+            
+            let statusHtml = '';
+            
+            if (caseStudyData) {
+                try {
+                    const data = JSON.parse(caseStudyData);
+                    statusHtml += `<div class="text-green-600">✅ Case Study Data: ${data.length} items</div>`;
+                    statusHtml += `<div class="text-blue-600">🕒 Last Sync: ${lastSync ? new Date(lastSync).toLocaleString() : 'Unknown'}</div>`;
+                } catch (error) {
+                    statusHtml += `<div class="text-red-600">❌ Invalid case study data in localStorage</div>`;
+                }
+            } else {
+                statusHtml += `<div class="text-red-600">❌ No case study data found</div>`;
+            }
+            
+            // Check if sync script is available
+            if (typeof window.CaseStudyHomepageSync !== 'undefined') {
+                statusHtml += `<div class="text-green-600">✅ Case Study Sync Available</div>`;
+            } else {
+                statusHtml += `<div class="text-yellow-600">⚠️ Case Study Sync Not Loaded</div>`;
+            }
+            
+            statusDiv.innerHTML = statusHtml;
+        }
+
+        async function testCaseStudySync() {
+            addResult('🧪 Starting case study sync test...', 'info');
+            
+            try {
+                // Test API connection
+                addResult('📡 Testing API connection...', 'info');
+                const response = await fetch('/api/case-studies');
+                
+                if (response.ok) {
+                    const caseStudies = await response.json();
+                    addResult(`✅ API connection successful - found ${caseStudies.length} case studies`, 'success');
+                    
+                    // Test sync functionality
+                    if (window.CaseStudyHomepageSync) {
+                        addResult('🔄 Triggering sync...', 'info');
+                        window.CaseStudyHomepageSync.triggerSync();
+                        addResult('✅ Sync triggered successfully', 'success');
+                    } else {
+                        addResult('❌ Sync class not available', 'error');
+                    }
+                    
+                    // Check localStorage after sync
+                    setTimeout(() => {
+                        const syncedData = localStorage.getItem('homepageCaseStudyData');
+                        if (syncedData) {
+                            const data = JSON.parse(syncedData);
+                            addResult(`✅ Sync successful - ${data.length} items in localStorage`, 'success');
+                        } else {
+                            addResult('❌ Sync failed - no data in localStorage', 'error');
+                        }
+                        updateStatus();
+                    }, 1000);
+                    
+                } else {
+                    addResult(`❌ API connection failed - ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function createTestCaseStudy() {
+            addResult('📝 Creating test case study...', 'info');
+            
+            const testCaseStudy = {
+                project_title: 'Test Project ' + Date.now(),
+                project_description: 'This is a test case study created for integration testing',
+                project_image_url: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop',
+                project_category: 'Test',
+                project_rating: 5,
+                project_achievement: 'Successfully created via integration test',
+                status: 'published',
+                sections: {
+                    hero: {
+                        headline: 'Test Project ' + Date.now(),
+                        description: 'This is a test case study created for integration testing',
+                        image: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop'
+                    },
+                    overview: {
+                        content: 'This case study was created to test the integration between the admin dashboard and homepage projects section.'
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch('/api/case-studies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testCaseStudy)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    addResult(`✅ Test case study created with ID: ${result.id}`, 'success');
+                    
+                    // Trigger sync
+                    if (window.CaseStudyHomepageSync) {
+                        window.CaseStudyHomepageSync.triggerSync();
+                        addResult('🔄 Homepage sync triggered', 'success');
+                    }
+                    
+                    addResult('🏠 Check the homepage projects section to see the new case study', 'info');
+                } else {
+                    const error = await response.text();
+                    addResult(`❌ Failed to create test case study: ${error}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error creating test case study: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkHomepageProjects() {
+            addResult('🏠 Checking homepage projects...', 'info');
+            
+            try {
+                // Check localStorage data
+                const caseStudyData = localStorage.getItem('homepageCaseStudyData');
+                if (caseStudyData) {
+                    const data = JSON.parse(caseStudyData);
+                    addResult(`📦 Found ${data.length} case studies in localStorage`, 'success');
+                    
+                    data.forEach((cs, index) => {
+                        addResult(`📄 ${index + 1}. "${cs.projectTitle}" - ${cs.projectCategory}`, 'info');
+                    });
+                } else {
+                    addResult('❌ No case study data in localStorage', 'error');
+                }
+                
+                // Check if homepage DOM elements exist
+                const homepage = window.open('index.html', 'homepage-check');
+                setTimeout(() => {
+                    if (homepage && homepage.document) {
+                        const projectsGrid = homepage.document.getElementById('projectsGrid');
+                        if (projectsGrid) {
+                            const projectCards = projectsGrid.children.length;
+                            addResult(`🎯 Homepage has ${projectCards} project cards displayed`, 'success');
+                        } else {
+                            addResult('❌ Homepage projects grid not found', 'error');
+                        }
+                        homepage.close();
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                addResult(`❌ Error checking homepage: ${error.message}`, 'error');
+            }
+        }
+
+        function clearTestData() {
+            addResult('🗑️ Clearing test data...', 'info');
+            
+            localStorage.removeItem('homepageCaseStudyData');
+            localStorage.removeItem('caseStudyLastSync');
+            
+            addResult('✅ Test data cleared from localStorage', 'success');
+            addResult('🏠 Homepage will now show empty or default projects', 'info');
+            
+            updateStatus();
+        }
+
+        // Auto-update status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+            
+            // Listen for case study updates
+            window.addEventListener('caseStudyDataUpdated', function(event) {
+                addResult(`📡 Received case study update event with ${event.detail.caseStudies.length} items`, 'success');
+                updateStatus();
+            });
+            
+            // Listen for homepage project updates
+            window.addEventListener('homepageProjectsUpdated', function(event) {
+                addResult(`🏠 Homepage projects updated with ${event.detail.caseStudies.length} items`, 'success');
+            });
+        });
+    </script>
+    <script src="fix-case-study-homepage-sync.js"></script>
+</body>
+</html>

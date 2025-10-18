@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Health Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">🗺️ Integration Health Map</h1>
+            
+            <!-- Overall Health Status -->
+            <div id="overall-health" class="mb-8">
+                <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">System Health Overview</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <div id="overall-score" class="text-4xl font-bold text-gray-800">--</div>
+                            <div class="text-sm text-gray-600">Overall Score</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="total-integrations" class="text-4xl font-bold text-blue-600">--</div>
+                            <div class="text-sm text-gray-600">Integrations</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="healthy-integrations" class="text-4xl font-bold text-green-600">--</div>
+                            <div class="text-sm text-gray-600">Healthy</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="last-check" class="text-lg font-medium text-gray-700">--</div>
+                            <div class="text-sm text-gray-600">Last Check</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="mb-6">
+                <button id="generate-health-map" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 mr-4">
+                    🗺️ Generate Health Map
+                </button>
+                <button id="run-all-tests" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 mr-4">
+                    🚀 Run All Integration Tests
+                </button>
+                <button id="export-report" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 mr-4">
+                    📊 Export Report
+                </button>
+                <button id="refresh-data" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">
+                    🔄 Refresh
+                </button>
+            </div>
+
+            <!-- Integration Status Grid -->
+            <div id="integration-grid" class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Integration Status</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Supabase Integration -->
+                    <div class="bg-white border rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">📊 Supabase</h3>
+                            <div id="supabase-status" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                Unknown
+                            </div>
+                        </div>
+                        <div id="supabase-details" class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Connection:</span>
+                                <span id="supabase-connection" class="text-gray-500">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Authentication:</span>
+                                <span id="supabase-auth" class="text-gray-500">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>CRUD Operations:</span>
+                                <span id="supabase-crud" class="text-gray-500">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>RLS Policies:</span>
+                                <span id="supabase-rls" class="text-gray-500">--</span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="supabase-progress" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cloudinary Integration -->
+                    <div class="bg-white border rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">☁️ Cloudinary</h3>
+                            <div id="cloudinary-status" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                Unknown
+                            </div>
+                        </div>
+                        <div id="cloudinary-details" class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Configuration:</span>
+                                <span id="cloudinary-config" class="text-gray-500">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Upload Capability:</span>
+                                <span id="cloudinary-upload" class="text-gray-500">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>URL Generation:</span>
+                                <span id="cloudinary-url" class="text-gray-500">--</span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="cloudinary-progress" class="bg-green-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- End-to-End Flow -->
+                    <div class="bg-white border rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">🔄 End-to-End</h3>
+                            <div id="e2e-status" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                Unknown
+                            </div>
+                        </div>
+                        <div id="e2e-details" class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>UI → API:</span>
+                                <span id="e2e-ui-api" class="text-gray-500">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>API → Database:</span>
+                                <span id="e2e-api-db" class="text-gray-500">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Error Handling:</span>
+                                <span id="e2e-error" class="text-gray-500">--</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Data Consistency:</span>
+                                <span id="e2e-consistency" class="text-gray-500">--</span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="e2e-progress" class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Performance Metrics</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Response Times</h3>
+                        <canvas id="response-time-chart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="bg-white border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Success Rates</h3>
+                        <canvas id="success-rate-chart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Health Report -->
+            <div id="detailed-report" class="hidden">
+                <h2 class="text-2xl font-semibold mb-4">📋 Detailed Health Report</h2>
+                <div id="report-content" class="bg-gray-50 p-6 rounded-lg">
+                    <!-- Report content will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Dependencies -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/cloudinary-service.js"></script>
+    <script src="js/api-error-handler.js"></script>
+    <script src="js/notification-system.js"></script>
+    <script src="js/integration-verifier.js"></script>
+
+    <script>
+        class IntegrationHealthMap {
+            constructor() {
+                this.verifier = null;
+                this.healthData = null;
+                this.charts = {};
+                this.init();
+            }
+
+            async init() {
+                console.log('🗺️ Initializing Integration Health Map...');
+                
+                // Wait for dependencies to load
+                await this.waitForDependencies();
+                
+                // Initialize verifier
+                this.verifier = new IntegrationVerifier();
+                
+                // Setup event listeners
+                this.setupEventListeners();
+                
+                // Initialize charts
+                this.initializeCharts();
+                
+                console.log('✅ Integration Health Map ready');
+            }
+
+            async waitForDependencies() {
+                return new Promise((resolve) => {
+                    const checkDependencies = () => {
+                        if (typeof IntegrationVerifier !== 'undefined') {
+                            resolve();
+                        } else {
+                            setTimeout(checkDependencies, 100);
+                        }
+                    };
+                    checkDependencies();
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('generate-health-map').addEventListener('click', () => {
+                    this.generateHealthMap();
+                });
+
+                document.getElementById('run-all-tests').addEventListener('click', () => {
+                    this.runAllIntegrationTests();
+                });
+
+                document.getElementById('export-report').addEventListener('click', () => {
+                    this.exportHealthReport();
+                });
+
+                document.getElementById('refresh-data').addEventListener('click', () => {
+                    this.refreshHealthData();
+                });
+            }
+
+            initializeCharts() {
+                // Response Time Chart
+                const responseTimeCtx = document.getElementById('response-time-chart').getContext('2d');
+                this.charts.responseTime = new Chart(responseTimeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Supabase', 'Cloudinary', 'API Endpoints', 'End-to-End'],
+                        datasets: [{
+                            label: 'Response Time (ms)',
+                            data: [0, 0, 0, 0],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(139, 92, 246, 0.8)',
+                                'rgba(245, 158, 11, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(59, 130, 246)',
+                                'rgb(16, 185, 129)',
+                                'rgb(139, 92, 246)',
+                                'rgb(245, 158, 11)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Response Time (ms)'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Success Rate Chart
+                const successRateCtx = document.getElementById('success-rate-chart').getContext('2d');
+                this.charts.successRate = new Chart(successRateCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Passed', 'Failed'],
+                        datasets: [{
+                            data: [0, 0],
+                            backgroundColor: [
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(239, 68, 68, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(16, 185, 129)',
+                                'rgb(239, 68, 68)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            async generateHealthMap() {
+                console.log('🗺️ Generating integration health map...');
+                
+                try {
+                    // Get existing health data or run fresh tests
+                    if (!this.healthData) {
+                        await this.runAllIntegrationTests();
+                    }
+                    
+                    // Update overall health display
+                    this.updateOverallHealth();
+                    
+                    // Update integration grid
+                    this.updateIntegrationGrid();
+                    
+                    // Update charts
+                    this.updateCharts();
+                    
+                    // Generate detailed report
+                    this.generateDetailedReport();
+                    
+                    console.log('✅ Health map generated successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to generate health map:', error);
+                }
+            }
+
+            async runAllIntegrationTests() {
+                console.log('🚀 Running all integration tests...');
+                
+                try {
+                    // Run comprehensive verification
+                    const results = await this.verifier.runFullVerification();
+                    this.healthData = results;
+                    
+                    console.log('📊 Integration test results:', results);
+                    
+                    // Update last check time
+                    document.getElementById('last-check').textContent = new Date().toLocaleTimeString();
+                    
+                    return results;
+                    
+                } catch (error) {
+                    console.error('❌ Integration tests failed:', error);
+                    throw error;
+                }
+            }
+
+            updateOverallHealth() {
+                if (!this.healthData || !this.healthData.results) return;
+                
+                const results = this.healthData.results;
+                
+                // Calculate overall score
+                const integrations = [results.supabase, results.cloudinary, results.endToEnd].filter(Boolean);
+                const passedIntegrations = integrations.filter(i => i.status === 'pass').length;
+                const totalIntegrations = integrations.length;
+                const overallScore = totalIntegrations > 0 ? Math.round((passedIntegrations / totalIntegrations) * 100) : 0;
+                
+                // Update display
+                document.getElementById('overall-score').textContent = `${overallScore}%`;
+                document.getElementById('total-integrations').textContent = totalIntegrations;
+                document.getElementById('healthy-integrations').textContent = passedIntegrations;
+                
+                // Update score color
+                const scoreElement = document.getElementById('overall-score');
+                if (overallScore >= 80) {
+                    scoreElement.className = 'text-4xl font-bold text-green-600';
+                } else if (overallScore >= 60) {
+                    scoreElement.className = 'text-4xl font-bold text-yellow-600';
+                } else {
+                    scoreElement.className = 'text-4xl font-bold text-red-600';
+                }
+            }
+
+            updateIntegrationGrid() {
+                if (!this.healthData || !this.healthData.results) return;
+                
+                const results = this.healthData.results;
+                
+                // Update Supabase
+                if (results.supabase) {
+                    this.updateIntegrationCard('supabase', results.supabase);
+                }
+                
+                // Update Cloudinary
+                if (results.cloudinary) {
+                    this.updateIntegrationCard('cloudinary', results.cloudinary);
+                }
+                
+                // Update End-to-End
+                if (results.endToEnd) {
+                    this.updateIntegrationCard('e2e', results.endToEnd);
+                }
+            }
+
+            updateIntegrationCard(prefix, data) {
+                // Update status badge
+                const statusElement = document.getElementById(`${prefix}-status`);
+                if (statusElement) {
+                    const status = data.status === 'pass' ? 'Healthy' : 'Issues';
+                    const className = data.status === 'pass' ? 
+                        'px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800' :
+                        'px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800';
+                    
+                    statusElement.textContent = status;
+                    statusElement.className = className;
+                }
+                
+                // Update progress bar
+                const progressElement = document.getElementById(`${prefix}-progress`);
+                if (progressElement && data.tests) {
+                    const passedTests = data.tests.filter(t => t.status === 'pass').length;
+                    const totalTests = data.tests.length;
+                    const percentage = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
+                    
+                    progressElement.style.width = `${percentage}%`;
+                }
+                
+                // Update individual test results
+                if (data.tests) {
+                    data.tests.forEach(test => {
+                        const testName = test.name.toLowerCase().replace(/\s+/g, '-');
+                        const elementId = `${prefix}-${testName.split('-').pop()}`;
+                        const element = document.getElementById(elementId);
+                        
+                        if (element) {
+                            const status = test.status === 'pass' ? '✅' : '❌';
+                            element.textContent = status;
+                            element.className = test.status === 'pass' ? 'text-green-600' : 'text-red-600';
+                        }
+                    });
+                }
+            }
+
+            updateCharts() {
+                if (!this.healthData || !this.healthData.testResults) return;
+                
+                // Update response time chart
+                const responseTimes = this.calculateResponseTimes();
+                this.charts.responseTime.data.datasets[0].data = responseTimes;
+                this.charts.responseTime.update();
+                
+                // Update success rate chart
+                const successRates = this.calculateSuccessRates();
+                this.charts.successRate.data.datasets[0].data = [successRates.passed, successRates.failed];
+                this.charts.successRate.update();
+            }
+
+            calculateResponseTimes() {
+                if (!this.healthData.testResults) return [0, 0, 0, 0];
+                
+                const supabaseTests = this.healthData.testResults.filter(t => t.name.includes('Supabase'));
+                const cloudinaryTests = this.healthData.testResults.filter(t => t.name.includes('Cloudinary'));
+                const apiTests = this.healthData.testResults.filter(t => t.name.includes('API'));
+                const e2eTests = this.healthData.testResults.filter(t => t.name.includes('End-to-End') || t.name.includes('Flow'));
+                
+                return [
+                    this.averageResponseTime(supabaseTests),
+                    this.averageResponseTime(cloudinaryTests),
+                    this.averageResponseTime(apiTests),
+                    this.averageResponseTime(e2eTests)
+                ];
+            }
+
+            averageResponseTime(tests) {
+                if (tests.length === 0) return 0;
+                const total = tests.reduce((sum, test) => sum + (test.duration || 0), 0);
+                return Math.round(total / tests.length);
+            }
+
+            calculateSuccessRates() {
+                if (!this.healthData.testResults) return { passed: 0, failed: 0 };
+                
+                const passed = this.healthData.testResults.filter(t => t.status === 'pass').length;
+                const failed = this.healthData.testResults.filter(t => t.status === 'fail').length;
+                
+                return { passed, failed };
+            }
+
+            generateDetailedReport() {
+                if (!this.healthData) return;
+                
+                const reportContent = document.getElementById('report-content');
+                const timestamp = new Date().toLocaleString();
+                
+                reportContent.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="border-b pb-4">
+                            <h3 class="text-lg font-semibold">Integration Health Report</h3>
+                            <p class="text-sm text-gray-600">Generated on ${timestamp}</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold mb-2">Summary</h4>
+                                <ul class="text-sm space-y-1">
+                                    <li>Total Tests: ${this.healthData.testResults?.length || 0}</li>
+                                    <li>Passed: ${this.healthData.testResults?.filter(t => t.status === 'pass').length || 0}</li>
+                                    <li>Failed: ${this.healthData.testResults?.filter(t => t.status === 'fail').length || 0}</li>
+                                    <li>Duration: ${this.healthData.duration || 0}ms</li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-2">Integration Status</h4>
+                                <ul class="text-sm space-y-1">
+                                    <li>Supabase: ${this.healthData.results?.supabase?.status || 'Unknown'}</li>
+                                    <li>Cloudinary: ${this.healthData.results?.cloudinary?.status || 'Unknown'}</li>
+                                    <li>End-to-End: ${this.healthData.results?.endToEnd?.status || 'Unknown'}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        ${this.generateRecommendations()}
+                    </div>
+                `;
+                
+                document.getElementById('detailed-report').classList.remove('hidden');
+            }
+
+            generateRecommendations() {
+                if (!this.healthData.results) return '';
+                
+                const recommendations = [];
+                
+                // Check each integration for issues
+                Object.entries(this.healthData.results).forEach(([key, result]) => {
+                    if (result && result.status === 'fail') {
+                        recommendations.push(`Fix ${key} integration issues`);
+                    }
+                });
+                
+                if (recommendations.length === 0) {
+                    recommendations.push('All integrations are healthy! 🎉');
+                }
+                
+                return `
+                    <div>
+                        <h4 class="font-semibold mb-2">Recommendations</h4>
+                        <ul class="text-sm space-y-1">
+                            ${recommendations.map(rec => `<li>• ${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            async refreshHealthData() {
+                console.log('🔄 Refreshing health data...');
+                this.healthData = null;
+                await this.generateHealthMap();
+            }
+
+            exportHealthReport() {
+                if (!this.healthData) {
+                    alert('No health data available. Please generate a health map first.');
+                    return;
+                }
+                
+                const report = {
+                    timestamp: new Date().toISOString(),
+                    results: this.healthData.results,
+                    testResults: this.healthData.testResults,
+                    duration: this.healthData.duration,
+                    summary: {
+                        totalTests: this.healthData.testResults?.length || 0,
+                        passedTests: this.healthData.testResults?.filter(t => t.status === 'pass').length || 0,
+                        failedTests: this.healthData.testResults?.filter(t => t.status === 'fail').length || 0
+                    }
+                };
+                
+                const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `integration-health-report-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                console.log('📊 Health report exported');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new IntegrationHealthMap();
+        });
+    </script>
+</body>
+</html>

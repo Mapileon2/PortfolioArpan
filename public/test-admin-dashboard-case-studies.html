@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Dashboard - Case Studies Tab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-blue-600">Admin Dashboard - Case Studies Tab Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 text-green-600">
+                <i class="fas fa-check-circle mr-2"></i>Fix Applied
+            </h2>
+            <div class="space-y-3 text-sm">
+                <div class="flex items-center text-green-600">
+                    <i class="fas fa-check mr-2"></i>
+                    <span>Fixed navigation href from "case_study_editor_complete.html" to "#case-studies"</span>
+                </div>
+                <div class="flex items-center text-green-600">
+                    <i class="fas fa-check mr-2"></i>
+                    <span>Completed loadCaseStudiesData() function to render case studies</span>
+                </div>
+                <div class="flex items-center text-green-600">
+                    <i class="fas fa-check mr-2"></i>
+                    <span>Added renderCaseStudies() method with proper UI</span>
+                </div>
+                <div class="flex items-center text-green-600">
+                    <i class="fas fa-check mr-2"></i>
+                    <span>Added case study management actions (Edit, View, Delete)</span>
+                </div>
+                <div class="flex items-center text-green-600">
+                    <i class="fas fa-check mr-2"></i>
+                    <span>Added showNotification() method for user feedback</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Test Dashboard Access -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 text-blue-600">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Test Dashboard
+                </h2>
+                <p class="text-gray-600 mb-4">Open the admin dashboard and test the Case Studies tab</p>
+                <a href="/admin-dashboard.html#case-studies" target="_blank" 
+                   class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg text-center font-semibold block">
+                    <i class="fas fa-external-link-alt mr-2"></i>Open Admin Dashboard
+                </a>
+            </div>
+            
+            <!-- Create Test Data -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 text-purple-600">
+                    <i class="fas fa-database mr-2"></i>Create Test Data
+                </h2>
+                <p class="text-gray-600 mb-4">Create some case studies to see in the dashboard</p>
+                <button onclick="createTestCaseStudy()" 
+                        class="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Create Test Case Study
+                </button>
+                <div id="createResult" class="mt-4 text-sm"></div>
+            </div>
+        </div>
+        
+        <!-- Test Instructions -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4 text-indigo-600">
+                <i class="fas fa-list-check mr-2"></i>Testing Instructions
+            </h2>
+            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                <li>Click "Create Test Case Study" to add some data to the database</li>
+                <li>Click "Open Admin Dashboard" to access the dashboard</li>
+                <li>Click on "Case Studies" in the left sidebar navigation</li>
+                <li>You should now see the Case Studies tab with your created case studies</li>
+                <li>Test the Edit, View, and Delete buttons on each case study card</li>
+            </ol>
+        </div>
+        
+        <!-- Expected Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4 text-green-600">
+                <i class="fas fa-bullseye mr-2"></i>Expected Results
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">✅ Should Work:</h3>
+                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                        <li>Case Studies tab appears in navigation</li>
+                        <li>Clicking tab shows case studies view</li>
+                        <li>Case studies are loaded and displayed</li>
+                        <li>Each case study shows title, description, date</li>
+                        <li>Edit button opens case study editor</li>
+                        <li>View button opens case study display</li>
+                        <li>Delete button removes case study</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">❌ Previous Issues:</h3>
+                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                        <li>Case Studies tab redirected to editor</li>
+                        <li>Tab didn't show within dashboard</li>
+                        <li>No case studies were displayed</li>
+                        <li>loadCaseStudiesData() was incomplete</li>
+                        <li>No management actions available</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function createTestCaseStudy() {
+            const resultDiv = document.getElementById('createResult');
+            resultDiv.innerHTML = '<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Creating test case study...</div>';
+            
+            const testData = {
+                project_title: `Test Case Study ${Date.now()}`,
+                project_description: 'This is a test case study created to verify the admin dashboard case studies tab functionality.',
+                project_category: 'web-design',
+                project_rating: 5,
+                project_achievement: 'Successfully tested admin dashboard integration',
+                status: 'published',
+                sections: {
+                    hero: {
+                        enabled: true,
+                        title: 'Admin Dashboard Test',
+                        subtitle: 'Testing Case Studies Tab',
+                        description: 'This case study was created to test the admin dashboard case studies tab.'
+                    },
+                    overview: {
+                        enabled: true,
+                        title: 'Test Overview',
+                        summary: 'Comprehensive test of the admin dashboard case studies management.'
+                    }
+                }
+            };
+            
+            try {
+                const response = await fetch('/api/case-studies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <strong>Test Case Study Created!</strong><br>
+                            ID: ${result.id}<br>
+                            Title: ${result.project_title}<br>
+                            Now open the admin dashboard to see it!
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="text-red-600">
+                            <i class="fas fa-times-circle mr-2"></i>
+                            <strong>Creation Failed!</strong><br>
+                            Error: ${result.error || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>Network Error!</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

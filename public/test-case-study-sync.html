@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Case Study Sync</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <h1 class="text-2xl font-bold text-blue-800 mb-4">🔄 Case Study Sync Test</h1>
+            <p class="text-blue-700">This page tests the synchronization between case study editor and admin dashboard.</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🧪 Test Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="loadCaseStudies()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    📖 Load Case Studies
+                </button>
+                <button onclick="addTestCaseStudy()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    ➕ Add Test Case Study
+                </button>
+                <button onclick="clearAllCaseStudies()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    🗑️ Clear All
+                </button>
+            </div>
+            
+            <div class="mt-4 flex space-x-4">
+                <a href="case_study_editor_complete.html" target="_blank" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    📝 Open Editor
+                </a>
+                <a href="admin-dashboard.html" target="_blank" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                    🏠 Open Admin Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Case Studies Display -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📚 Stored Case Studies</h2>
+            <div id="caseStudiesList" class="space-y-4">
+                <p class="text-gray-500">Click "Load Case Studies" to see stored case studies...</p>
+            </div>
+        </div>
+
+        <!-- Test Log -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">📊 Test Log</h2>
+            <div id="testLog" class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm h-64 overflow-y-auto">
+                <div>Case Study Sync Test ready...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the sync fix -->
+    <script src="fix-case-study-sync.js"></script>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: 'text-blue-400',
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400'
+            };
+            
+            const entry = document.createElement('div');
+            entry.className = colors[type] || 'text-green-400';
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function loadCaseStudies() {
+            log('📖 Loading case studies from storage...', 'info');
+            
+            try {
+                const response = await fetch('/api/case-studies');
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(`✅ Loaded ${result.data.length} case studies`, 'success');
+                    displayCaseStudies(result.data);
+                } else {
+                    log('❌ Failed to load case studies', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error loading case studies: ${error.message}`, 'error');
+            }
+        }
+
+        async function addTestCaseStudy() {
+            log('➕ Adding test case study...', 'info');
+            
+            const testCaseStudy = {
+                project_title: `Test Project ${Date.now()}`,
+                caseStudyTitle: `Test Project ${Date.now()}`,
+                heroTitle: 'Test Hero Title',
+                heroSubtitle: 'This is a test case study created for sync testing',
+                overviewDescription: 'Test overview description',
+                problemDescription: 'Test problem description',
+                processDescription: 'Test process description',
+                showcaseDescription: 'Test showcase description',
+                reflectionDescription: 'Test reflection description',
+                status: 'published',
+                featured: false
+            };
+            
+            try {
+                const response = await fetch('/api/case-studies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testCaseStudy)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(`✅ Test case study added: ${result.data.id}`, 'success');
+                    log('🔄 Reloading case studies...', 'info');
+                    setTimeout(loadCaseStudies, 500);
+                } else {
+                    log('❌ Failed to add test case study', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error adding test case study: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllCaseStudies() {
+            log('🗑️ Clearing all case studies...', 'warning');
+            
+            try {
+                localStorage.removeItem('portfolio_case_studies');
+                log('✅ All case studies cleared from localStorage', 'success');
+                
+                // Reload to show empty state
+                setTimeout(loadCaseStudies, 500);
+            } catch (error) {
+                log(`❌ Error clearing case studies: ${error.message}`, 'error');
+            }
+        }
+
+        function displayCaseStudies(caseStudies) {
+            const container = document.getElementById('caseStudiesList');
+            
+            if (!caseStudies || caseStudies.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No case studies found. Add some using the editor or test button.</p>';
+                return;
+            }
+            
+            container.innerHTML = caseStudies.map(cs => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold text-lg">${cs.project_title || cs.caseStudyTitle || 'Untitled'}</h3>
+                        <span class="text-xs text-gray-500">${cs.id}</span>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">${cs.heroTitle || 'No hero title'}</p>
+                    <p class="text-gray-500 text-xs mb-2">${cs.heroSubtitle || 'No subtitle'}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-400">
+                        <span>Status: ${cs.status || 'unknown'}</span>
+                        <span>Created: ${new Date(cs.created_at).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            log('🚀 Case Study Sync Test loaded', 'success');
+            log('📋 Testing localStorage sync between editor and dashboard', 'info');
+            
+            // Auto-load case studies
+            setTimeout(loadCaseStudies, 1000);
+        });
+    </script>
+</body>
+</html>

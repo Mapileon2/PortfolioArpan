@@ -146,6 +146,7 @@
                         </h1>
                         <div class="text-sm text-gray-600">
                             <span id="saveStatus" class="font-medium">Ready</span>
+                            <span id="timestampInfo" class="ml-2 text-xs text-gray-500"></span>
                         </div>
                         <div class="text-sm text-blue-600">
                             <span id="userInfo" class="font-medium"></span>
@@ -297,6 +298,26 @@
 
     <!-- Load SaaS Service -->
     <script src="js/saas-case-study-service.js"></script>
+    
+    <!-- Load Enhanced Case Study Service -->
+    <script src="js/enhanced-case-study-service.js"></script>
+    
+    <!-- Load Concurrent Update Handler -->
+    <script src="js/concurrent-update-handler.js"></script>
+    
+    <!-- Load Timestamp Utilities -->
+    <script src="js/timestamp-utils.js"></script>
+    
+    <!-- Load API Consolidation Modules -->
+    <script src="js/error-handler.js"></script>
+    <script src="js/api-consolidator.js"></script>
+    <script src="js/standardized-hooks.js"></script>
+    
+    <!-- Load API Error Handler -->
+    <script src="js/api-error-handler.js"></script>
+    
+    <!-- Load Notification System -->
+    <script src="js/notification-system.js"></script>
     
     <script>
         /**
@@ -522,32 +543,253 @@
                         return;
                     }
                     
-                    this.updateSaveStatus('Saving...');
+                    // Use enhanced service if available, fallback to regular service
+                    const service = window.enhancedCaseStudyService || window.saasService;
+                    const isEnhanced = !!window.enhancedCaseStudyService;
+                    
+                    console.log(`💾 Using ${isEnhanced ? 'enhanced' : 'regular'} save service`);
                     
                     const caseStudyData = this.collectFormData();
                     
-                    let response;
-                    if (this.currentCaseStudy) {
-                        response = await window.saasService.updateCaseStudy(this.currentCaseStudy.id, caseStudyData);
+                    // Setup save state listener for enhanced service
+                    let unsubscribe;
+                    if (isEnhanced) {
+                        unsubscribe = service.onSaveStateChange((event) => {
+                            this.handleSaveStateChange(event);
+                        });
                     } else {
-                        response = await window.saasService.createCaseStudy(caseStudyData);
-                        this.currentCaseStudy = response.data;
-                        
-                        // Refresh case study list
-                        await this.loadCaseStudies();
-                        document.getElementById('caseStudySelect').value = response.data.id;
+                        this.updateSaveStatus('Saving...');
                     }
                     
-                    this.isDirty = false;
-                    this.updateSaveStatus('Saved');
-                    
-                    this.showNotification('success', 'Saved Successfully', 'Your case study has been saved');
+                    let response;
+                    try {
+                        if (this.currentCaseStudy) {
+                            // Update existing case study
+                            response = await (isEnhanced ? 
+                                service.updateCaseStudy(this.currentCaseStudy.id, caseStudyData, {
+                                    showLoading: true,
+                                    enableRetry: true,
+                                    enableRefetch: true,
+                                    handleConcurrentUpdates: true
+                                }) :
+                                service.updateCaseStudy(this.currentCaseStudy.id, caseStudyData)
+                            );
+                        } else {
+                            // Create new case study
+                            response = await (isEnhanced ?
+                                service.createCaseStudy(caseStudyData, {
+                                    showLoading: true,
+                                    enableRetry: true,
+                                    enableRefetch: true
+                                }) :
+                                service.createCaseStudy(caseStudyData)
+                            );
+                            
+                            if (response.data) {
+                                this.currentCaseStudy = response.data;
+                                
+                                // Refresh case study list
+                                await this.loadCaseStudies();
+                                const selectElement = document.getElementById('caseStudySelect');
+                                if (selectElement) {
+                                    selectElement.value = response.data.id;
+                                }
+                            }
+                        }
+                        
+                        // Handle concurrent update scenario
+                        if (response.error === 'CONCURRENT_UPDATE') {
+                            this.handleConcurrentUpdate(response);
+                            return;
+                        }
+                        
+                        // Success handling
+                        this.isDirty = false;
+                        
+                        // Update current case study with latest data including timestamps
+                        if (response.data) {
+                            this.currentCaseStudy = response.data;
+                        }
+                        
+                        if (!isEnhanced) {
+                            this.updateSaveStatus('Saved');
+                        }
+                        
+                        // Update timestamp display
+                        this.updateTimestampDisplay();
+                        
+                        // Show enhanced success message
+                        const message = isEnhanced && response.verified ? 
+                            'Your case study has been saved and verified' :
+                            'Your case study has been saved';
+                            
+                        this.showNotification('success', 'Saved Successfully', message);
+                        
+                        // Log enhanced save details
+                        if (isEnhanced && response.enhanced) {
+                            console.log('✅ Enhanced save completed:', {
+                                operation: response.operation || 'unknown',
+                                verified: response.verified,
+                                timestamp: response.timestamp
+                            });
+                        }
+                        
+                    } finally {
+                        // Cleanup save state listener
+                        if (unsubscribe) {
+                            unsubscribe();
+                        }
+                    }
                     
                 } catch (error) {
                     console.error('❌ Save failed:', error);
-                    this.updateSaveStatus('Save Failed');
-                    this.showNotification('error', 'Save Failed', error.message);
+                    
+                    // Enhanced error handling
+                    if (error.enhanced) {
+                        this.handleEnhancedError(error);
+                    } else {
+                        this.updateSaveStatus('Save Failed');
+                        this.showNotification('error', 'Save Failed', error.message);
+                    }
                 }
+            }
+
+            handleSaveStateChange(event) {
+                switch (event.state) {
+                    case 'saving':
+                        this.updateSaveStatus(event.message);
+                        break;
+                    case 'success':
+                        this.updateSaveStatus('Saved');
+                        break;
+                    case 'error':
+                        this.updateSaveStatus('Save Failed');
+                        break;
+                    case 'warning':
+                        this.updateSaveStatus(event.message);
+                        break;
+                }
+            }
+
+            async handleConcurrentUpdate(response) {
+                this.updateSaveStatus('Concurrent Update Detected');
+                
+                try {
+                    // Get current form data as local changes
+                    const localData = this.collectFormData();
+                    
+                    // Fetch latest server data
+                    const serverResponse = await window.saasService.getCaseStudy(this.currentCaseStudy.id);
+                    const serverData = serverResponse.data;
+                    
+                    // Use concurrent update handler for resolution
+                    if (window.concurrentUpdateHandler) {
+                        console.log('🔄 Using concurrent update handler for conflict resolution');
+                        
+                        const resolution = await window.concurrentUpdateHandler.handleConcurrentUpdate(
+                            localData, 
+                            serverData
+                        );
+                        
+                        console.log('✅ Conflict resolved with strategy:', resolution.strategy);
+                        
+                        // Apply resolved data
+                        if (resolution.strategy !== 'cancel') {
+                            await this.applyConcurrentUpdateResolution(resolution);
+                        }
+                        
+                    } else {
+                        // Fallback to simple confirmation dialog
+                        console.log('⚠️ Concurrent update handler not available, using fallback');
+                        this.handleConcurrentUpdateFallback();
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Concurrent update handling failed:', error);
+                    this.showNotification('error', 'Conflict Resolution Failed', 
+                        'Unable to resolve the concurrent update. Please refresh the page.');
+                }
+            }
+
+            async applyConcurrentUpdateResolution(resolution) {
+                try {
+                    console.log('🔄 Applying concurrent update resolution:', resolution.strategy);
+                    
+                    // Update current case study data
+                    this.currentCaseStudy = resolution.data;
+                    
+                    // Populate form with resolved data
+                    this.populateForm(resolution.data);
+                    
+                    // Mark as clean since we've resolved the conflict
+                    this.isDirty = false;
+                    
+                    // Update save status
+                    this.updateSaveStatus('Conflict Resolved');
+                    
+                    // Show success notification
+                    const strategyMessages = {
+                        'server': 'Applied their changes to your editor',
+                        'local': 'Kept your changes, ready to save',
+                        'merge': 'Smart merge completed successfully'
+                    };
+                    
+                    this.showNotification('success', 'Conflict Resolved', 
+                        strategyMessages[resolution.strategy] || 'Conflict resolved successfully');
+                    
+                    // If we chose local or merge, automatically save
+                    if (resolution.strategy === 'local' || resolution.strategy === 'merge') {
+                        console.log('🔄 Auto-saving after conflict resolution...');
+                        setTimeout(() => {
+                            this.saveCaseStudy();
+                        }, 1000);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Failed to apply concurrent update resolution:', error);
+                    this.showNotification('error', 'Resolution Failed', 
+                        'Failed to apply the conflict resolution. Please try again.');
+                }
+            }
+
+            handleConcurrentUpdateFallback() {
+                // Simple fallback for when concurrent update handler is not available
+                this.showNotification('warning', 'Concurrent Update Detected', 
+                    'Another user has updated this case study. Please refresh and try again.');
+                
+                // Optionally auto-refresh the case study
+                if (confirm('Another user has updated this case study. Would you like to refresh and see their changes?')) {
+                    this.loadCaseStudy(this.currentCaseStudy.id);
+                }
+            }
+
+            handleEnhancedError(error) {
+                console.error('❌ Enhanced error details:', {
+                    code: error.code,
+                    operation: error.operation,
+                    timestamp: error.timestamp,
+                    originalError: error.originalError
+                });
+                
+                this.updateSaveStatus('Save Failed');
+                
+                // Provide more specific error messages
+                let userMessage = error.message;
+                switch (error.code) {
+                    case 'VALIDATION_ERROR':
+                        userMessage = 'Please check your input and try again';
+                        break;
+                    case 'CONCURRENT_UPDATE':
+                        userMessage = 'Another user has updated this case study. Please refresh and try again';
+                        break;
+                    case 'NOT_FOUND':
+                        userMessage = 'Case study not found. It may have been deleted';
+                        break;
+                    default:
+                        userMessage = error.message || 'An unexpected error occurred';
+                }
+                
+                this.showNotification('error', 'Save Failed', userMessage);
             }
 
             async publishCaseStudy() {
@@ -567,15 +809,120 @@
             }
 
             async uploadImage(file, section) {
+                // Use the enhanced upload method
+                return this.uploadImageEnhanced(file, section);
+            }
+
+            async showImagePreview(section, imageUrl) {
+                const preview = document.getElementById(`${section}ImagePreview`);
+                const img = document.getElementById(`${section}ImageImg`);
+                
+                if (preview && img) {
+                    // Use ImageFlowStabilizer for fallback handling if available
+                    if (window.imageFlowStabilizer) {
+                        try {
+                            const validatedUrl = await window.imageFlowStabilizer.getImageWithFallback(imageUrl, 'placeholder');
+                            img.src = validatedUrl;
+                            
+                            // Add error handling for the image element
+                            img.onerror = () => {
+                                console.warn('⚠️ Image failed to load, using fallback');
+                                img.src = window.imageFlowStabilizer.fallbackImages.error;
+                            };
+                            
+                        } catch (error) {
+                            console.error('❌ Failed to get image with fallback:', error);
+                            img.src = this.getPlaceholderImage();
+                        }
+                    } else {
+                        // Fallback when ImageFlowStabilizer is not available
+                        img.src = imageUrl || this.getPlaceholderImage();
+                        
+                        // Add basic error handling
+                        img.onerror = () => {
+                            console.warn('⚠️ Image failed to load, using placeholder');
+                            img.src = this.getPlaceholderImage();
+                        };
+                    }
+                    
+                    preview.classList.remove('hidden');
+                }
+            }
+
+            // Generate placeholder image data URL
+            getPlaceholderImage(width = 300, height = 200, text = 'Image Preview') {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                
+                // Background
+                ctx.fillStyle = '#f3f4f6';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Border
+                ctx.strokeStyle = '#d1d5db';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(1, 1, width - 2, height - 2);
+                
+                // Icon (simple camera icon)
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('📷', width / 2, height / 2 - 10);
+                
+                // Text
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '14px Arial';
+                ctx.fillText(text, width / 2, height / 2 + 15);
+                
+                return canvas.toDataURL();
+            }
+
+            // Enhanced image upload with fallback handling
+            async uploadImageEnhanced(file, section) {
                 try {
                     this.updateSaveStatus('Uploading...');
                     
-                    const response = await window.saasService.uploadImage(file, {
-                        folder: 'case-studies',
-                        optimize: true
-                    });
+                    // Show loading placeholder immediately
+                    this.showImagePreview(section, this.getPlaceholderImage(300, 200, 'Uploading...'));
                     
-                    this.showImagePreview(section, response.data.url);
+                    let response;
+                    
+                    // Use enhanced upload service if available
+                    if (window.imageFlowStabilizer) {
+                        console.log('🔄 Using ImageFlowStabilizer for upload');
+                        
+                        response = await window.imageFlowStabilizer.uploadWithValidation(file, {
+                            folder: 'case-studies',
+                            context: 'case_study',
+                            referenceId: this.currentCaseStudy?.id,
+                            originalFilename: file.name
+                        });
+                        
+                        if (response.success) {
+                            await this.showImagePreview(section, response.data.url);
+                        } else {
+                            throw new Error(response.error || 'Upload failed');
+                        }
+                        
+                    } else if (window.saasService) {
+                        // Fallback to regular service
+                        console.log('⚠️ Using fallback upload service');
+                        
+                        response = await window.saasService.uploadImage(file, {
+                            folder: 'case-studies',
+                            optimize: true
+                        });
+                        
+                        await this.showImagePreview(section, response.data.url);
+                        
+                    } else {
+                        throw new Error('No upload service available');
+                    }
+                    
                     this.markDirty();
                     this.debouncedUpdatePreview();
                     
@@ -584,18 +931,12 @@
                     
                 } catch (error) {
                     console.error('❌ Image upload failed:', error);
+                    
+                    // Show error placeholder
+                    this.showImagePreview(section, this.getPlaceholderImage(300, 200, 'Upload Failed'));
+                    
                     this.updateSaveStatus('Upload Failed');
                     this.showNotification('error', 'Upload Failed', error.message);
-                }
-            }
-
-            showImagePreview(section, imageUrl) {
-                const preview = document.getElementById(`${section}ImagePreview`);
-                const img = document.getElementById(`${section}ImageImg`);
-                
-                if (preview && img) {
-                    img.src = imageUrl;
-                    preview.classList.remove('hidden');
                 }
             }
 
@@ -619,7 +960,67 @@
             }
 
             setupLivePreview() {
+                // Setup lazy loading for preview images
+                this.setupLazyLoadingForPreview();
+                
+                // Initial preview update
                 this.updateLivePreview();
+            }
+
+            setupLazyLoadingForPreview() {
+                // Setup intersection observer for lazy loading preview images
+                if ('IntersectionObserver' in window && window.imageFlowStabilizer) {
+                    const previewContainer = document.getElementById('livePreview');
+                    if (previewContainer) {
+                        // Observer will be setup when images are added to preview
+                        this.previewImageObserver = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    const img = entry.target;
+                                    const dataSrc = img.getAttribute('data-src');
+                                    
+                                    if (dataSrc && window.imageFlowStabilizer) {
+                                        window.imageFlowStabilizer.getImageWithFallback(dataSrc, 'placeholder')
+                                            .then(url => {
+                                                img.src = url;
+                                                img.classList.add('loaded');
+                                            })
+                                            .catch(error => {
+                                                console.error('❌ Failed to load preview image:', error);
+                                                img.src = this.getPlaceholderImage(200, 150, 'Preview');
+                                            });
+                                        
+                                        this.previewImageObserver.unobserve(img);
+                                    }
+                                }
+                            });
+                        }, {
+                            rootMargin: '50px'
+                        });
+                    }
+                }
+            }
+
+            // Enhanced preview image creation with lazy loading
+            createPreviewImage(imageUrl, alt = 'Preview Image') {
+                const img = document.createElement('img');
+                img.alt = alt;
+                img.className = 'w-full h-32 object-cover rounded-lg transition-opacity duration-300';
+                
+                if (window.imageFlowStabilizer && this.previewImageObserver) {
+                    // Setup lazy loading
+                    img.src = this.getPlaceholderImage(200, 150, 'Loading...');
+                    img.setAttribute('data-src', imageUrl);
+                    this.previewImageObserver.observe(img);
+                } else {
+                    // Direct loading with fallback
+                    img.src = imageUrl || this.getPlaceholderImage(200, 150, 'Preview');
+                    img.onerror = () => {
+                        img.src = this.getPlaceholderImage(200, 150, 'Error');
+                    };
+                }
+                
+                return img;
             }
 
             debouncedUpdatePreview() {
@@ -690,12 +1091,18 @@
             }
 
             setupAutoSave() {
+                // Auto-save every 30 seconds if there are changes
                 this.autoSaveInterval = setInterval(() => {
                     if (this.isDirty && this.currentCaseStudy) {
                         console.log('💾 Auto-saving...');
                         this.saveCaseStudy();
                     }
                 }, 30000);
+                
+                // Update timestamp display every minute to keep relative time current
+                this.timestampUpdateInterval = setInterval(() => {
+                    this.updateTimestampDisplay();
+                }, 60000);
             }
 
             markDirty() {
@@ -705,6 +1112,37 @@
 
             updateSaveStatus(status) {
                 document.getElementById('saveStatus').textContent = status;
+                
+                // Update timestamp info if available
+                if (this.currentCaseStudy && window.timestampUtils) {
+                    const timestampEl = document.getElementById('timestampInfo');
+                    if (timestampEl) {
+                        let timestampText = '';
+                        
+                        if (this.currentCaseStudy.updated_at) {
+                            const relativeTime = window.timestampUtils.relative(this.currentCaseStudy.updated_at);
+                            timestampText = `Last saved ${relativeTime}`;
+                        }
+                        
+                        timestampEl.textContent = timestampText;
+                    }
+                }
+            }
+
+            updateTimestampDisplay() {
+                if (this.currentCaseStudy && window.timestampUtils) {
+                    const timestampEl = document.getElementById('timestampInfo');
+                    if (timestampEl) {
+                        let timestampText = '';
+                        
+                        if (this.currentCaseStudy.updated_at) {
+                            const relativeTime = window.timestampUtils.relative(this.currentCaseStudy.updated_at);
+                            timestampText = `Last saved ${relativeTime}`;
+                        }
+                        
+                        timestampEl.textContent = timestampText;
+                    }
+                }
             }
 
             showNotification(type, title, message) {

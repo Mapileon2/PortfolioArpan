@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3) Load Carousel Images
     const swiperWrapper = document.querySelector('.swiper-magical .swiper-wrapper');
     if (swiperWrapper) {
-        fetch('/api/carousel-images')
+        fetch('/api/carousel/images')
             .then(res => { if (!res.ok) throw new Error(res.statusText); return res.json(); })
             .then(images => {
                 swiperWrapper.innerHTML = '';
@@ -267,45 +267,79 @@ function loadMagicalProjects() {
             
             grid.innerHTML = '';
             items.forEach(cs => {
-                console.log(`📱 Processing case study: ${cs.id}, Title: ${cs.projectTitle || 'Untitled'}`);
+                // NORMALIZE DATA FORMAT - Convert snake_case to camelCase
+                const normalizedCs = {
+                    id: cs.id,
+                    projectTitle: cs.project_title || cs.projectTitle || 'Untitled Project',
+                    projectDescription: cs.project_description || cs.projectDescription || '',
+                    projectImageUrl: cs.project_image_url || cs.projectImageUrl || '',
+                    projectCategory: cs.project_category || cs.projectCategory || 'Project',
+                    projectRating: cs.project_rating || cs.projectRating || 5,
+                    projectAchievement: cs.project_achievement || cs.projectAchievement || 'Successfully completed',
+                    sections: cs.sections || {},
+                    status: cs.status || 'published'
+                };
                 
-                // For existing case studies, try to derive fields if missing
-                // This helps with backward compatibility
-                if (!cs.projectTitle && cs.sections && cs.sections.hero && cs.sections.hero.headline) {
-                    cs.projectTitle = cs.sections.hero.headline;
+                console.log(`📱 Processing case study: ${normalizedCs.id}, Title: ${normalizedCs.projectTitle}`);
+                
+                // Extract title from sections if not provided
+                if (normalizedCs.projectTitle === 'Untitled Project' && normalizedCs.sections.hero) {
+                    if (normalizedCs.sections.hero.title) {
+                        normalizedCs.projectTitle = normalizedCs.sections.hero.title;
+                    } else if (normalizedCs.sections.hero.headline) {
+                        normalizedCs.projectTitle = normalizedCs.sections.hero.headline;
+                    }
                 }
                 
-                if (!cs.projectDescription && cs.sections && cs.sections.overview && cs.sections.overview.content) {
-                    // Take first 100 chars as description if missing
-                    const contentText = cs.sections.overview.content.replace(/<[^>]*>/g, '');
-                    cs.projectDescription = contentText.substring(0, 100) + (contentText.length > 100 ? '...' : '');
+                // Extract description from sections if not provided
+                if (!normalizedCs.projectDescription && normalizedCs.sections) {
+                    if (normalizedCs.sections.hero && normalizedCs.sections.hero.description) {
+                        normalizedCs.projectDescription = normalizedCs.sections.hero.description;
+                    } else if (normalizedCs.sections.hero && normalizedCs.sections.hero.subtitle) {
+                        normalizedCs.projectDescription = normalizedCs.sections.hero.subtitle;
+                    } else if (normalizedCs.sections.overview && normalizedCs.sections.overview.summary) {
+                        normalizedCs.projectDescription = normalizedCs.sections.overview.summary;
+                    } else if (normalizedCs.sections.overview && normalizedCs.sections.overview.content) {
+                        const contentText = normalizedCs.sections.overview.content.replace(/<[^>]*>/g, '');
+                        normalizedCs.projectDescription = contentText.substring(0, 150) + (contentText.length > 150 ? '...' : '');
+                    }
                 }
                 
-                // Try to get a presentable image if the main one is missing
-                if (!cs.projectImageUrl && cs.sections && cs.sections.gallery && 
-                    cs.sections.gallery.images && cs.sections.gallery.images.length > 0) {
-                    cs.projectImageUrl = cs.sections.gallery.images[0].url;
+                // Extract image from sections if not provided
+                if (!normalizedCs.projectImageUrl && normalizedCs.sections) {
+                    if (normalizedCs.sections.hero && normalizedCs.sections.hero.image) {
+                        normalizedCs.projectImageUrl = normalizedCs.sections.hero.image;
+                    } else if (normalizedCs.sections.gallery && normalizedCs.sections.gallery.images && normalizedCs.sections.gallery.images.length > 0) {
+                        normalizedCs.projectImageUrl = normalizedCs.sections.gallery.images[0].url;
+                    }
                 }
+                
+                // Use normalized data for rendering
+                cs = normalizedCs;
                 
                 const card = document.createElement('div');
                 card.className = 'project-book';
+                
+                // Use fallback image if none provided
+                const imageUrl = cs.projectImageUrl || 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop';
+                
                 card.innerHTML = `
                     <div class="relative h-full">
                         <div class="book-inner bg-white rounded-xl shadow-xl overflow-hidden h-full dark:bg-gray-800">
-                            <img src="${cs.projectImageUrl || '/images/placeholder-project.jpg'}" 
-                                 alt="${cs.projectTitle || 'Project'}" 
+                            <img src="${imageUrl}" 
+                                 alt="${cs.projectTitle}" 
                                  class="w-full h-48 object-cover"
-                                 onerror="this.src='/images/placeholder-project.jpg'">
+                                 onerror="this.src='https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop'">
                             <div class="p-6">
-                                <h3 class="ghibli-font text-2xl dark:text-gray-200 mb-2">${cs.projectTitle || 'Untitled Project'}</h3>
-                                <p class="text-gray-600 dark:text-gray-400 mb-4">${cs.projectDescription || ''}</p>
+                                <h3 class="ghibli-font text-2xl dark:text-gray-200 mb-2">${cs.projectTitle}</h3>
+                                <p class="text-gray-600 dark:text-gray-400 mb-4">${cs.projectDescription}</p>
                                 <div class="flex items-center mb-4">
-                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">${cs.projectCategory || 'Project'}</span>
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">${cs.projectCategory}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <div>
-                                        <span class="text-yellow-500">${'★'.repeat(cs.projectRating || 0)}${'☆'.repeat(5-(cs.projectRating || 0))}</span>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">${cs.projectAchievement || ''}</p>
+                                        <span class="text-yellow-500">${'★'.repeat(cs.projectRating)}${'☆'.repeat(5-cs.projectRating)}</span>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">${cs.projectAchievement}</p>
                                     </div>
                                     <a href="case_study.html?caseId=${cs.id}" class="text-blue-600 dark:text-blue-400 hover:underline">Read Story</a>
                                 </div>
@@ -654,7 +688,7 @@ function addGoogleAnalytics(trackingId) {
 async function loadCarouselImages() {
   try {
     console.log('🔄 Loading carousel images from API...');
-    const response = await fetch('/api/carousel-images');
+    const response = await fetch('/api/carousel/images');
     if (!response.ok) throw new Error('Failed to fetch carousel images');
     const images = await response.json();
     

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Preview Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .debug-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .debug-button:hover { background: #0056b3; }
+        .code-block {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐛 Debug Preview Functionality</h1>
+    <p>Debug the case study preview data flow</p>
+
+    <div class="debug-section">
+        <h3>📋 Step 1: Create Test Data</h3>
+        <div id="createStatus" class="status info">Ready to create test data</div>
+        <button class="debug-button" onclick="createTestData()">Create Test Preview Data</button>
+        <div class="code-block" id="testDataDisplay">Click button to create test data...</div>
+    </div>
+
+    <div class="debug-section">
+        <h3>🔍 Step 2: Check LocalStorage</h3>
+        <div id="storageStatus" class="status info">Ready to check storage</div>
+        <button class="debug-button" onclick="checkLocalStorage()">Check LocalStorage</button>
+        <div class="code-block" id="storageDisplay">Click button to check localStorage...</div>
+    </div>
+
+    <div class="debug-section">
+        <h3>🚀 Step 3: Test Preview URL</h3>
+        <div id="urlStatus" class="status info">Ready to test preview URL</div>
+        <button class="debug-button" onclick="testPreviewUrl()">Open Preview with Test Data</button>
+        <button class="debug-button" onclick="openEditor()">Open Editor</button>
+        <div class="code-block" id="urlDisplay">Preview URL will be generated here...</div>
+    </div>
+
+    <div class="debug-section">
+        <h3>🔧 Step 4: Debug Console</h3>
+        <div id="consoleStatus" class="status info">Debug information</div>
+        <button class="debug-button" onclick="clearConsole()">Clear Console</button>
+        <div class="code-block" id="consoleDisplay">Debug information will appear here...</div>
+    </div>
+
+    <script>
+        function log(message, elementId = 'consoleDisplay') {
+            const timestamp = new Date().toLocaleTimeString();
+            const element = document.getElementById(elementId);
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${status}`;
+            element.textContent = message;
+        }
+
+        function createTestData() {
+            log('🔄 Creating test preview data...');
+            
+            const testData = {
+                caseStudyTitle: "Debug Test Case Study",
+                caseStudyDescription: "This is a test case study for debugging preview functionality",
+                sections: {
+                    hero: {
+                        enabled: true,
+                        title: "Debug Test Hero",
+                        subtitle: "Testing Preview Functionality",
+                        description: "This is a test hero section to verify preview functionality is working correctly.",
+                        image: "https://via.placeholder.com/800x400/007bff/ffffff?text=Test+Hero+Image"
+                    },
+                    overview: {
+                        enabled: true,
+                        title: "Test Overview",
+                        summary: "This overview section tests the preview functionality with sample content.",
+                        metrics: [
+                            { name: "Test Success", value: "100%" },
+                            { name: "Debug Level", value: "High" },
+                            { name: "Preview Status", value: "Testing" }
+                        ]
+                    },
+                    problem: {
+                        enabled: true,
+                        title: "Test Problem",
+                        description: "This problem section demonstrates how content appears in the preview display.",
+                        image: "https://via.placeholder.com/600x400/dc3545/ffffff?text=Test+Problem+Image"
+                    }
+                },
+                isPreview: true,
+                timestamp: Date.now(),
+                previewId: `debug-preview-${Date.now()}`
+            };
+            
+            try {
+                localStorage.setItem('caseStudyPreviewData', JSON.stringify(testData));
+                
+                document.getElementById('testDataDisplay').textContent = JSON.stringify(testData, null, 2);
+                updateStatus('createStatus', 'success', 'Test data created successfully');
+                log('✅ Test preview data created and stored in localStorage');
+                
+            } catch (error) {
+                updateStatus('createStatus', 'error', 'Failed to create test data');
+                log(`❌ Error creating test data: ${error.message}`);
+            }
+        }
+
+        function checkLocalStorage() {
+            log('🔍 Checking localStorage for preview data...');
+            
+            try {
+                const previewData = localStorage.getItem('caseStudyPreviewData');
+                
+                if (previewData) {
+                    const parsed = JSON.parse(previewData);
+                    document.getElementById('storageDisplay').textContent = JSON.stringify(parsed, null, 2);
+                    updateStatus('storageStatus', 'success', 'Preview data found in localStorage');
+                    log('✅ Preview data found in localStorage');
+                    log(`📊 Data size: ${previewData.length} characters`);
+                    log(`🕒 Timestamp: ${new Date(parsed.timestamp).toLocaleString()}`);
+                    
+                    // Check if data is expired (5 minutes)
+                    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+                    if (parsed.timestamp < fiveMinutesAgo) {
+                        log('⚠️ Warning: Preview data is older than 5 minutes');
+                    } else {
+                        log('✅ Preview data is fresh (less than 5 minutes old)');
+                    }
+                    
+                } else {
+                    document.getElementById('storageDisplay').textContent = 'No preview data found in localStorage';
+                    updateStatus('storageStatus', 'error', 'No preview data found');
+                    log('❌ No preview data found in localStorage');
+                }
+                
+            } catch (error) {
+                updateStatus('storageStatus', 'error', 'Error checking localStorage');
+                log(`❌ Error checking localStorage: ${error.message}`);
+            }
+        }
+
+        function testPreviewUrl() {
+            log('🚀 Testing preview URL...');
+            
+            try {
+                const previewData = localStorage.getItem('caseStudyPreviewData');
+                
+                if (!previewData) {
+                    throw new Error('No preview data found. Create test data first.');
+                }
+                
+                const parsed = JSON.parse(previewData);
+                const previewUrl = `case_study_display.html?preview=true&id=${parsed.previewId}`;
+                
+                document.getElementById('urlDisplay').textContent = `Preview URL: ${previewUrl}\n\nURL Parameters:\n- preview=true\n- id=${parsed.previewId}\n\nOpening in new tab...`;
+                
+                updateStatus('urlStatus', 'success', 'Opening preview in new tab');
+                log('🔗 Opening preview URL in new tab');
+                log(`📍 URL: ${previewUrl}`);
+                
+                // Open preview in new tab
+                window.open(previewUrl, '_blank');
+                
+            } catch (error) {
+                updateStatus('urlStatus', 'error', 'Failed to open preview');
+                log(`❌ Error opening preview: ${error.message}`);
+            }
+        }
+
+        function openEditor() {
+            log('📝 Opening case study editor...');
+            window.open('case_study_editor_complete.html', '_blank');
+            updateStatus('urlStatus', 'info', 'Editor opened in new tab');
+        }
+
+        function clearConsole() {
+            document.getElementById('consoleDisplay').textContent = 'Console cleared...\n';
+            log('🗑️ Debug console cleared');
+        }
+
+        // Auto-check localStorage on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                checkLocalStorage();
+            }, 500);
+        });
+
+        // Monitor localStorage changes
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'caseStudyPreviewData') {
+                log('📡 LocalStorage changed - preview data updated');
+                checkLocalStorage();
+            }
+        });
+    </script>
+</body>
+</html>

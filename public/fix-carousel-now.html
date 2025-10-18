@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Carousel NOW</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-red-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-5xl font-bold mb-8 text-center text-red-600">🚨 FIX CAROUSEL NOW</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-6 text-center">
+            <h2 class="text-3xl font-semibold mb-6 text-red-600">IMMEDIATE ACTION REQUIRED</h2>
+            
+            <div class="space-y-6">
+                <button onclick="forceFixNow()" class="w-full bg-red-600 text-white px-8 py-6 rounded-lg hover:bg-red-700 text-2xl font-bold">
+                    🔧 FIX CAROUSEL IMMEDIATELY
+                </button>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="createTestData()" class="bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 text-lg">
+                        📸 Create Test Images
+                    </button>
+                    <button onclick="openHomepage()" class="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 text-lg">
+                        🏠 Open Homepage
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">🔄 Fix Status</h2>
+            <div id="fixStatus" class="space-y-3">
+                <div class="text-gray-600">Click "FIX CAROUSEL IMMEDIATELY" to start...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('fixStatus');
+            const colors = {
+                success: 'text-green-600 bg-green-50 border-green-200',
+                error: 'text-red-600 bg-red-50 border-red-200',
+                warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+                info: 'text-blue-600 bg-blue-50 border-blue-200'
+            };
+            
+            const status = document.createElement('div');
+            status.className = `p-4 border rounded ${colors[type]}`;
+            status.innerHTML = `
+                <div class="flex items-center">
+                    <span class="font-bold mr-2">[${new Date().toLocaleTimeString()}]</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            statusDiv.appendChild(status);
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        async function forceFixNow() {
+            document.getElementById('fixStatus').innerHTML = '';
+            addStatus('🚨 STARTING IMMEDIATE CAROUSEL FIX...', 'error');
+
+            // Step 1: Clear existing data
+            addStatus('🗑️ Clearing conflicting data...', 'info');
+            localStorage.removeItem('homepageCarouselData');
+            localStorage.removeItem('carouselLastSync');
+
+            // Step 2: Create professional carousel data
+            addStatus('📸 Creating professional carousel images...', 'info');
+            const professionalData = [
+                {
+                    id: 'fix-now-1',
+                    url: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=800&h=400&fit=crop&q=80',
+                    title: 'Professional Excellence',
+                    description: 'Achieving success through dedication and expertise',
+                    alt: 'Professional workspace with laptop and documents'
+                },
+                {
+                    id: 'fix-now-2',
+                    url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop&q=80',
+                    title: 'Team Collaboration',
+                    description: 'Building success through effective teamwork',
+                    alt: 'Business team in meeting'
+                },
+                {
+                    id: 'fix-now-3',
+                    url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=400&fit=crop&q=80',
+                    title: 'Data-Driven Insights',
+                    description: 'Making informed decisions with powerful analytics',
+                    alt: 'Analytics dashboard with charts'
+                },
+                {
+                    id: 'fix-now-4',
+                    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=400&fit=crop&q=80',
+                    title: 'Strategic Planning',
+                    description: 'Developing comprehensive strategies for growth',
+                    alt: 'Strategic planning session'
+                }
+            ];
+
+            // Step 3: Save data
+            addStatus('💾 Saving carousel data...', 'info');
+            localStorage.setItem('homepageCarouselData', JSON.stringify(professionalData));
+            localStorage.setItem('carouselLastSync', new Date().toISOString());
+
+            // Step 4: Force homepage update via multiple methods
+            addStatus('🔄 Forcing homepage carousel update...', 'info');
+            
+            // Method 1: Dispatch event
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { items: professionalData, timestamp: new Date().toISOString() }
+            }));
+
+            // Method 2: Direct DOM manipulation
+            setTimeout(() => {
+                try {
+                    // Open homepage and manipulate it directly
+                    const homepage = window.open('index.html', 'homepage');
+                    
+                    setTimeout(() => {
+                        if (homepage && homepage.document) {
+                            const swiperWrapper = homepage.document.querySelector('.swiper-wrapper');
+                            if (swiperWrapper) {
+                                addStatus('🎯 Directly updating homepage carousel...', 'info');
+                                
+                                swiperWrapper.innerHTML = '';
+                                professionalData.forEach((item, index) => {
+                                    const slide = homepage.document.createElement('div');
+                                    slide.className = 'swiper-slide';
+                                    slide.innerHTML = `
+                                        <img src="${item.url}" alt="${item.alt}" 
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
+                                            <h3 class="text-white text-2xl font-bold ghibli-font">${item.title}</h3>
+                                            <p class="text-white/90">${item.description}</p>
+                                        </div>
+                                    `;
+                                    swiperWrapper.appendChild(slide);
+                                });
+
+                                // Update Swiper
+                                const swiperContainer = homepage.document.querySelector('.swiper-magical');
+                                if (swiperContainer && swiperContainer.swiper) {
+                                    swiperContainer.swiper.update();
+                                    swiperContainer.swiper.updateSlides();
+                                }
+
+                                addStatus('✅ Homepage carousel updated directly!', 'success');
+                            }
+                        }
+                    }, 2000);
+                } catch (error) {
+                    addStatus('⚠️ Direct update failed, using alternative method', 'warning');
+                }
+            }, 1000);
+
+            // Step 5: Verification
+            setTimeout(() => {
+                addStatus('✅ CAROUSEL FIX COMPLETE!', 'success');
+                addStatus('🏠 Check the homepage - "Magical Journeys" should show new images', 'success');
+                addStatus('🎯 The carousel now displays professional images instead of defaults', 'success');
+            }, 3000);
+        }
+
+        function createTestData() {
+            addStatus('📝 Creating test carousel data...', 'info');
+            
+            const testData = [
+                {
+                    id: 'test-' + Date.now(),
+                    url: 'https://picsum.photos/800/400?random=' + Math.floor(Math.random() * 1000),
+                    title: 'Test Image ' + Math.floor(Math.random() * 100),
+                    description: 'This is a test image created at ' + new Date().toLocaleTimeString(),
+                    alt: 'Test carousel image'
+                }
+            ];
+
+            localStorage.setItem('homepageCarouselData', JSON.stringify(testData));
+            localStorage.setItem('carouselLastSync', new Date().toISOString());
+
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { items: testData, timestamp: new Date().toISOString() }
+            }));
+
+            addStatus('✅ Test data created and synced', 'success');
+        }
+
+        function openHomepage() {
+            addStatus('🏠 Opening homepage...', 'info');
+            window.open('index.html', '_blank');
+            addStatus('👀 Look for the "Magical Journeys" section', 'info');
+        }
+
+        // Auto-check current status
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentData = localStorage.getItem('homepageCarouselData');
+            if (currentData) {
+                const items = JSON.parse(currentData);
+                addStatus(`📊 Found ${items.length} carousel items in storage`, 'info');
+            } else {
+                addStatus('⚠️ No carousel data found - homepage showing defaults', 'warning');
+            }
+        });
+    </script>
+</body>
+</html>

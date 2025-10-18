@@ -1,0 +1,102 @@
+<!-- Carousel Management Section for Admin Dashboard -->
+<!-- Add this section to your existing admin-dashboard.html in the carousel view -->
+
+<div id="carouselView" class="page-view hidden">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">🎠 Carousel Management</h2>
+        <div class="flex space-x-3">
+            <button onclick="adminCarousel.openUpload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-plus mr-2"></i>Add Images
+            </button>
+            <button onclick="adminCarousel.loadImages()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-sync mr-2"></i>Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Configuration Info -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-2">
+            <i class="fas fa-cog mr-2"></i>Cloudinary Configuration
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+                <span class="font-medium text-blue-800">Preset:</span>
+                <span class="text-blue-700">Carousel (Unsigned)</span>
+            </div>
+            <div>
+                <span class="font-medium text-blue-800">Folder:</span>
+                <span class="text-blue-700">carou</span>
+            </div>
+            <div>
+                <span class="font-medium text-blue-800">Status:</span>
+                <span class="text-green-700">✅ Working</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Zone -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload Images</h3>
+        <div id="carouselDropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors hover:border-blue-500 cursor-pointer"
+             onclick="adminCarousel.openUpload()">
+            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+            <h4 class="text-lg font-semibold text-gray-900 mb-2">Drop Images Here</h4>
+            <p class="text-gray-600 mb-4">Images will be uploaded to the "carou" folder</p>
+            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                Select Images
+            </button>
+        </div>
+    </div>
+
+    <!-- Carousel Preview -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Carousel Preview</h3>
+        <div id="carouselPreview">
+            <!-- Preview will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Image Management -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Manage Images</h3>
+        <div id="carouselImages">
+            <!-- Images will be rendered here -->
+        </div>
+    </div>
+</div>
+
+<!-- Add these scripts before closing </body> tag -->
+<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+<script src="admin-dashboard-carousel-integration.js"></script>
+
+<script>
+// Enhanced drag and drop for carousel
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('carouselDropZone');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+            
+            const files = Array.from(e.dataTransfer.files).filter(file => 
+                file.type.startsWith('image/')
+            );
+            
+            if (files.length > 0 && window.adminCarousel) {
+                window.adminCarousel.uploadFilesDirect(files);
+            }
+        });
+    }
+});
+</script>

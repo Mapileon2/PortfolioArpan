@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete System Verification - Case Study & Homepage Integration</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            text-align: center;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn.success { background: #27ae60; }
+        .btn.warning { background: #f39c12; }
+        .btn.danger { background: #e74c3c; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .test-sections {
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            background: white;
+        }
+        .section-header {
+            background: #34495e;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .section-content {
+            padding: 20px;
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        .test-item.running {
+            border-color: #3498db;
+            background: #ebf3fd;
+            animation: pulse 2s infinite;
+        }
+        .test-item.passed {
+            border-color: #27ae60;
+            background: #d5f4e6;
+        }
+        .test-item.failed {
+            border-color: #e74c3c;
+            background: #fdeaea;
+        }
+        .test-name {
+            font-weight: 500;
+            flex: 1;
+        }
+        .test-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-icon.pending { background: #bdc3c7; color: white; }
+        .status-icon.running { background: #3498db; color: white; }
+        .status-icon.passed { background: #27ae60; color: white; }
+        .status-icon.failed { background: #e74c3c; color: white; }
+        .test-details {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+            display: none;
+        }
+        .test-item.failed .test-details,
+        .test-item.passed .test-details {
+            display: block;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        .log-container {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 0 0 10px 10px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .log-entry.info { color: #3498db; }
+        .log-entry.success { color: #2ecc71; }
+        .log-entry.warning { color: #f39c12; }
+        .log-entry.error { color: #e74c3c; }
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+        .collapsible:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .section-content.collapsed {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Complete System Verification</h1>
+            <p>End-to-End Testing for Case Study & Homepage Integration</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="runFullTest">🚀 Run Complete Test Suite</button>
+            <button class="btn" id="runApiTests">🔌 API Tests Only</button>
+            <button class="btn" id="runIntegrationTests">🔗 Integration Tests Only</button>
+            <button class="btn" id="runHomepageTests">🏠 Homepage Tests Only</button>
+            <button class="btn warning" id="clearResults">🧹 Clear Results</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTests">0</div>
+                <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="passedTests" style="color: #27ae60;">0</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="failedTests" style="color: #e74c3c;">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="testDuration">0ms</div>
+                <div class="stat-label">Duration</div>
+            </div>
+        </div>
+
+        <div class="test-sections">
+            <!-- API Connectivity Tests -->
+            <div class="test-section">
+                <div class="section-header collapsible" onclick="toggleSection(this)">
+                    <span>🔌 API Connectivity & Server Tests</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="apiTests">
+                    <div class="test-item" id="test-server-health">
+                        <div class="test-name">Server Health Check</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-case-studies-api">
+                        <div class="test-name">Case Studies API Endpoint</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-api-create">
+                        <div class="test-name">Case Study Creation API</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-api-update">
+                        <div class="test-name">Case Study Update API</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-api-delete">
+                        <div class="test-name">Case Study Delete API</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Integration Tests -->
+            <div class="test-section">
+                <div class="section-header collapsible" onclick="toggleSection(this)">
+                    <span>🗄️ Database Integration Tests</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="databaseTests">
+                    <div class="test-item" id="test-supabase-connection">
+                        <div class="test-name">Supabase Connection</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-data-persistence">
+                        <div class="test-name">Data Persistence Verification</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-data-integrity">
+                        <div class="test-name">Data Integrity Check</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Homepage Integration Tests -->
+            <div class="test-section">
+                <div class="section-header collapsible" onclick="toggleSection(this)">
+                    <span>🏠 Homepage Integration Tests</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="homepageTests">
+                    <div class="test-item" id="test-homepage-load">
+                        <div class="test-name">Homepage Loading</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-case-studies-display">
+                        <div class="test-name">Case Studies Display on Homepage</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-case-study-links">
+                        <div class="test-name">Case Study Links Functionality</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-data-sync">
+                        <div class="test-name">Real-time Data Synchronization</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case Study Editor Tests -->
+            <div class="test-section">
+                <div class="section-header collapsible" onclick="toggleSection(this)">
+                    <span>✏️ Case Study Editor Tests</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="editorTests">
+                    <div class="test-item" id="test-editor-load">
+                        <div class="test-name">Editor Page Loading</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-editor-save">
+                        <div class="test-name">Save Functionality</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-editor-validation">
+                        <div class="test-name">Form Validation</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image & Media Tests -->
+            <div class="test-section">
+                <div class="section-header collapsible" onclick="toggleSection(this)">
+                    <span>🖼️ Image & Media Integration Tests</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="mediaTests">
+                    <div class="test-item" id="test-cloudinary-connection">
+                        <div class="test-name">Cloudinary Connection</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-image-upload">
+                        <div class="test-name">Image Upload Functionality</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-image-display">
+                        <div class="test-name">Image Display on Homepage</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tests -->
+            <div class="test-section">
+                <div class="section-header collapsible" onclick="toggleSection(this)">
+                    <span>⚡ Performance & Load Tests</span>
+                    <span>▼</span>
+                </div>
+                <div class="section-content" id="performanceTests">
+                    <div class="test-item" id="test-api-response-time">
+                        <div class="test-name">API Response Time</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-homepage-load-time">
+                        <div class="test-name">Homepage Load Time</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                    <div class="test-item" id="test-concurrent-requests">
+                        <div class="test-name">Concurrent Request Handling</div>
+                        <div class="test-status">
+                            <div class="status-icon pending">⏳</div>
+                            <span class="status-text">Pending</span>
+                        </div>
+                        <div class="test-details"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="log-container" id="logContainer">
+            <div class="log-entry info">🚀 System Verification Ready - Click "Run Complete Test Suite" to begin</div>
+        </div>
+    </div>
+
+    <script src="js/complete-system-verification.js"></script>
+</body>
+</html>

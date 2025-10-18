@@ -57,16 +57,142 @@ class SaaSCaseStudyService {
 
         try {
             const response = await fetch(url, finalOptions);
-            const data = await response.json();
+            
+            // Handle different response types
+            let data;
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+            } else {
+                data = await response.text();
+            }
 
             if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}`);
+                // Enhanced error handling with proper error classification
+                const error = new Error(data.error || data.message || `HTTP ${response.status}: ${response.statusText}`);
+                error.response = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                };
+                
+                // Map Supabase-specific error codes
+                if (data.code) {
+                    error.code = this.mapSupabaseErrorCode(data.code);
+                } else {
+                    error.code = this.mapHttpStatusToCode(response.status);
+                }
+                
+                throw error;
             }
 
             return data;
         } catch (error) {
-            console.error(`API Error (${endpoint}):`, error);
-            throw error;
+            // Use the API Error Handler for comprehensive error processing
+            if (typeof window !== 'undefined' && window.apiErrorHandler) {
+                const errorResponse = await window.apiErrorHandler.handleError(error, {
+                    operation: `${finalOptions.method || 'GET'} ${endpoint}`,
+                    resource: endpoint,
+                    timestamp: new Date().toISOString(),
+                    userId: this.userId || null
+                });
+                throw errorResponse;
+            } else {
+                console.error(`API Error (${endpoint}):`, error);
+                throw error;
+            }
+        }
+    }
+
+    /**
+     * Map Supabase error codes to standardized error codes
+     */
+    mapSupabaseErrorCode(supabaseCode) {
+        const errorMap = {
+            // Authentication errors
+            'invalid_credentials': 'UNAUTHORIZED',
+            'email_not_confirmed': 'UNAUTHORIZED',
+            'invalid_token': 'TOKEN_EXPIRED',
+            'token_expired': 'TOKEN_EXPIRED',
+            'insufficient_privileges': 'FORBIDDEN',
+            
+            // Database errors
+            'unique_violation': 'CONFLICT',
+            'foreign_key_violation': 'VALIDATION_ERROR',
+            'check_violation': 'VALIDATION_ERROR',
+            'not_null_violation': 'MISSING_REQUIRED',
+            'invalid_text_representation': 'INVALID_FORMAT',
+            
+            // RLS errors
+            'insufficient_privilege': 'FORBIDDEN',
+            'row_level_security_violation': 'FORBIDDEN',
+            
+            // Connection errors
+            'connection_failure': 'DATABASE_ERROR',
+            'timeout': 'TIMEOUT_ERROR',
+            
+            // Rate limiting
+            'too_many_requests': 'QUOTA_EXCEEDED'
+        };
+        
+        return errorMap[supabaseCode] || 'DATABASE_ERROR';
+    }
+
+    /**
+     * Map HTTP status codes to standardized error codes
+     */
+    mapHttpStatusToCode(status) {
+        const statusMap = {
+            400: 'VALIDATION_ERROR',
+            401: 'UNAUTHORIZED',
+            403: 'FORBIDDEN',
+            404: 'NOT_FOUND',
+            408: 'TIMEOUT_ERROR',
+            409: 'CONFLICT',
+            410: 'GONE',
+            429: 'QUOTA_EXCEEDED',
+            500: 'INTERNAL_ERROR',
+            502: 'SERVICE_UNAVAILABLE',
+            503: 'SERVICE_UNAVAILABLE',
+            504: 'TIMEOUT_ERROR'
+        };
+        
+        return statusMap[status] || 'UNKNOWN_ERROR';
+    }
+
+    /**
+     * Execute operation with retry logic for transient errors
+     */
+    async withRetry(operation, context = {}) {
+        if (typeof window !== 'undefined' && window.apiErrorHandler) {
+            return await window.apiErrorHandler.retryOperation(operation, {
+                ...context,
+                service: 'supabase'
+            });
+        } else {
+            // Fallback retry logic if error handler not available
+            const maxAttempts = 3;
+            let lastError;
+            
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    lastError = error;
+                    
+                    // Only retry for specific error types
+                    const retryableErrors = ['NETWORK_ERROR', 'TIMEOUT_ERROR', 'DATABASE_ERROR', 'SERVICE_UNAVAILABLE'];
+                    if (!retryableErrors.includes(error.code) || attempt === maxAttempts) {
+                        throw error;
+                    }
+                    
+                    // Wait before retry with exponential backoff
+                    const delay = Math.pow(2, attempt - 1) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            
+            throw lastError;
         }
     }
 
@@ -161,44 +287,48 @@ class SaaSCaseStudyService {
 
     // Case Study methods
     async getCaseStudies(params = {}) {
-        try {
+        return await this.withRetry(async () => {
             const queryString = new URLSearchParams(params).toString();
             const endpoint = `/case-studies${queryString ? `?${queryString}` : ''}`;
             
             return await this.makeRequest(endpoint);
-        } catch (error) {
-            throw new Error(`Failed to fetch case studies: ${error.message}`);
-        }
+        }, {
+            operation: 'getCaseStudies',
+            resource: 'case-studies'
+        });
     }
 
     async getCaseStudy(id) {
-        try {
+        return await this.withRetry(async () => {
             return await this.makeRequest(`/case-studies/${id}`);
-        } catch (error) {
-            throw new Error(`Failed to fetch case study: ${error.message}`);
-        }
+        }, {
+            operation: 'getCaseStudy',
+            resource: `case-studies/${id}`
+        });
     }
 
     async createCaseStudy(caseStudyData) {
-        try {
+        return await this.withRetry(async () => {
             return await this.makeRequest('/case-studies', {
                 method: 'POST',
                 body: JSON.stringify(caseStudyData)
             });
-        } catch (error) {
-            throw new Error(`Failed to create case study: ${error.message}`);
-        }
+        }, {
+            operation: 'createCaseStudy',
+            resource: 'case-studies'
+        });
     }
 
     async updateCaseStudy(id, caseStudyData) {
-        try {
+        return await this.withRetry(async () => {
             return await this.makeRequest(`/case-studies/${id}`, {
                 method: 'PUT',
                 body: JSON.stringify(caseStudyData)
             });
-        } catch (error) {
-            throw new Error(`Failed to update case study: ${error.message}`);
-        }
+        }, {
+            operation: 'updateCaseStudy',
+            resource: `case-studies/${id}`
+        });
     }
 
     async deleteCaseStudy(id) {
@@ -353,6 +483,52 @@ class SaaSCaseStudyService {
             return await this.makeRequest('/upload/storage-usage');
         } catch (error) {
             throw new Error(`Failed to fetch storage usage: ${error.message}`);
+        }
+    }
+
+    // Image reference methods
+    async createImageReference(imageData) {
+        try {
+            return await this.makeRequest('/images', {
+                method: 'POST',
+                body: JSON.stringify(imageData)
+            });
+        } catch (error) {
+            throw new Error(`Failed to create image reference: ${error.message}`);
+        }
+    }
+
+    async getImageReferences(context, referenceId) {
+        try {
+            const queryParams = new URLSearchParams();
+            if (context) queryParams.append('context', context);
+            if (referenceId) queryParams.append('reference_id', referenceId);
+            
+            const endpoint = `/images${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            return await this.makeRequest(endpoint);
+        } catch (error) {
+            throw new Error(`Failed to get image references: ${error.message}`);
+        }
+    }
+
+    async updateImageReference(id, updates) {
+        try {
+            return await this.makeRequest(`/images/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(updates)
+            });
+        } catch (error) {
+            throw new Error(`Failed to update image reference: ${error.message}`);
+        }
+    }
+
+    async deleteImageReference(id) {
+        try {
+            return await this.makeRequest(`/images/${id}`, {
+                method: 'DELETE'
+            });
+        } catch (error) {
+            throw new Error(`Failed to delete image reference: ${error.message}`);
         }
     }
 

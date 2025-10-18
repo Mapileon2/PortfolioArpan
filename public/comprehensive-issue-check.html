@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Issue Check</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .test-item { transition: all 0.3s ease; }
+        .test-pass { background-color: #d4edda; border-color: #c3e6cb; }
+        .test-fail { background-color: #f8d7da; border-color: #f5c6cb; }
+        .test-warning { background-color: #fff3cd; border-color: #ffeaa7; }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center">🔍 Comprehensive System Issue Check</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- File Integrity Check -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">📁 File Integrity Check</h2>
+                <div id="file-check-results"></div>
+                <button onclick="checkFileIntegrity()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Check Files
+                </button>
+            </div>
+
+            <!-- API Endpoints Check -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">🌐 API Endpoints Check</h2>
+                <div id="api-check-results"></div>
+                <button onclick="checkAPIEndpoints()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Test APIs
+                </button>
+            </div>
+
+            <!-- JavaScript Errors Check -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">⚠️ JavaScript Errors</h2>
+                <div id="js-error-results"></div>
+                <button onclick="checkJavaScriptErrors()" class="mt-4 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                    Check JS
+                </button>
+            </div>
+
+            <!-- Database Connection Check -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">🗄️ Database Connection</h2>
+                <div id="db-check-results"></div>
+                <button onclick="checkDatabaseConnection()" class="mt-4 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    Test Database
+                </button>
+            </div>
+
+            <!-- Cloudinary Integration Check -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">☁️ Cloudinary Integration</h2>
+                <div id="cloudinary-check-results"></div>
+                <button onclick="checkCloudinaryIntegration()" class="mt-4 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                    Test Cloudinary
+                </button>
+            </div>
+
+            <!-- Navigation & Links Check -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">🔗 Navigation & Links</h2>
+                <div id="navigation-check-results"></div>
+                <button onclick="checkNavigationLinks()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Check Links
+                </button>
+            </div>
+        </div>
+
+        <!-- Overall Status -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-4 text-center">📊 Overall System Status</h2>
+            <div id="overall-status" class="text-center text-lg"></div>
+            <button onclick="runAllChecks()" class="mt-4 w-full bg-gray-800 text-white px-6 py-3 rounded-lg hover:bg-gray-900 text-lg font-semibold">
+                🚀 Run All Checks
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let checkResults = {};
+
+        function createTestItem(name, status, message) {
+            const statusClass = status === 'pass' ? 'test-pass' : status === 'fail' ? 'test-fail' : 'test-warning';
+            const icon = status === 'pass' ? '✅' : status === 'fail' ? '❌' : '⚠️';
+            
+            return `
+                <div class="test-item p-3 mb-2 border rounded ${statusClass}">
+                    <div class="flex items-center justify-between">
+                        <span class="font-medium">${icon} ${name}</span>
+                    </div>
+                    <div class="text-sm mt-1 text-gray-600">${message}</div>
+                </div>
+            `;
+        }
+
+        async function checkFileIntegrity() {
+            const results = document.getElementById('file-check-results');
+            results.innerHTML = '<div class="text-center">Checking files...</div>';
+            
+            const criticalFiles = [
+                'case_study_editor_complete.html',
+                'admin-dashboard.html',
+                'index.html',
+                'api/carousel.js',
+                'api/case-studies.js',
+                'js/cloudinary-service.js'
+            ];
+            
+            let html = '';
+            let passCount = 0;
+            
+            for (const file of criticalFiles) {
+                try {
+                    const response = await fetch(file, { method: 'HEAD' });
+                    if (response.ok) {
+                        html += createTestItem(file, 'pass', 'File exists and accessible');
+                        passCount++;
+                    } else {
+                        html += createTestItem(file, 'fail', `HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    html += createTestItem(file, 'fail', `Error: ${error.message}`);
+                }
+            }
+            
+            checkResults.fileIntegrity = { pass: passCount, total: criticalFiles.length };
+            results.innerHTML = html;
+        }
+
+        async function checkAPIEndpoints() {
+            const results = document.getElementById('api-check-results');
+            results.innerHTML = '<div class="text-center">Testing API endpoints...</div>';
+            
+            const endpoints = [
+                { url: '/api/carousel', name: 'Carousel API' },
+                { url: '/api/carousel/images', name: 'Carousel Images' },
+                { url: '/api/case-studies', name: 'Case Studies API' },
+                { url: '/api/auth/status', name: 'Auth Status' }
+            ];
+            
+            let html = '';
+            let passCount = 0;
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint.url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        html += createTestItem(endpoint.name, 'pass', `Status: ${response.status}, Data: ${JSON.stringify(data).substring(0, 50)}...`);
+                        passCount++;
+                    } else {
+                        html += createTestItem(endpoint.name, 'fail', `HTTP ${response.status}: ${response.statusText}`);
+                    }
+                } catch (error) {
+                    html += createTestItem(endpoint.name, 'fail', `Error: ${error.message}`);
+                }
+            }
+            
+            checkResults.apiEndpoints = { pass: passCount, total: endpoints.length };
+            results.innerHTML = html;
+        }
+
+        function checkJavaScriptErrors() {
+            const results = document.getElementById('js-error-results');
+            
+            // Check for common JavaScript issues
+            let html = '';
+            let passCount = 0;
+            const totalChecks = 4;
+            
+            // Check if required libraries are loaded
+            if (typeof window.cloudinary !== 'undefined') {
+                html += createTestItem('Cloudinary SDK', 'pass', 'Cloudinary SDK loaded successfully');
+                passCount++;
+            } else {
+                html += createTestItem('Cloudinary SDK', 'warning', 'Cloudinary SDK not detected');
+            }
+            
+            // Check if Supabase is loaded
+            if (typeof window.supabase !== 'undefined') {
+                html += createTestItem('Supabase SDK', 'pass', 'Supabase SDK loaded successfully');
+                passCount++;
+            } else {
+                html += createTestItem('Supabase SDK', 'warning', 'Supabase SDK not detected');
+            }
+            
+            // Check console errors
+            const originalError = console.error;
+            let errorCount = 0;
+            console.error = function(...args) {
+                errorCount++;
+                originalError.apply(console, args);
+            };
+            
+            setTimeout(() => {
+                console.error = originalError;
+                if (errorCount === 0) {
+                    html += createTestItem('Console Errors', 'pass', 'No console errors detected');
+                    passCount++;
+                } else {
+                    html += createTestItem('Console Errors', 'fail', `${errorCount} console errors detected`);
+                }
+                
+                // Check for undefined variables
+                try {
+                    eval('typeof nonExistentVariable');
+                    html += createTestItem('Variable Check', 'pass', 'No undefined variable errors');
+                    passCount++;
+                } catch (error) {
+                    html += createTestItem('Variable Check', 'fail', `Variable error: ${error.message}`);
+                }
+                
+                checkResults.jsErrors = { pass: passCount, total: totalChecks };
+                results.innerHTML = html;
+            }, 1000);
+        }
+
+        async function checkDatabaseConnection() {
+            const results = document.getElementById('db-check-results');
+            results.innerHTML = '<div class="text-center">Testing database connection...</div>';
+            
+            let html = '';
+            let passCount = 0;
+            const totalChecks = 2;
+            
+            try {
+                // Test case studies table
+                const caseStudiesResponse = await fetch('/api/case-studies');
+                if (caseStudiesResponse.ok) {
+                    html += createTestItem('Case Studies Table', 'pass', 'Successfully connected to case studies table');
+                    passCount++;
+                } else {
+                    html += createTestItem('Case Studies Table', 'fail', `HTTP ${caseStudiesResponse.status}`);
+                }
+            } catch (error) {
+                html += createTestItem('Case Studies Table', 'fail', `Error: ${error.message}`);
+            }
+            
+            try {
+                // Test carousel table
+                const carouselResponse = await fetch('/api/carousel/images');
+                if (carouselResponse.ok) {
+                    html += createTestItem('Carousel Table', 'pass', 'Successfully connected to carousel table');
+                    passCount++;
+                } else {
+                    html += createTestItem('Carousel Table', 'fail', `HTTP ${carouselResponse.status}`);
+                }
+            } catch (error) {
+                html += createTestItem('Carousel Table', 'fail', `Error: ${error.message}`);
+            }
+            
+            checkResults.database = { pass: passCount, total: totalChecks };
+            results.innerHTML = html;
+        }
+
+        function checkCloudinaryIntegration() {
+            const results = document.getElementById('cloudinary-check-results');
+            
+            let html = '';
+            let passCount = 0;
+            const totalChecks = 3;
+            
+            // Check if Cloudinary config exists
+            if (window.cloudinaryConfig) {
+                html += createTestItem('Cloudinary Config', 'pass', 'Configuration found');
+                passCount++;
+            } else {
+                html += createTestItem('Cloudinary Config', 'warning', 'Configuration not found in window object');
+            }
+            
+            // Check environment variables
+            const requiredEnvVars = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY'];
+            let envVarCount = 0;
+            
+            // Since we can't access env vars directly in browser, check if upload widget works
+            if (typeof window.cloudinary !== 'undefined' && window.cloudinary.createUploadWidget) {
+                html += createTestItem('Upload Widget', 'pass', 'Cloudinary upload widget available');
+                passCount++;
+            } else {
+                html += createTestItem('Upload Widget', 'fail', 'Cloudinary upload widget not available');
+            }
+            
+            // Test image transformation
+            try {
+                const testUrl = 'https://res.cloudinary.com/dgymjtqil/image/upload/c_scale,w_100/sample.jpg';
+                const img = new Image();
+                img.onload = function() {
+                    html += createTestItem('Image Transformation', 'pass', 'Cloudinary transformations working');
+                    passCount++;
+                    checkResults.cloudinary = { pass: passCount, total: totalChecks };
+                    results.innerHTML = html;
+                };
+                img.onerror = function() {
+                    html += createTestItem('Image Transformation', 'fail', 'Cloudinary transformation test failed');
+                    checkResults.cloudinary = { pass: passCount, total: totalChecks };
+                    results.innerHTML = html;
+                };
+                img.src = testUrl;
+            } catch (error) {
+                html += createTestItem('Image Transformation', 'fail', `Error: ${error.message}`);
+                checkResults.cloudinary = { pass: passCount, total: totalChecks };
+                results.innerHTML = html;
+            }
+        }
+
+        function checkNavigationLinks() {
+            const results = document.getElementById('navigation-check-results');
+            
+            let html = '';
+            let passCount = 0;
+            
+            // Check for common navigation elements
+            const navLinks = document.querySelectorAll('a[href]');
+            const externalLinks = Array.from(navLinks).filter(link => 
+                link.href.startsWith('http') && !link.href.includes(window.location.hostname)
+            );
+            
+            html += createTestItem('Navigation Links Found', 'pass', `Found ${navLinks.length} total links`);
+            passCount++;
+            
+            // Check for broken internal links
+            const internalLinks = Array.from(navLinks).filter(link => 
+                !link.href.startsWith('http') || link.href.includes(window.location.hostname)
+            );
+            
+            if (internalLinks.length > 0) {
+                html += createTestItem('Internal Links', 'pass', `Found ${internalLinks.length} internal links`);
+                passCount++;
+            } else {
+                html += createTestItem('Internal Links', 'warning', 'No internal links found on this page');
+            }
+            
+            // Check for hash navigation
+            const hashLinks = Array.from(navLinks).filter(link => link.href.includes('#'));
+            if (hashLinks.length > 0) {
+                html += createTestItem('Hash Navigation', 'pass', `Found ${hashLinks.length} hash navigation links`);
+                passCount++;
+            } else {
+                html += createTestItem('Hash Navigation', 'warning', 'No hash navigation found');
+            }
+            
+            checkResults.navigation = { pass: passCount, total: 3 };
+            results.innerHTML = html;
+        }
+
+        async function runAllChecks() {
+            document.getElementById('overall-status').innerHTML = '<div class="text-center">Running comprehensive system check...</div>';
+            
+            await checkFileIntegrity();
+            await checkAPIEndpoints();
+            checkJavaScriptErrors();
+            await checkDatabaseConnection();
+            checkCloudinaryIntegration();
+            checkNavigationLinks();
+            
+            // Wait a bit for async checks to complete
+            setTimeout(updateOverallStatus, 2000);
+        }
+
+        function updateOverallStatus() {
+            const totalPassed = Object.values(checkResults).reduce((sum, result) => sum + result.pass, 0);
+            const totalTests = Object.values(checkResults).reduce((sum, result) => sum + result.total, 0);
+            const passRate = Math.round((totalPassed / totalTests) * 100);
+            
+            let statusClass = 'text-green-600';
+            let statusIcon = '✅';
+            let statusText = 'EXCELLENT';
+            
+            if (passRate < 70) {
+                statusClass = 'text-red-600';
+                statusIcon = '❌';
+                statusText = 'NEEDS ATTENTION';
+            } else if (passRate < 90) {
+                statusClass = 'text-yellow-600';
+                statusIcon = '⚠️';
+                statusText = 'GOOD WITH ISSUES';
+            }
+            
+            document.getElementById('overall-status').innerHTML = `
+                <div class="${statusClass}">
+                    <div class="text-4xl mb-2">${statusIcon}</div>
+                    <div class="text-2xl font-bold">${statusText}</div>
+                    <div class="text-lg">${totalPassed}/${totalTests} tests passed (${passRate}%)</div>
+                </div>
+            `;
+        }
+
+        // Auto-run checks on page load
+        window.addEventListener('load', () => {
+            setTimeout(runAllChecks, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Upload Fix NOW</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <h1 class="text-2xl font-bold text-red-800 mb-4">🚨 UPLOAD FIX TEST</h1>
+            <p class="text-red-700">This will test if the upload fix works for your Cloudinary issue.</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📁 Quick Upload Test</h2>
+            <input type="file" id="testFile" accept="image/*" class="mb-4 block w-full">
+            <button onclick="testUploadNow()" class="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600">
+                🚀 TEST UPLOAD NOW
+            </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">📊 Results</h2>
+            <div id="results" class="space-y-2">
+                <p class="text-gray-500">Select a file and click test...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const div = document.getElementById('results');
+            const colors = {
+                info: 'text-blue-600',
+                success: 'text-green-600', 
+                error: 'text-red-600'
+            };
+            div.innerHTML += `<p class="${colors[type]}">[${new Date().toLocaleTimeString()}] ${message}</p>`;
+        }
+
+        async function testUploadNow() {
+            const file = document.getElementById('testFile').files[0];
+            if (!file) {
+                log('❌ Please select a file first', 'error');
+                return;
+            }
+
+            log(`🔄 Testing upload for: ${file.name}`, 'info');
+
+            // Method 1: Try unsigned with ml_default
+            try {
+                log('📋 Trying ml_default preset...', 'info');
+                const result1 = await tryUnsigned(file, 'ml_default');
+                log('✅ SUCCESS with ml_default preset!', 'success');
+                log(`🔗 URL: ${result1.secure_url}`, 'success');
+                return;
+            } catch (error) {
+                log(`❌ ml_default failed: ${error.message}`, 'error');
+            }
+
+            // Method 2: Try other presets
+            const presets = ['unsigned_preset', 'portfolio_preset', 'default'];
+            for (const preset of presets) {
+                try {
+                    log(`📋 Trying ${preset}...`, 'info');
+                    const result = await tryUnsigned(file, preset);
+                    log(`✅ SUCCESS with ${preset}!`, 'success');
+                    log(`🔗 URL: ${result.secure_url}`, 'success');
+                    return;
+                } catch (error) {
+                    log(`❌ ${preset} failed: ${error.message}`, 'error');
+                }
+            }
+
+            // Method 3: Try signed upload
+            try {
+                log('🔐 Trying signed upload...', 'info');
+                const result = await trySignedUpload(file);
+                log('✅ SUCCESS with signed upload!', 'success');
+                log(`🔗 URL: ${result.secure_url}`, 'success');
+            } catch (error) {
+                log(`❌ Signed upload failed: ${error.message}`, 'error');
+                log('🚨 ALL METHODS FAILED - You MUST create the unsigned preset in Cloudinary dashboard', 'error');
+            }
+        }
+
+        async function tryUnsigned(file, preset) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', preset);
+            formData.append('folder', 'portfolio/test');
+
+            const response = await fetch('https://api.cloudinary.com/v1_1/dgymjtqil/image/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'Upload failed');
+            }
+
+            return await response.json();
+        }
+
+        async function trySignedUpload(file) {
+            const timestamp = Math.round(Date.now() / 1000);
+            const params = `folder=portfolio/test&timestamp=${timestamp}`;
+            const apiSecret = 'jTPgMHSl-6m7LptvsBA5eDbOWwc';
+            
+            // Generate signature
+            const encoder = new TextEncoder();
+            const data = encoder.encode(params + apiSecret);
+            const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('api_key', '951533987774134');
+            formData.append('timestamp', timestamp);
+            formData.append('signature', signature);
+            formData.append('folder', 'portfolio/test');
+
+            const response = await fetch('https://api.cloudinary.com/v1_1/dgymjtqil/image/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'Signed upload failed');
+            }
+
+            return await response.json();
+        }
+
+        log('🚀 Upload test ready - select a file and click test', 'info');
+    </script>
+</body>
+</html>

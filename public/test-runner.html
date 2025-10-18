@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS System Test Runner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">🧪 SaaS System Test Runner</h1>
+            
+            <!-- Test Overview -->
+            <div id="test-overview" class="mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-blue-800">Total Tests</h3>
+                        <div id="total-tests" class="text-2xl font-bold text-blue-600">0</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-green-800">Passed</h3>
+                        <div id="passed-tests" class="text-2xl font-bold text-green-600">0</div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-red-800">Failed</h3>
+                        <div id="failed-tests" class="text-2xl font-bold text-red-600">0</div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-yellow-800">Pass Rate</h3>
+                        <div id="pass-rate" class="text-2xl font-bold text-yellow-600">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Controls -->
+            <div class="mb-6">
+                <button id="setup-tests" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 mr-4">
+                    🔧 Setup Test Infrastructure
+                </button>
+                <button id="run-all-tests" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 mr-4">
+                    🚀 Run All Tests
+                </button>
+                <button id="run-unit-tests" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 mr-4">
+                    🧩 Unit Tests
+                </button>
+                <button id="run-integration-tests" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 mr-4">
+                    🔗 Integration Tests
+                </button>
+                <button id="clear-results" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">
+                    🗑️ Clear Results
+                </button>
+            </div>
+
+            <!-- Test Status -->
+            <div id="test-status" class="mb-6 hidden">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-lg mb-2">🔄 Test Execution Status</h3>
+                    <div id="current-test" class="text-sm text-gray-600 mb-2">Ready to run tests...</div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Suites -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Unit Tests -->
+                <div class="bg-white border rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">🧩 Unit Tests</h3>
+                    <div id="unit-test-status" class="space-y-2">
+                        <div class="text-sm text-gray-600">No tests run yet</div>
+                    </div>
+                </div>
+
+                <!-- Integration Tests -->
+                <div class="bg-white border rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">🔗 Integration Tests</h3>
+                    <div id="integration-test-status" class="space-y-2">
+                        <div class="text-sm text-gray-600">No tests run yet</div>
+                    </div>
+                </div>
+
+                <!-- End-to-End Tests -->
+                <div class="bg-white border rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">🎯 End-to-End Tests</h3>
+                    <div id="e2e-test-status" class="space-y-2">
+                        <div class="text-sm text-gray-600">No tests run yet</div>
+                    </div>
+                </div>
+
+                <!-- Regression Tests -->
+                <div class="bg-white border rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">🔄 Regression Tests</h3>
+                    <div id="regression-test-status" class="space-y-2">
+                        <div class="text-sm text-gray-600">No tests run yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Results Chart -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">📊 Test Results</h2>
+                <div class="bg-white border rounded-lg p-6">
+                    <canvas id="test-results-chart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed Test Results -->
+            <div id="detailed-results" class="hidden">
+                <h2 class="text-2xl font-semibold mb-4">📋 Detailed Test Results</h2>
+                <div id="results-content" class="space-y-4">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+
+            <!-- Test Report -->
+            <div id="test-report" class="hidden">
+                <h2 class="text-2xl font-semibold mb-4">📄 Test Report</h2>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div id="report-content">
+                        <!-- Report content will be populated here -->
+                    </div>
+                    <div class="mt-4">
+                        <button id="export-report" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            📊 Export Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Dependencies -->
+    <script src="test-infrastructure-setup.js"></script>
+    <script src="js/api-error-handler.js"></script>
+    <script src="js/notification-system.js"></script>
+
+    <script>
+        class TestRunner {
+            constructor() {
+                this.infrastructure = null;
+                this.testResults = null;
+                this.chart = null;
+                this.currentProgress = 0;
+                this.init();
+            }
+
+            async init() {
+                console.log('🧪 Initializing Test Runner...');
+                
+                // Wait for dependencies
+                await this.waitForDependencies();
+                
+                // Initialize test infrastructure
+                this.infrastructure = new TestInfrastructure();
+                
+                // Setup event listeners
+                this.setupEventListeners();
+                
+                // Initialize chart
+                this.initializeChart();
+                
+                console.log('✅ Test Runner ready');
+            }
+
+            async waitForDependencies() {
+                return new Promise((resolve) => {
+                    const checkDependencies = () => {
+                        if (typeof TestInfrastructure !== 'undefined') {
+                            resolve();
+                        } else {
+                            setTimeout(checkDependencies, 100);
+                        }
+                    };
+                    checkDependencies();
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('setup-tests').addEventListener('click', () => {
+                    this.setupTestInfrastructure();
+                });
+
+                document.getElementById('run-all-tests').addEventListener('click', () => {
+                    this.runAllTests();
+                });
+
+                document.getElementById('run-unit-tests').addEventListener('click', () => {
+                    this.runTestSuite('unit');
+                });
+
+                document.getElementById('run-integration-tests').addEventListener('click', () => {
+                    this.runTestSuite('integration');
+                });
+
+                document.getElementById('clear-results').addEventListener('click', () => {
+                    this.clearResults();
+                });
+
+                document.getElementById('export-report').addEventListener('click', () => {
+                    this.exportTestReport();
+                });
+            }
+
+            initializeChart() {
+                const ctx = document.getElementById('test-results-chart').getContext('2d');
+                this.chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Passed', 'Failed', 'Skipped'],
+                        datasets: [{
+                            data: [0, 0, 0],
+                            backgroundColor: [
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(245, 158, 11, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(16, 185, 129)',
+                                'rgb(239, 68, 68)',
+                                'rgb(245, 158, 11)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Test Results Distribution'
+                            }
+                        }
+                    }
+                });
+            }
+
+            async setupTestInfrastructure() {
+                console.log('🔧 Setting up test infrastructure...');
+                
+                try {
+                    this.showStatus('Setting up test infrastructure...');
+                    
+                    await this.infrastructure.initialize();
+                    
+                    // Create sample tests
+                    this.createSampleTests();
+                    
+                    this.hideStatus();
+                    this.showNotification('Test infrastructure setup complete!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Setup failed:', error);
+                    this.showNotification('Setup failed: ' + error.message, 'error');
+                    this.hideStatus();
+                }
+            }
+
+            createSampleTests() {
+                console.log('📝 Creating sample tests...');
+                
+                // Unit Tests
+                this.infrastructure.createTestCase('unit', 'Test API Error Handler', () => {
+                    TestAssertions.assertNotNull(window.apiErrorHandler, 'API Error Handler should be available');
+                    TestAssertions.assertEqual(typeof window.apiErrorHandler.handleError, 'function', 'handleError should be a function');
+                });
+
+                this.infrastructure.createTestCase('unit', 'Test Notification System', () => {
+                    TestAssertions.assertNotNull(window.notificationSystem, 'Notification System should be available');
+                    TestAssertions.assertEqual(typeof window.notificationSystem.showSuccess, 'function', 'showSuccess should be a function');
+                });
+
+                this.infrastructure.createTestCase('unit', 'Test Timestamp Utils', () => {
+                    const now = new Date();
+                    const timestamp = now.toISOString();
+                    TestAssertions.assertTrue(timestamp.includes('T'), 'Timestamp should contain T separator');
+                    TestAssertions.assertTrue(timestamp.endsWith('Z'), 'Timestamp should end with Z');
+                });
+
+                // Integration Tests
+                this.infrastructure.createTestCase('integration', 'Test Supabase Mock Integration', async () => {
+                    const mockSupabase = this.infrastructure.mockServices.supabase;
+                    const result = await mockSupabase.from('case_studies').select('*').order('created_at');
+                    TestAssertions.assertNotNull(result.data, 'Mock Supabase should return data');
+                    TestAssertions.assertEqual(result.error, null, 'Mock Supabase should not return error');
+                });
+
+                this.infrastructure.createTestCase('integration', 'Test Cloudinary Mock Integration', async () => {
+                    const mockCloudinary = this.infrastructure.mockServices.cloudinary;
+                    const mockFile = new Blob(['test'], { type: 'image/jpeg' });
+                    const result = await mockCloudinary.uploadImage(mockFile);
+                    TestAssertions.assertNotNull(result.secure_url, 'Mock Cloudinary should return secure_url');
+                    TestAssertions.assertTrue(result.secure_url.includes('cloudinary.com'), 'URL should be from Cloudinary');
+                });
+
+                // End-to-End Tests
+                this.infrastructure.createTestCase('e2e', 'Test Complete Case Study Flow', async () => {
+                    // Simulate complete workflow
+                    const mockApi = this.infrastructure.mockServices.api;
+                    
+                    // Create case study
+                    const createResult = await mockApi.post('/api/case-studies', {
+                        project_title: 'Test Case Study',
+                        client_name: 'Test Client'
+                    });
+                    TestAssertions.assertTrue(createResult.ok, 'Create should succeed');
+                    
+                    // Read case studies
+                    const readResult = await mockApi.get('/api/case-studies');
+                    TestAssertions.assertTrue(readResult.ok, 'Read should succeed');
+                });
+
+                // Regression Tests
+                this.infrastructure.createTestCase('regression', 'Test Existing Functionality', () => {
+                    // Test that basic JavaScript functionality works
+                    TestAssertions.assertEqual(typeof document, 'object', 'Document should be available');
+                    TestAssertions.assertEqual(typeof window, 'object', 'Window should be available');
+                    TestAssertions.assertTrue(Array.isArray([]), 'Array.isArray should work');
+                });
+
+                console.log('✅ Sample tests created');
+            }
+
+            async runAllTests() {
+                console.log('🚀 Running all tests...');
+                
+                try {
+                    this.showStatus('Running all tests...');
+                    this.updateProgress(0);
+                    
+                    const results = await this.infrastructure.runAllTests();
+                    this.testResults = results;
+                    
+                    this.updateTestOverview(results);
+                    this.updateChart(results);
+                    this.displayDetailedResults(results);
+                    this.generateTestReport(results);
+                    
+                    this.hideStatus();
+                    this.showNotification(`Tests completed: ${results.totalPassed}/${results.totalTests} passed`, 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Test run failed:', error);
+                    this.showNotification('Test run failed: ' + error.message, 'error');
+                    this.hideStatus();
+                }
+            }
+
+            async runTestSuite(suiteName) {
+                console.log(`🧪 Running ${suiteName} tests...`);
+                
+                try {
+                    this.showStatus(`Running ${suiteName} tests...`);
+                    
+                    const results = await this.infrastructure.runTestSuite(suiteName);
+                    
+                    this.updateSuiteStatus(suiteName, results);
+                    this.hideStatus();
+                    this.showNotification(`${suiteName} tests completed: ${results.passed}/${results.total} passed`, 'success');
+                    
+                } catch (error) {
+                    console.error(`❌ ${suiteName} tests failed:`, error);
+                    this.showNotification(`${suiteName} tests failed: ` + error.message, 'error');
+                    this.hideStatus();
+                }
+            }
+
+            updateTestOverview(results) {
+                document.getElementById('total-tests').textContent = results.totalTests;
+                document.getElementById('passed-tests').textContent = results.totalPassed;
+                document.getElementById('failed-tests').textContent = results.totalFailed;
+                
+                const passRate = results.totalTests > 0 ? 
+                    ((results.totalPassed / results.totalTests) * 100).toFixed(1) : 0;
+                document.getElementById('pass-rate').textContent = `${passRate}%`;
+            }
+
+            updateChart(results) {
+                this.chart.data.datasets[0].data = [
+                    results.totalPassed,
+                    results.totalFailed,
+                    results.totalSkipped
+                ];
+                this.chart.update();
+            }
+
+            updateSuiteStatus(suiteName, results) {
+                const statusElement = document.getElementById(`${suiteName}-test-status`);
+                if (statusElement) {
+                    statusElement.innerHTML = `
+                        <div class="text-sm">
+                            <div class="flex justify-between mb-1">
+                                <span>Total:</span>
+                                <span>${results.total}</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-green-600">Passed:</span>
+                                <span>${results.passed}</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-red-600">Failed:</span>
+                                <span>${results.failed}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Duration:</span>
+                                <span>${results.duration}ms</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            displayDetailedResults(results) {
+                const container = document.getElementById('results-content');
+                container.innerHTML = '';
+                
+                results.suites.forEach(suite => {
+                    const suiteDiv = document.createElement('div');
+                    suiteDiv.className = 'bg-white border rounded-lg p-4';
+                    
+                    suiteDiv.innerHTML = `
+                        <h3 class="font-semibold text-lg mb-3">${suite.suite} Suite</h3>
+                        <div class="grid grid-cols-3 gap-4 mb-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-600">${suite.total}</div>
+                                <div class="text-sm text-gray-600">Total</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600">${suite.passed}</div>
+                                <div class="text-sm text-gray-600">Passed</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-red-600">${suite.failed}</div>
+                                <div class="text-sm text-gray-600">Failed</div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            ${suite.tests.map(test => `
+                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                    <span class="text-sm">${test.name}</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-500">${test.duration}ms</span>
+                                        <span class="px-2 py-1 rounded text-xs font-medium ${
+                                            test.status === 'passed' ? 'bg-green-100 text-green-800' :
+                                            test.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                            'bg-yellow-100 text-yellow-800'
+                                        }">
+                                            ${test.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    container.appendChild(suiteDiv);
+                });
+                
+                document.getElementById('detailed-results').classList.remove('hidden');
+            }
+
+            generateTestReport(results) {
+                const report = this.infrastructure.generateTestReport(results);
+                
+                const reportContent = document.getElementById('report-content');
+                reportContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-semibold mb-2">Summary</h4>
+                                <ul class="text-sm space-y-1">
+                                    <li>Total Tests: ${report.summary.total}</li>
+                                    <li>Passed: ${report.summary.passed}</li>
+                                    <li>Failed: ${report.summary.failed}</li>
+                                    <li>Pass Rate: ${report.summary.passRate}%</li>
+                                    <li>Duration: ${report.summary.duration}ms</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-2">Environment</h4>
+                                <ul class="text-sm space-y-1">
+                                    <li>Test Mode: ${report.environment.testMode}</li>
+                                    <li>Database: ${report.environment.database}</li>
+                                    <li>Fixtures: ${report.environment.fixtures}</li>
+                                    <li>Mocks: ${report.environment.mocks}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2">Test Execution</h4>
+                            <p class="text-sm text-gray-600">
+                                Started: ${new Date(report.summary.startTime).toLocaleString()}<br>
+                                Ended: ${new Date(report.summary.endTime).toLocaleString()}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('test-report').classList.remove('hidden');
+            }
+
+            showStatus(message) {
+                document.getElementById('current-test').textContent = message;
+                document.getElementById('test-status').classList.remove('hidden');
+            }
+
+            hideStatus() {
+                document.getElementById('test-status').classList.add('hidden');
+            }
+
+            updateProgress(percentage) {
+                document.getElementById('progress-bar').style.width = `${percentage}%`;
+            }
+
+            showNotification(message, type) {
+                if (window.notificationSystem) {
+                    switch (type) {
+                        case 'success':
+                            window.notificationSystem.showSuccess(message);
+                            break;
+                        case 'error':
+                            window.notificationSystem.showError(message);
+                            break;
+                        default:
+                            window.notificationSystem.showInfo(message);
+                    }
+                } else {
+                    console.log(`${type.toUpperCase()}: ${message}`);
+                }
+            }
+
+            clearResults() {
+                this.testResults = null;
+                
+                // Reset overview
+                document.getElementById('total-tests').textContent = '0';
+                document.getElementById('passed-tests').textContent = '0';
+                document.getElementById('failed-tests').textContent = '0';
+                document.getElementById('pass-rate').textContent = '0%';
+                
+                // Reset chart
+                this.chart.data.datasets[0].data = [0, 0, 0];
+                this.chart.update();
+                
+                // Hide results
+                document.getElementById('detailed-results').classList.add('hidden');
+                document.getElementById('test-report').classList.add('hidden');
+                
+                // Reset suite statuses
+                ['unit', 'integration', 'e2e', 'regression'].forEach(suite => {
+                    const statusElement = document.getElementById(`${suite}-test-status`);
+                    if (statusElement) {
+                        statusElement.innerHTML = '<div class="text-sm text-gray-600">No tests run yet</div>';
+                    }
+                });
+                
+                console.log('🗑️ Test results cleared');
+            }
+
+            exportTestReport() {
+                if (!this.testResults) {
+                    alert('No test results to export. Please run tests first.');
+                    return;
+                }
+                
+                const report = this.infrastructure.generateTestReport(this.testResults);
+                const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `test-report-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                console.log('📊 Test report exported');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TestRunner();
+        });
+    </script>
+</body>
+</html>

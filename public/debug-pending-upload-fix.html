@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Pending Upload Issue</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-bug mr-2 text-red-600"></i>
+                Debug: Pending Upload Issue
+            </h1>
+            
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-red-800 mb-2">🐛 Issue Identified</h3>
+                <p class="text-red-700 text-sm mb-2">Images showing as "Pending upload..." placeholders instead of actual image previews</p>
+                <p class="text-red-600 text-xs">Root cause: generateImagePreview() method not finding pending image data correctly</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-yellow-800 mb-2">Chrome DevTools MCP Issue</h3>
+                    <ul class="text-sm text-yellow-700 space-y-1">
+                        <li>• Error: "Non of the common Windows Env variables were set"</li>
+                        <li>• MCP server failing to connect properly</li>
+                        <li>• Need to set Windows environment variables</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-blue-800 mb-2">Image Preview Issue</h3>
+                    <ul class="text-sm text-blue-700 space-y-1">
+                        <li>• Images get "pending-upload-" URLs</li>
+                        <li>• generateImagePreview() can't find image data</li>
+                        <li>• Shows placeholder instead of actual image</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-green-800 mb-2">✅ Solutions</h3>
+                <div class="space-y-3">
+                    <div>
+                        <h4 class="font-medium text-green-700">1. Fix Chrome DevTools MCP</h4>
+                        <p class="text-sm text-green-600">Set Windows environment variables or use alternative debugging method</p>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-green-700">2. Fix Image Preview Logic</h4>
+                        <p class="text-sm text-green-600">Improve generateImagePreview() to handle pending uploads correctly</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+                <button onclick="openConsoleDebug()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-terminal mr-2"></i>Open Console Debug
+                </button>
+                <button onclick="window.location.href='case_study_editor_complete.html'" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-edit mr-2"></i>Test Editor
+                </button>
+            </div>
+        </div>
+
+        <!-- Debug Console -->
+        <div class="bg-gray-900 text-green-400 rounded-xl p-6 font-mono text-sm">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-terminal mr-2"></i>
+                <span class="font-bold">Debug Console</span>
+            </div>
+            <div id="debugOutput" class="space-y-1">
+                <div>🔍 Analyzing pending upload issue...</div>
+                <div>📊 Checking image preview logic...</div>
+                <div>🛠️ Preparing fixes...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function logDebug(message, type = 'info') {
+            const output = document.getElementById('debugOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '🔍';
+            
+            const div = document.createElement('div');
+            div.innerHTML = `[${timestamp}] ${icon} ${message}`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function openConsoleDebug() {
+            logDebug('Opening browser console for debugging...', 'info');
+            logDebug('Press F12 to open DevTools', 'info');
+            logDebug('Check Console tab for JavaScript errors', 'info');
+            logDebug('Look for "pending-upload" related errors', 'warning');
+            
+            // Open console programmatically (limited support)
+            console.log('🐛 DEBUG: Pending Upload Issue Analysis');
+            console.log('📋 Steps to debug:');
+            console.log('1. Open case_study_editor_complete.html');
+            console.log('2. Upload an image');
+            console.log('3. Check if pendingImages object contains the file');
+            console.log('4. Verify generateImagePreview() logic');
+            console.log('5. Look for console errors');
+            
+            // Check if we can access the editor's debug info
+            if (window.opener && window.opener.editor) {
+                console.log('📊 Editor Debug Info:', window.opener.editor);
+                logDebug('Found editor instance in parent window', 'success');
+            } else {
+                logDebug('No editor instance found - open from case study editor', 'warning');
+            }
+        }
+
+        // Auto-start debug analysis
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                logDebug('Debug session started', 'success');
+                logDebug('Issue: Images showing as "Pending upload..." placeholders', 'error');
+                logDebug('Root cause: generateImagePreview() method logic', 'warning');
+                logDebug('Solution: Fix image data lookup in pending uploads', 'info');
+            }, 1000);
+        });
+
+        // Listen for messages from parent window
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'debug-info') {
+                logDebug(`Received debug info: ${JSON.stringify(event.data)}`, 'info');
+            }
+        });
+    </script>
+</body>
+</html>

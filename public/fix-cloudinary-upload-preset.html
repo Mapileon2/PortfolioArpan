@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Cloudinary Upload Preset</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">🔧 Cloudinary Upload Preset Fix</h1>
+            
+            <!-- Error Explanation -->
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
+                    <div>
+                        <h3 class="font-semibold text-red-900">Upload Preset Error</h3>
+                        <p class="text-red-700 mt-1">The error "Upload preset must be whitelisted for unsigned uploads" means your Cloudinary upload preset isn't configured properly.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solutions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Solution 1: Server-side Upload -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-blue-900 mb-3">
+                        <i class="fas fa-server mr-2"></i>Solution 1: Server-side Upload
+                    </h3>
+                    <p class="text-blue-700 text-sm mb-3">Use your server to handle uploads with API secret (Recommended)</p>
+                    <button onclick="testServerUpload()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                        Test Server Upload
+                    </button>
+                </div>
+
+                <!-- Solution 2: Create Upload Preset -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-green-900 mb-3">
+                        <i class="fas fa-cog mr-2"></i>Solution 2: Create Upload Preset
+                    </h3>
+                    <p class="text-green-700 text-sm mb-3">Create a proper unsigned upload preset in Cloudinary</p>
+                    <button onclick="showPresetInstructions()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                        Show Instructions
+                    </button>
+                </div>
+            </div>
+
+            <!-- File Input -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Image to Test Upload</label>
+                <input type="file" id="testFile" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+            </div>
+
+            <!-- Test Results -->
+            <div id="testResults" class="bg-gray-100 rounded-lg p-4 min-h-32">
+                <h3 class="font-semibold text-gray-900 mb-2">Test Results</h3>
+                <div id="resultContent" class="text-gray-600">
+                    Select a test method above to begin...
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Modal -->
+        <div id="instructionsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-900">Create Cloudinary Upload Preset</h2>
+                        <button onclick="closeInstructions()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h3 class="font-semibold text-yellow-900 mb-2">Steps to Create Upload Preset:</h3>
+                            <ol class="list-decimal list-inside text-yellow-800 space-y-2">
+                                <li>Go to <a href="https://cloudinary.com/console" target="_blank" class="text-blue-600 underline">Cloudinary Console</a></li>
+                                <li>Navigate to <strong>Settings → Upload</strong></li>
+                                <li>Scroll down to <strong>Upload presets</strong></li>
+                                <li>Click <strong>Add upload preset</strong></li>
+                                <li>Set <strong>Preset name</strong> to: <code class="bg-gray-200 px-2 py-1 rounded">portfolio_unsigned</code></li>
+                                <li>Set <strong>Signing Mode</strong> to: <code class="bg-gray-200 px-2 py-1 rounded">Unsigned</code></li>
+                                <li>Set <strong>Folder</strong> to: <code class="bg-gray-200 px-2 py-1 rounded">portfolio</code></li>
+                                <li>Click <strong>Save</strong></li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h3 class="font-semibold text-blue-900 mb-2">Alternative: Use Server-side Upload</h3>
+                            <p class="text-blue-800">The server-side method is more secure and doesn't require creating upload presets.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test server-side upload
+        async function testServerUpload() {
+            const fileInput = document.getElementById('testFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('error', 'Please select a file first');
+                return;
+            }
+
+            showResult('info', 'Testing server-side upload...');
+
+            try {
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('folder', 'portfolio/carousel');
+                formData.append('tags', 'test,carousel');
+
+                const response = await fetch('/api/cloudinary/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showResult('success', `
+                        <strong>✅ Server upload successful!</strong><br>
+                        <strong>Public ID:</strong> ${result.data.publicId}<br>
+                        <strong>URL:</strong> <a href="${result.data.url}" target="_blank" class="text-blue-600 underline">${result.data.url}</a><br>
+                        <strong>Size:</strong> ${(result.data.size / 1024 / 1024).toFixed(2)} MB<br>
+                        <img src="${result.data.url}" alt="Uploaded" class="mt-2 max-w-xs rounded">
+                    `);
+                } else {
+                    showResult('error', `Server upload failed: ${result.error || result.message}`);
+                }
+            } catch (error) {
+                showResult('error', `Server upload error: ${error.message}`);
+            }
+        }
+
+        // Show upload preset instructions
+        function showPresetInstructions() {
+            document.getElementById('instructionsModal').classList.remove('hidden');
+        }
+
+        function closeInstructions() {
+            document.getElementById('instructionsModal').classList.add('hidden');
+        }
+
+        // Show result in the test area
+        function showResult(type, message) {
+            const resultContent = document.getElementById('resultContent');
+            const colors = {
+                success: 'text-green-700 bg-green-50 border-green-200',
+                error: 'text-red-700 bg-red-50 border-red-200',
+                info: 'text-blue-700 bg-blue-50 border-blue-200',
+                warning: 'text-yellow-700 bg-yellow-50 border-yellow-200'
+            };
+
+            resultContent.innerHTML = `
+                <div class="border rounded-lg p-3 ${colors[type] || colors.info}">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Test if server endpoints are available
+        async function checkServerEndpoints() {
+            try {
+                const response = await fetch('/api/cloudinary/upload', {
+                    method: 'POST',
+                    body: new FormData() // Empty form data to test endpoint
+                });
+                
+                if (response.status === 400) {
+                    showResult('success', '✅ Server upload endpoint is available and working');
+                } else {
+                    showResult('warning', `⚠️ Server endpoint responded with status: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('error', `❌ Server upload endpoint not available: ${error.message}`);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkServerEndpoints();
+        });
+    </script>
+</body>
+</html>

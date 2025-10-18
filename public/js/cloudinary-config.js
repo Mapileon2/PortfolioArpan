@@ -9,25 +9,25 @@ class CloudinaryManager {
         this.cloudName = this.detectCloudName(); // Will be auto-detected or set manually
         this.apiKey = '951533987774134'; // Your actual API key
         this.apiSecret = 'jTPgMHSl-6m7LptvsBA5eDbOWwc'; // Your API secret (for server-side operations)
-        this.uploadPreset = 'ml_default'; // Default preset, will create custom one
-        
+        this.uploadPreset = 'portfolio_unsigned'; // Unsigned upload preset
+
         // Upload widget configuration
         this.uploadWidget = null;
         this.currentCallback = null;
-        
+
         this.init();
     }
 
     init() {
         console.log('🌤️ Initializing Cloudinary Manager...');
-        
+
         // Validate configuration
         if (!this.cloudName || this.cloudName === 'your-cloud-name') {
             console.warn('⚠️ Cloudinary cloud name not configured. Using fallback upload.');
             this.useFallbackOnly = true;
             return;
         }
-        
+
         // Wait for Cloudinary to load
         if (typeof cloudinary !== 'undefined') {
             this.setupUploadWidget();
@@ -42,7 +42,7 @@ class CloudinaryManager {
         // You need to get this from your Cloudinary dashboard
         // Go to https://cloudinary.com/console and copy your Cloud Name
         const cloudName = 'dgymjtqil'; // Your actual cloud name
-        
+
         console.log('✅ Using Cloudinary cloud:', cloudName);
         return cloudName;
     }
@@ -61,7 +61,7 @@ class CloudinaryManager {
                 maxImageWidth: 2000,
                 maxImageHeight: 2000,
                 cropping: true,
-                croppingAspectRatio: 16/9,
+                croppingAspectRatio: 16 / 9,
                 croppingDefaultSelectionRatio: 0.8,
                 croppingShowBackButton: true,
                 croppingCoordinatesMode: 'custom',
@@ -128,7 +128,7 @@ class CloudinaryManager {
         }
 
         this.currentCallback = callback;
-        
+
         // Update widget options if provided
         if (options.folder) {
             this.uploadWidget.update({ folder: options.folder });
@@ -146,24 +146,24 @@ class CloudinaryManager {
     // Generate optimized image URL
     getOptimizedUrl(publicId, options = {}) {
         const baseUrl = `https://res.cloudinary.com/${this.cloudName}/image/upload/`;
-        
+
         const transformations = [];
-        
+
         // Quality optimization
         transformations.push('f_auto', 'q_auto');
-        
+
         // Responsive sizing
         if (options.width) transformations.push(`w_${options.width}`);
         if (options.height) transformations.push(`h_${options.height}`);
         if (options.crop) transformations.push(`c_${options.crop}`);
-        
+
         // Effects
         if (options.blur) transformations.push(`e_blur:${options.blur}`);
         if (options.brightness) transformations.push(`e_brightness:${options.brightness}`);
         if (options.contrast) transformations.push(`e_contrast:${options.contrast}`);
-        
+
         const transformString = transformations.length > 0 ? transformations.join(',') + '/' : '';
-        
+
         return `${baseUrl}${transformString}${publicId}`;
     }
 
@@ -208,19 +208,19 @@ class CloudinaryManager {
     // Fallback upload for when Cloudinary widget fails
     showFallbackUpload() {
         console.log('📁 Showing fallback file upload...');
-        
+
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
         input.style.display = 'none';
-        
+
         input.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
                 this.handleFallbackUpload(file);
             }
         };
-        
+
         document.body.appendChild(input);
         input.click();
         document.body.removeChild(input);
@@ -229,12 +229,12 @@ class CloudinaryManager {
     async handleFallbackUpload(file) {
         try {
             console.log('📤 Uploading file via fallback method...');
-            
+
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', this.uploadPreset);
             formData.append('folder', 'portfolio/case-studies');
-            
+
             const response = await fetch(`https://api.cloudinary.com/v1_1/${this.cloudName}/image/upload`, {
                 method: 'POST',
                 body: formData
@@ -246,7 +246,7 @@ class CloudinaryManager {
 
             const result = await response.json();
             console.log('✅ Fallback upload successful:', result);
-            
+
             if (this.currentCallback) {
                 this.currentCallback(result);
             }
@@ -286,7 +286,7 @@ class CloudinaryManager {
     async getImageMetadata(publicId) {
         try {
             const response = await fetch(`https://res.cloudinary.com/${this.cloudName}/image/upload/${publicId}.json`);
-            
+
             if (!response.ok) {
                 throw new Error('Failed to get image metadata');
             }
@@ -328,11 +328,11 @@ class CloudinaryManager {
     uploadSingleFile(file, options = {}) {
         return new Promise((resolve, reject) => {
             this.validateImage(file);
-            
+
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', this.uploadPreset);
-            
+
             if (options.folder) formData.append('folder', options.folder);
             if (options.publicId) formData.append('public_id', options.publicId);
             if (options.tags) formData.append('tags', options.tags.join(','));
@@ -341,18 +341,18 @@ class CloudinaryManager {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (!response.ok) throw new Error('Upload failed');
-                return response.json();
-            })
-            .then(result => {
-                console.log('✅ Single file upload successful:', result);
-                resolve(result);
-            })
-            .catch(error => {
-                console.error('❌ Single file upload failed:', error);
-                reject(error);
-            });
+                .then(response => {
+                    if (!response.ok) throw new Error('Upload failed');
+                    return response.json();
+                })
+                .then(result => {
+                    console.log('✅ Single file upload successful:', result);
+                    resolve(result);
+                })
+                .catch(error => {
+                    console.error('❌ Single file upload failed:', error);
+                    reject(error);
+                });
         });
     }
 }

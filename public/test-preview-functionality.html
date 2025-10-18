@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        .test-steps {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .test-steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .test-steps li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Preview Functionality Test</h1>
+    <p>Test the case study editor preview functionality</p>
+
+    <div class="test-card">
+        <h3>📋 Preview System Status</h3>
+        <div id="systemStatus" class="status info">Checking system status...</div>
+        <button class="test-button" onclick="checkSystem()">Check System</button>
+        
+        <div class="test-steps">
+            <h4>System Requirements:</h4>
+            <ol>
+                <li>Case study editor file exists</li>
+                <li>Case study display file exists</li>
+                <li>Preview functions implemented</li>
+                <li>LocalStorage support available</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h3>🧪 Manual Testing Steps</h3>
+        <div id="testStatus" class="status info">Ready for manual testing</div>
+        
+        <div class="test-steps">
+            <h4>Step-by-Step Test Process:</h4>
+            <ol>
+                <li><strong>Open Editor</strong>: <button class="test-button" onclick="openEditor()">Open Case Study Editor</button></li>
+                <li><strong>Add Content</strong>: Fill in title, description, and enable sections</li>
+                <li><strong>Upload Images</strong>: Add hero image and other images</li>
+                <li><strong>Check Live Preview</strong>: Verify right panel updates in real-time</li>
+                <li><strong>Click Preview Button</strong>: Test full preview window</li>
+                <li><strong>Verify Display</strong>: Check that all content appears correctly</li>
+            </ol>
+        </div>
+        
+        <button class="test-button" onclick="testPreviewData()">Test Preview Data</button>
+        <button class="test-button" onclick="clearPreviewData()">Clear Preview Data</button>
+    </div>
+
+    <div class="test-card">
+        <h3>🔧 Preview Data Inspector</h3>
+        <div id="dataStatus" class="status info">No preview data found</div>
+        <button class="test-button" onclick="inspectPreviewData()">Inspect Preview Data</button>
+        
+        <div id="dataDisplay" style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 15px; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">
+            Preview data will appear here...
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h3>📊 Test Results</h3>
+        <div id="resultsStatus" class="status info">No tests run yet</div>
+        <button class="test-button" onclick="runAllTests()">Run All Tests</button>
+        
+        <div id="testResults" style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 15px; font-family: monospace; white-space: pre-wrap; max-height: 200px; overflow-y: auto;">
+            Test results will appear here...
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${status}`;
+            element.textContent = message;
+        }
+
+        function log(message, elementId = 'testResults') {
+            const timestamp = new Date().toLocaleTimeString();
+            const element = document.getElementById(elementId);
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+            console.log(message);
+        }
+
+        async function checkSystem() {
+            updateStatus('systemStatus', 'info', 'Checking system...');
+            log('🔍 Checking preview system status...', 'testResults');
+            
+            try {
+                // Check if editor file exists
+                const editorResponse = await fetch('case_study_editor_complete.html');
+                if (editorResponse.ok) {
+                    log('✅ Case study editor file exists', 'testResults');
+                } else {
+                    throw new Error('Case study editor file not found');
+                }
+                
+                // Check if display file exists
+                const displayResponse = await fetch('case_study_display.html');
+                if (displayResponse.ok) {
+                    log('✅ Case study display file exists', 'testResults');
+                } else {
+                    throw new Error('Case study display file not found');
+                }
+                
+                // Check localStorage support
+                if (typeof Storage !== "undefined") {
+                    log('✅ LocalStorage support available', 'testResults');
+                } else {
+                    throw new Error('LocalStorage not supported');
+                }
+                
+                // Check for preview functions in editor
+                const editorContent = await editorResponse.text();
+                if (editorContent.includes('previewCaseStudy') && editorContent.includes('localStorage')) {
+                    log('✅ Preview functions implemented in editor', 'testResults');
+                } else {
+                    log('⚠️ Preview functions may be missing', 'testResults');
+                }
+                
+                updateStatus('systemStatus', 'success', 'System check passed');
+                log('🎉 System check completed successfully', 'testResults');
+                
+            } catch (error) {
+                updateStatus('systemStatus', 'error', 'System check failed');
+                log(`❌ System check failed: ${error.message}`, 'testResults');
+            }
+        }
+
+        function openEditor() {
+            window.open('case_study_editor_complete.html', '_blank');
+            log('🔗 Opened case study editor in new tab', 'testResults');
+            updateStatus('testStatus', 'info', 'Editor opened - follow manual test steps');
+        }
+
+        function testPreviewData() {
+            // Create sample preview data for testing
+            const sampleData = {
+                caseStudyTitle: "Test Case Study",
+                sections: {
+                    hero: {
+                        enabled: true,
+                        title: "Test Hero Title",
+                        subtitle: "Test Subtitle",
+                        description: "This is a test description for the hero section.",
+                        image: "https://via.placeholder.com/800x400"
+                    },
+                    overview: {
+                        enabled: true,
+                        title: "Test Overview",
+                        summary: "This is a test overview summary.",
+                        metrics: [
+                            { name: "Test Metric 1", value: "100%" },
+                            { name: "Test Metric 2", value: "50+" }
+                        ]
+                    }
+                },
+                isPreview: true,
+                timestamp: Date.now(),
+                previewId: `test-preview-${Date.now()}`
+            };
+            
+            localStorage.setItem('caseStudyPreviewData', JSON.stringify(sampleData));
+            log('✅ Sample preview data created', 'testResults');
+            updateStatus('testStatus', 'success', 'Sample data created - try opening preview');
+            
+            // Open preview with test data
+            const previewUrl = `case_study_display.html?preview=true&id=${sampleData.previewId}`;
+            window.open(previewUrl, '_blank');
+            log('🔗 Opened preview with test data', 'testResults');
+        }
+
+        function clearPreviewData() {
+            localStorage.removeItem('caseStudyPreviewData');
+            log('🗑️ Preview data cleared', 'testResults');
+            updateStatus('dataStatus', 'info', 'Preview data cleared');
+            document.getElementById('dataDisplay').textContent = 'Preview data cleared...';
+        }
+
+        function inspectPreviewData() {
+            const previewData = localStorage.getItem('caseStudyPreviewData');
+            const dataDisplay = document.getElementById('dataDisplay');
+            
+            if (previewData) {
+                try {
+                    const parsed = JSON.parse(previewData);
+                    dataDisplay.textContent = JSON.stringify(parsed, null, 2);
+                    updateStatus('dataStatus', 'success', 'Preview data found and displayed');
+                    log('📊 Preview data inspected', 'testResults');
+                } catch (error) {
+                    dataDisplay.textContent = `Error parsing data: ${error.message}`;
+                    updateStatus('dataStatus', 'error', 'Invalid preview data format');
+                }
+            } else {
+                dataDisplay.textContent = 'No preview data found in localStorage';
+                updateStatus('dataStatus', 'info', 'No preview data found');
+            }
+        }
+
+        async function runAllTests() {
+            updateStatus('resultsStatus', 'info', 'Running all tests...');
+            log('🚀 Starting comprehensive preview functionality test...', 'testResults');
+            
+            await checkSystem();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            inspectPreviewData();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            log('🎉 All automated tests completed', 'testResults');
+            log('📋 Manual testing required for full verification', 'testResults');
+            updateStatus('resultsStatus', 'success', 'Automated tests completed');
+        }
+
+        // Auto-run system check on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkSystem, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Carousel Homepage Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center">🔧 Carousel Homepage Integration Fix</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Current Status -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">📊 Current Status</h2>
+                <div id="statusInfo" class="space-y-2">
+                    <div class="text-gray-600">Checking system status...</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">⚡ Quick Actions</h2>
+                <div class="space-y-3">
+                    <button onclick="fixIntegration()" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        🔧 Fix Integration
+                    </button>
+                    <button onclick="testWithSampleData()" class="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        🧪 Test with Sample Data
+                    </button>
+                    <button onclick="clearAllData()" class="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        🗑️ Clear All Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">🔗 Navigation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="index.html" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 text-center block">
+                    🏠 Homepage
+                </a>
+                <a href="carousel-management-saas.html" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 text-center block">
+                    🎠 Carousel Manager
+                </a>
+                <a href="test-homepage-carousel-sync.html" class="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 text-center block">
+                    🧪 Sync Test
+                </a>
+            </div>
+        </div>
+
+        <!-- Integration Steps -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">📋 Integration Steps</h2>
+            <div id="integrationSteps" class="space-y-4">
+                <!-- Steps will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stepCounter = 0;
+
+        function addStep(message, status = 'pending') {
+            const stepsDiv = document.getElementById('integrationSteps');
+            const step = document.createElement('div');
+            step.id = `step-${++stepCounter}`;
+            
+            const statusIcons = {
+                pending: '⏳',
+                success: '✅',
+                error: '❌',
+                warning: '⚠️'
+            };
+            
+            const statusColors = {
+                pending: 'border-yellow-500 bg-yellow-50',
+                success: 'border-green-500 bg-green-50',
+                error: 'border-red-500 bg-red-50',
+                warning: 'border-orange-500 bg-orange-50'
+            };
+            
+            step.className = `p-4 border-l-4 ${statusColors[status]} rounded`;
+            step.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-2xl mr-3">${statusIcons[status]}</span>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+            
+            stepsDiv.appendChild(step);
+            return step;
+        }
+
+        function updateStep(stepElement, message, status) {
+            const statusIcons = {
+                pending: '⏳',
+                success: '✅',
+                error: '❌',
+                warning: '⚠️'
+            };
+            
+            const statusColors = {
+                pending: 'border-yellow-500 bg-yellow-50',
+                success: 'border-green-500 bg-green-50',
+                error: 'border-red-500 bg-red-50',
+                warning: 'border-orange-500 bg-orange-50'
+            };
+            
+            stepElement.className = `p-4 border-l-4 ${statusColors[status]} rounded`;
+            stepElement.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-2xl mr-3">${statusIcons[status]}</span>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+        }
+
+        function updateStatus() {
+            const statusDiv = document.getElementById('statusInfo');
+            
+            // Check localStorage data
+            const carouselData = localStorage.getItem('homepageCarouselData');
+            const lastSync = localStorage.getItem('carouselLastSync');
+            
+            let statusHtml = '';
+            
+            if (carouselData) {
+                const data = JSON.parse(carouselData);
+                statusHtml += `<div class="text-green-600">✅ Carousel Data: ${data.length} items</div>`;
+                statusHtml += `<div class="text-blue-600">🕒 Last Sync: ${lastSync ? new Date(lastSync).toLocaleString() : 'Unknown'}</div>`;
+            } else {
+                statusHtml += `<div class="text-red-600">❌ No carousel data found</div>`;
+            }
+            
+            // Check if scripts are available
+            if (typeof window.carouselSaaS !== 'undefined') {
+                statusHtml += `<div class="text-green-600">✅ Carousel Manager Available</div>`;
+            } else {
+                statusHtml += `<div class="text-yellow-600">⚠️ Carousel Manager Not Loaded</div>`;
+            }
+            
+            statusDiv.innerHTML = statusHtml;
+        }
+
+        async function fixIntegration() {
+            document.getElementById('integrationSteps').innerHTML = '';
+            
+            const step1 = addStep('Checking current carousel data...', 'pending');
+            
+            try {
+                // Step 1: Check existing data
+                const existingData = localStorage.getItem('homepageCarouselData');
+                if (existingData) {
+                    const data = JSON.parse(existingData);
+                    updateStep(step1, `Found ${data.length} existing carousel items`, 'success');
+                } else {
+                    updateStep(step1, 'No existing carousel data found', 'warning');
+                }
+                
+                // Step 2: Create sample data if none exists
+                const step2 = addStep('Ensuring carousel data exists...', 'pending');
+                
+                let carouselData = existingData ? JSON.parse(existingData) : [];
+                
+                if (carouselData.length === 0) {
+                    // Create sample data
+                    carouselData = [
+                        {
+                            id: 'sample-1',
+                            url: 'https://picsum.photos/800/400?random=201',
+                            title: 'Welcome to Your Journey',
+                            description: 'This is your first magical journey step',
+                            alt: 'Sample carousel image 1',
+                            order: 1,
+                            isActive: true
+                        },
+                        {
+                            id: 'sample-2',
+                            url: 'https://picsum.photos/800/400?random=202',
+                            title: 'Explore New Horizons',
+                            description: 'Continue your adventure with beautiful scenery',
+                            alt: 'Sample carousel image 2',
+                            order: 2,
+                            isActive: true
+                        },
+                        {
+                            id: 'sample-3',
+                            url: 'https://picsum.photos/800/400?random=203',
+                            title: 'Reach Your Destination',
+                            description: 'Complete your magical journey',
+                            alt: 'Sample carousel image 3',
+                            order: 3,
+                            isActive: true
+                        }
+                    ];
+                    
+                    updateStep(step2, 'Created sample carousel data', 'success');
+                } else {
+                    updateStep(step2, 'Using existing carousel data', 'success');
+                }
+                
+                // Step 3: Save to localStorage
+                const step3 = addStep('Saving carousel data to localStorage...', 'pending');
+                
+                localStorage.setItem('homepageCarouselData', JSON.stringify(carouselData));
+                localStorage.setItem('carouselLastSync', new Date().toISOString());
+                
+                updateStep(step3, 'Carousel data saved successfully', 'success');
+                
+                // Step 4: Trigger homepage update
+                const step4 = addStep('Triggering homepage carousel update...', 'pending');
+                
+                window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                    detail: { 
+                        items: carouselData, 
+                        timestamp: new Date().toISOString() 
+                    }
+                }));
+                
+                updateStep(step4, 'Homepage update event dispatched', 'success');
+                
+                // Step 5: Final verification
+                const step5 = addStep('Verifying integration...', 'pending');
+                
+                setTimeout(() => {
+                    const verifyData = localStorage.getItem('homepageCarouselData');
+                    if (verifyData) {
+                        const items = JSON.parse(verifyData);
+                        updateStep(step5, `Integration complete! ${items.length} items ready for homepage`, 'success');
+                        
+                        // Add final instruction
+                        const finalStep = addStep('Visit the homepage to see your carousel in action!', 'success');
+                        
+                        updateStatus();
+                    } else {
+                        updateStep(step5, 'Verification failed - data not found', 'error');
+                    }
+                }, 500);
+                
+            } catch (error) {
+                addStep(`Error during integration: ${error.message}`, 'error');
+            }
+        }
+
+        async function testWithSampleData() {
+            document.getElementById('integrationSteps').innerHTML = '';
+            
+            const step1 = addStep('Creating test data...', 'pending');
+            
+            const testData = [
+                {
+                    id: 'test-' + Date.now() + '-1',
+                    url: 'https://picsum.photos/800/400?random=' + Math.floor(Math.random() * 1000),
+                    title: 'Test Journey 1',
+                    description: 'First test image for carousel integration',
+                    alt: 'Test image 1',
+                    order: 1,
+                    isActive: true
+                },
+                {
+                    id: 'test-' + Date.now() + '-2',
+                    url: 'https://picsum.photos/800/400?random=' + Math.floor(Math.random() * 1000),
+                    title: 'Test Journey 2',
+                    description: 'Second test image for carousel integration',
+                    alt: 'Test image 2',
+                    order: 2,
+                    isActive: true
+                }
+            ];
+            
+            updateStep(step1, `Created ${testData.length} test items`, 'success');
+            
+            const step2 = addStep('Saving test data...', 'pending');
+            
+            localStorage.setItem('homepageCarouselData', JSON.stringify(testData));
+            localStorage.setItem('carouselLastSync', new Date().toISOString());
+            
+            updateStep(step2, 'Test data saved to localStorage', 'success');
+            
+            const step3 = addStep('Triggering carousel update...', 'pending');
+            
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { 
+                    items: testData, 
+                    timestamp: new Date().toISOString() 
+                }
+            }));
+            
+            updateStep(step3, 'Carousel update event sent', 'success');
+            
+            addStep('Test complete! Check the homepage to see the test images', 'success');
+            updateStatus();
+        }
+
+        function clearAllData() {
+            document.getElementById('integrationSteps').innerHTML = '';
+            
+            const step1 = addStep('Clearing all carousel data...', 'pending');
+            
+            localStorage.removeItem('homepageCarouselData');
+            localStorage.removeItem('carouselLastSync');
+            
+            updateStep(step1, 'All carousel data cleared', 'success');
+            
+            const step2 = addStep('Notifying homepage of changes...', 'pending');
+            
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { 
+                    items: [], 
+                    timestamp: new Date().toISOString() 
+                }
+            }));
+            
+            updateStep(step2, 'Homepage notified of data clearing', 'success');
+            
+            addStep('Data cleared! Homepage will show default slides', 'success');
+            updateStatus();
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+            
+            // Listen for carousel updates
+            window.addEventListener('carouselDataUpdated', function(event) {
+                console.log('Received carousel update event:', event.detail);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step-by-Step Preview Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .step {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+        .step.completed {
+            border-left-color: #28a745;
+            background: #f8fff9;
+        }
+        .step.error {
+            border-left-color: #dc3545;
+            background: #fff8f8;
+        }
+        .step-number {
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .step.completed .step-number {
+            background: #28a745;
+        }
+        .step.error .step-number {
+            background: #dc3545;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        .test-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Step-by-Step Preview Test</h1>
+    <p>Follow these steps to test the preview functionality</p>
+
+    <div class="step" id="step1">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <span class="step-number">1</span>
+            <h3>Create Sample Data</h3>
+        </div>
+        <p>First, let's create sample case study data to test with</p>
+        <button class="test-button" onclick="createSampleData()">Create Sample Data</button>
+        <div class="result" id="result1">Click button to create sample data...</div>
+    </div>
+
+    <div class="step" id="step2">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <span class="step-number">2</span>
+            <h3>Store in LocalStorage</h3>
+        </div>
+        <p>Store the sample data in localStorage (simulating editor behavior)</p>
+        <button class="test-button" onclick="storeInLocalStorage()" disabled>Store Data</button>
+        <div class="result" id="result2">Complete step 1 first...</div>
+    </div>
+
+    <div class="step" id="step3">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <span class="step-number">3</span>
+            <h3>Verify Storage</h3>
+        </div>
+        <p>Verify the data is correctly stored and accessible</p>
+        <button class="test-button" onclick="verifyStorage()" disabled>Verify Storage</button>
+        <div class="result" id="result3">Complete step 2 first...</div>
+    </div>
+
+    <div class="step" id="step4">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <span class="step-number">4</span>
+            <h3>Test Preview URL</h3>
+        </div>
+        <p>Open the preview page with the correct URL parameters</p>
+        <button class="test-button" onclick="testPreviewUrl()" disabled>Open Preview</button>
+        <div class="result" id="result4">Complete step 3 first...</div>
+    </div>
+
+    <div class="step" id="step5">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <span class="step-number">5</span>
+            <h3>Test Real Editor</h3>
+        </div>
+        <p>Test with the actual case study editor</p>
+        <button class="test-button" onclick="openEditor()">Open Editor</button>
+        <div class="result" id="result5">Open editor and test preview button...</div>
+    </div>
+
+    <script>
+        let sampleData = null;
+        let currentStep = 1;
+
+        function updateStep(stepNumber, status, message) {
+            const step = document.getElementById(`step${stepNumber}`);
+            const result = document.getElementById(`result${stepNumber}`);
+            
+            step.className = `step ${status}`;
+            result.textContent = message;
+            
+            if (status === 'completed') {
+                // Enable next step
+                const nextButton = document.querySelector(`#step${stepNumber + 1} button`);
+                if (nextButton) {
+                    nextButton.disabled = false;
+                }
+                currentStep = stepNumber + 1;
+            }
+        }
+
+        function createSampleData() {
+            console.log('🔄 Creating sample data...');
+            
+            sampleData = {
+                caseStudyTitle: "Test Case Study for Preview",
+                caseStudyDescription: "This is a test case study to verify preview functionality",
+                sections: {
+                    hero: {
+                        enabled: true,
+                        title: "Test Hero Section",
+                        subtitle: "Preview Functionality Test",
+                        description: "This hero section is used to test the preview functionality. It should appear in the preview display.",
+                        image: "https://via.placeholder.com/800x400/007bff/ffffff?text=Test+Hero+Image"
+                    },
+                    overview: {
+                        enabled: true,
+                        title: "Test Overview",
+                        summary: "This overview section demonstrates how the preview system works with different types of content.",
+                        metrics: [
+                            { name: "Test Coverage", value: "100%" },
+                            { name: "Success Rate", value: "High" },
+                            { name: "Preview Status", value: "Working" }
+                        ]
+                    },
+                    problem: {
+                        enabled: true,
+                        title: "Test Problem Section",
+                        description: "This problem section shows how text and images are displayed in the preview. The preview should render this content with proper formatting.",
+                        image: "https://via.placeholder.com/600x400/dc3545/ffffff?text=Test+Problem+Image"
+                    },
+                    process: {
+                        enabled: true,
+                        title: "Test Process",
+                        steps: [
+                            "First step in the test process",
+                            "Second step with more details",
+                            "Third step to complete the process",
+                            "Final step with conclusion"
+                        ]
+                    }
+                },
+                isPreview: true,
+                timestamp: Date.now(),
+                previewId: `test-preview-${Date.now()}`
+            };
+            
+            updateStep(1, 'completed', `✅ Sample data created successfully\nTitle: ${sampleData.caseStudyTitle}\nSections: ${Object.keys(sampleData.sections).length}\nPreview ID: ${sampleData.previewId}`);
+        }
+
+        function storeInLocalStorage() {
+            console.log('💾 Storing data in localStorage...');
+            
+            try {
+                const dataString = JSON.stringify(sampleData);
+                localStorage.setItem('caseStudyPreviewData', dataString);
+                
+                updateStep(2, 'completed', `✅ Data stored in localStorage\nKey: caseStudyPreviewData\nSize: ${dataString.length} characters\nTimestamp: ${new Date(sampleData.timestamp).toLocaleString()}`);
+                
+            } catch (error) {
+                updateStep(2, 'error', `❌ Failed to store data: ${error.message}`);
+            }
+        }
+
+        function verifyStorage() {
+            console.log('🔍 Verifying localStorage...');
+            
+            try {
+                const storedData = localStorage.getItem('caseStudyPreviewData');
+                
+                if (!storedData) {
+                    throw new Error('No data found in localStorage');
+                }
+                
+                const parsed = JSON.parse(storedData);
+                
+                // Verify data integrity
+                const checks = [
+                    { name: 'Has title', pass: !!parsed.caseStudyTitle },
+                    { name: 'Has sections', pass: !!parsed.sections },
+                    { name: 'Has preview flag', pass: parsed.isPreview === true },
+                    { name: 'Has timestamp', pass: !!parsed.timestamp },
+                    { name: 'Has preview ID', pass: !!parsed.previewId },
+                    { name: 'Hero section enabled', pass: parsed.sections.hero?.enabled === true },
+                    { name: 'Data is fresh', pass: (Date.now() - parsed.timestamp) < 300000 } // 5 minutes
+                ];
+                
+                const passedChecks = checks.filter(check => check.pass).length;
+                const totalChecks = checks.length;
+                
+                if (passedChecks === totalChecks) {
+                    updateStep(3, 'completed', `✅ All verification checks passed (${passedChecks}/${totalChecks})\n${checks.map(c => `${c.pass ? '✅' : '❌'} ${c.name}`).join('\n')}`);
+                } else {
+                    updateStep(3, 'error', `❌ Some checks failed (${passedChecks}/${totalChecks})\n${checks.map(c => `${c.pass ? '✅' : '❌'} ${c.name}`).join('\n')}`);
+                }
+                
+            } catch (error) {
+                updateStep(3, 'error', `❌ Verification failed: ${error.message}`);
+            }
+        }
+
+        function testPreviewUrl() {
+            console.log('🚀 Testing preview URL...');
+            
+            try {
+                const storedData = localStorage.getItem('caseStudyPreviewData');
+                const parsed = JSON.parse(storedData);
+                
+                const previewUrl = `case_study_display.html?preview=true&id=${parsed.previewId}`;
+                
+                updateStep(4, 'completed', `✅ Opening preview URL\nURL: ${previewUrl}\nParameters:\n- preview=true\n- id=${parsed.previewId}\n\nPreview should open in new tab...`);
+                
+                // Open preview
+                window.open(previewUrl, '_blank');
+                
+            } catch (error) {
+                updateStep(4, 'error', `❌ Failed to open preview: ${error.message}`);
+            }
+        }
+
+        function openEditor() {
+            console.log('📝 Opening case study editor...');
+            window.open('case_study_editor_complete.html', '_blank');
+            updateStep(5, 'completed', '✅ Editor opened in new tab\nInstructions:\n1. Fill in some content\n2. Click the Preview button\n3. Check if preview opens correctly');
+        }
+
+        // Auto-start the test
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 Step-by-step preview test ready');
+        });
+    </script>
+</body>
+</html>

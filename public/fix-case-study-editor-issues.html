@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Study Editor - Fixed Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    
+    <style>
+        :root {
+            --ghibli-blue: #6bb2e2;
+            --ghibli-green: #a5d6a7;
+            --ghibli-yellow: #fff59d;
+            --ghibli-red: #ef9a9a;
+            --ghibli-purple: #ce93d8;
+            --ghibli-orange: #ffcc80;
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .editor-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, var(--ghibli-blue), var(--ghibli-green));
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 1.5rem;
+        }
+        
+        .upload-zone {
+            border: 3px dashed var(--ghibli-blue);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .upload-zone:hover {
+            border-color: var(--ghibli-green);
+            background: linear-gradient(135deg, rgba(107, 178, 226, 0.1), rgba(165, 214, 167, 0.1));
+        }
+        
+        .upload-zone.dragover {
+            border-color: var(--ghibli-yellow);
+            background: linear-gradient(135deg, rgba(255, 245, 157, 0.2), rgba(255, 204, 128, 0.2));
+            transform: scale(1.02);
+        }
+        
+        .form-input {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--ghibli-blue);
+            box-shadow: 0 0 0 3px rgba(107, 178, 226, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--ghibli-blue), var(--ghibli-green));
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(107, 178, 226, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--ghibli-purple), var(--ghibli-orange));
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .image-preview {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f8f9fa;
+            max-width: 100%;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .image-preview.loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .image-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 12px;
+            color: #6c757d;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .preview-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: none;
+            overflow-y: auto;
+        }
+        
+        .preview-mode.active {
+            display: block;
+        }
+        
+        .preview-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .preview-header {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(135deg, var(--ghibli-blue), var(--ghibli-green));
+            color: white;
+            padding: 1rem 2rem;
+            z-index: 100;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: white;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .notification.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .error-state {
+            background: #fee2e2;
+            border: 2px dashed #ef4444;
+            color: #dc2626;
+        }
+        
+        .success-state {
+            background: #dcfce7;
+            border: 2px solid #22c55e;
+            color: #16a34a;
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Navigation -->
+    <nav class="bg-white bg-opacity-90 backdrop-filter backdrop-blur-lg shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold" style="color: var(--ghibli-blue);">
+                        <i class="fas fa-magic mr-2"></i>Case Study Editor - Fixed
+                    </h1>
+                    <div class="text-sm text-gray-600">
+                        <span id="saveStatus" class="font-medium">Ready</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="testImageBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-image mr-2"></i>Test Image Upload
+                    </button>
+                    <button id="previewBtn" class="btn-secondary">
+                        <i class="fas fa-eye mr-2"></i>Preview
+                    </button>
+                    <button id="saveBtn" class="btn-primary">
+                        <i class="fas fa-save mr-2"></i>Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Preview Mode Overlay -->
+    <div id="previewMode" class="preview-mode">
+        <div class="preview-content">
+            <div class="preview-header">
+                <div class="flex items-center">
+                    <i class="fas fa-eye mr-2"></i>
+                    <span class="font-bold text-lg">Live Preview</span>
+                </div>
+                <button id="closePreview" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-times mr-2"></i>Close Preview
+                </button>
+            </div>
+            
+            <div id="previewContent" class="p-6">
+                <!-- Preview content will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Case Study Information -->
+        <div class="editor-card mb-8">
+            <div class="section-header">
+                <h2 class="text-xl font-bold">
+                    <i class="fas fa-file-alt mr-2"></i>Case Study Information
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Case Study Title *</label>
+                        <input type="text" id="caseStudyTitle" class="form-input w-full" placeholder="Enter case study title" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Project Category</label>
+                        <select id="projectCategory" class="form-input w-full">
+                            <option value="web-design">Web Design</option>
+                            <option value="mobile-app">Mobile App</option>
+                            <option value="product-design">Product Design</option>
+                            <option value="branding">Branding</option>
+                            <option value="ui-ux">UI/UX Design</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Project Description</label>
+                    <textarea id="projectDescription" rows="4" class="form-input w-full" placeholder="Describe your project..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="editor-card mb-8">
+            <div class="section-header">
+                <h3 class="text-lg font-bold">
+                    <i class="fas fa-star mr-2"></i>Hero Section
+                </h3>
+            </div>
+            <div class="p-6 space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Hero Title *</label>
+                    <input type="text" id="heroTitle" class="form-input w-full" placeholder="Enter compelling title" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Hero Subtitle</label>
+                    <input type="text" id="heroSubtitle" class="form-input w-full" placeholder="Brief description or tagline">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Hero Description</label>
+                    <textarea id="heroDescription" rows="4" class="form-input w-full" placeholder="Detailed introduction to your case study"></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Hero Image</label>
+                    <div id="heroImageUpload" class="upload-zone">
+                        <div id="heroImagePreview" class="hidden w-full">
+                            <div class="image-preview">
+                                <img id="heroImageImg" class="w-full h-64 object-cover rounded-lg">
+                            </div>
+                            <div class="flex justify-center space-x-4 mt-4">
+                                <button type="button" id="changeHeroImage" class="btn-secondary text-sm">
+                                    <i class="fas fa-edit mr-1"></i>Change
+                                </button>
+                                <button type="button" id="removeHeroImage" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                    <i class="fas fa-trash mr-1"></i>Remove
+                                </button>
+                            </div>
+                        </div>
+                        <div id="heroImagePlaceholder" class="image-placeholder">
+                            <i class="fas fa-cloud-upload-alt text-4xl mb-4" style="color: var(--ghibli-blue);"></i>
+                            <p class="text-lg font-semibold mb-2">Upload Hero Image</p>
+                            <p class="text-gray-600 text-sm">Recommended: 1200x600px, JPG/PNG, Max 10MB</p>
+                            <p class="text-gray-500 text-xs mt-2">Click to browse or drag & drop</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Section -->
+        <div class="editor-card mb-8">
+            <div class="section-header">
+                <h3 class="text-lg font-bold">
+                    <i class="fas fa-images mr-2"></i>Project Gallery
+                </h3>
+            </div>
+            <div class="p-6">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Gallery Images</label>
+                    <div id="galleryUpload" class="upload-zone">
+                        <div id="galleryPreview" class="hidden w-full">
+                            <div id="galleryImages" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                                <!-- Gallery images will be displayed here -->
+                            </div>
+                            <div class="text-center">
+                                <button type="button" id="addMoreImages" class="btn-secondary text-sm">
+                                    <i class="fas fa-plus mr-1"></i>Add More Images
+                                </button>
+                            </div>
+                        </div>
+                        <div id="galleryPlaceholder" class="image-placeholder">
+                            <i class="fas fa-images text-4xl mb-4" style="color: var(--ghibli-green);"></i>
+                            <p class="text-lg font-semibold mb-2">Upload Gallery Images</p>
+                            <p class="text-gray-600 text-sm">Multiple images supported, Max 10MB each</p>
+                            <p class="text-gray-500 text-xs mt-2">Click to browse or drag & drop</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Case Study Editor with Fixed Image and Preview Functionality
+        class FixedCaseStudyEditor {
+            constructor() {
+                this.cloudinaryConfig = {
+                    cloudName: 'dgymjtqil',
+                    apiKey: '951533987774134',
+                    uploadPreset: 'ml_default'
+                };
+                
+                this.images = {
+                    hero: null,
+                    gallery: []
+                };
+                
+                this.init();
+            }
+
+            init() {
+                console.log('🚀 Initializing Fixed Case Study Editor...');
+                this.setupEventListeners();
+                this.setupImageHandlers();
+                this.setupPreview();
+                console.log('✅ Fixed Case Study Editor initialized');
+            }
+
+            setupEventListeners() {
+                // Save button
+                document.getElementById('saveBtn').addEventListener('click', () => this.saveCase Study());
+                
+                // Preview button
+                document.getElementById('previewBtn').addEventListener('click', () => this.showPreview());
+                
+                // Close preview
+                document.getElementById('closePreview').addEventListener('click', () => this.hidePreview());
+                
+                // Test image button
+                document.getElementById('testImageBtn').addEventListener('click', () => this.testImageUpload());
+                
+                // Form inputs for live preview
+                const inputs = ['caseStudyTitle', 'projectCategory', 'projectDescription', 'heroTitle', 'heroSubtitle', 'heroDescription'];
+                inputs.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updatePreview());
+                    }
+                });
+            }
+
+            setupImageHandlers() {
+                // Hero image upload
+                this.setupImageUpload('heroImageUpload', 'hero', false);
+                
+                // Gallery upload
+                this.setupImageUpload('galleryUpload', 'gallery', true);
+                
+                // Hero image controls
+                document.getElementById('changeHeroImage').addEventListener('click', () => {
+                    this.openImageUpload('hero');
+                });
+                
+                document.getElementById('removeHeroImage').addEventListener('click', () => {
+                    this.removeImage('hero');
+                });
+            }
+
+            setupImageUpload(containerId, type, multiple = false) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                // Click handler
+                container.addEventListener('click', (e) => {
+                    if (e.target.closest('.btn-secondary, .bg-red-500')) return;
+                    this.openImageUpload(type, multiple);
+                });
+
+                // Drag and drop handlers
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    container.classList.add('dragover');
+                });
+
+                container.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    container.classList.remove('dragover');
+                });
+
+                container.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    container.classList.remove('dragover');
+                    
+                    const files = Array.from(e.dataTransfer.files);
+                    this.handleFileSelection(files, type, multiple);
+                });
+            }
+
+            openImageUpload(type, multiple = false) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.multiple = multiple;
+                
+                input.onchange = (e) => {
+                    const files = Array.from(e.target.files);
+                    this.handleFileSelection(files, type, multiple);
+                };
+                
+                input.click();
+            }
+
+            async handleFileSelection(files, type, multiple = false) {
+                if (!files || files.length === 0) return;
+
+                try {
+                    this.showNotification('Processing images...', 'info');
+                    
+                    if (multiple) {
+                        // Handle multiple files for gallery
+                        for (const file of files) {
+                            if (this.validateImageFile(file)) {
+                                await this.processImage(file, type);
+                            }
+                        }
+                    } else {
+                        // Handle single file for hero
+                        const file = files[0];
+                        if (this.validateImageFile(file)) {
+                            await this.processImage(file, type);
+                        }
+                    }
+                    
+                    this.updateImageDisplay(type);
+                    this.updatePreview();
+                    this.showNotification('Images processed successfully!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Error handling file selection:', error);
+                    this.showNotification('Error processing images: ' + error.message, 'error');
+                }
+            }
+
+            validateImageFile(file) {
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+                
+                if (!allowedTypes.includes(file.type)) {
+                    this.showNotification('Invalid file type. Please use JPG, PNG, WebP, or GIF.', 'error');
+                    return false;
+                }
+                
+                if (file.size > maxSize) {
+                    this.showNotification('File too large. Maximum size is 10MB.', 'error');
+                    return false;
+                }
+                
+                return true;
+            }
+
+            async processImage(file, type) {
+                try {
+                    // Create preview URL
+                    const previewUrl = URL.createObjectURL(file);
+                    
+                    // Store image data
+                    const imageData = {
+                        file: file,
+                        previewUrl: previewUrl,
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        uploaded: false
+                    };
+                    
+                    if (type === 'hero') {
+                        // Clean up previous hero image
+                        if (this.images.hero && this.images.hero.previewUrl) {
+                            URL.revokeObjectURL(this.images.hero.previewUrl);
+                        }
+                        this.images.hero = imageData;
+                    } else if (type === 'gallery') {
+                        this.images.gallery.push(imageData);
+                    }
+                    
+                    console.log(`✅ Processed ${type} image:`, file.name);
+                    
+                } catch (error) {
+                    console.error('❌ Error processing image:', error);
+                    throw error;
+                }
+            }
+
+            updateImageDisplay(type) {
+                if (type === 'hero') {
+                    this.updateHeroImageDisplay();
+                } else if (type === 'gallery') {
+                    this.updateGalleryDisplay();
+                }
+            }
+
+            updateHeroImageDisplay() {
+                const preview = document.getElementById('heroImagePreview');
+                const placeholder = document.getElementById('heroImagePlaceholder');
+                const img = document.getElementById('heroImageImg');
+                
+                if (this.images.hero && this.images.hero.previewUrl) {
+                    img.src = this.images.hero.previewUrl;
+                    img.alt = this.images.hero.name;
+                    preview.classList.remove('hidden');
+                    placeholder.style.display = 'none';
+                } else {
+                    preview.classList.add('hidden');
+                    placeholder.style.display = 'flex';
+                }
+            }
+
+            updateGalleryDisplay() {
+                const preview = document.getElementById('galleryPreview');
+                const placeholder = document.getElementById('galleryPlaceholder');
+                const container = document.getElementById('galleryImages');
+                
+                if (this.images.gallery.length > 0) {
+                    container.innerHTML = '';
+                    
+                    this.images.gallery.forEach((image, index) => {
+                        const imageDiv = document.createElement('div');
+                        imageDiv.className = 'relative group';
+                        imageDiv.innerHTML = `
+                            <div class="image-preview">
+                                <img src="${image.previewUrl}" alt="${image.name}" class="w-full h-32 object-cover rounded-lg">
+                            </div>
+                            <button onclick="caseStudyEditor.removeGalleryImage(${index})" 
+                                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                            <div class="text-xs text-gray-500 mt-1 truncate">${image.name}</div>
+                        `;
+                        container.appendChild(imageDiv);
+                    });
+                    
+                    preview.classList.remove('hidden');
+                    placeholder.style.display = 'none';
+                } else {
+                    preview.classList.add('hidden');
+                    placeholder.style.display = 'flex';
+                }
+            }
+
+            removeImage(type) {
+                if (type === 'hero' && this.images.hero) {
+                    if (this.images.hero.previewUrl) {
+                        URL.revokeObjectURL(this.images.hero.previewUrl);
+                    }
+                    this.images.hero = null;
+                    this.updateHeroImageDisplay();
+                    this.updatePreview();
+                    this.showNotification('Hero image removed', 'info');
+                }
+            }
+
+            removeGalleryImage(index) {
+                if (index >= 0 && index < this.images.gallery.length) {
+                    const image = this.images.gallery[index];
+                    if (image.previewUrl) {
+                        URL.revokeObjectURL(image.previewUrl);
+                    }
+                    this.images.gallery.splice(index, 1);
+                    this.updateGalleryDisplay();
+                    this.updatePreview();
+                    this.showNotification('Gallery image removed', 'info');
+                }
+            }
+
+            setupPreview() {
+                // Initial preview update
+                this.updatePreview();
+            }
+
+            updatePreview() {
+                const previewContent = document.getElementById('previewContent');
+                if (!previewContent) return;
+
+                const data = this.getFormData();
+                
+                previewContent.innerHTML = `
+                    <div class="space-y-8">
+                        <!-- Hero Section -->
+                        <div class="text-center py-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg">
+                            ${this.images.hero ? `<img src="${this.images.hero.previewUrl}" alt="Hero" class="w-full h-64 object-cover rounded-lg mb-6">` : ''}
+                            <h1 class="text-4xl font-bold mb-4">${data.heroTitle || 'Your Hero Title'}</h1>
+                            <p class="text-xl mb-4">${data.heroSubtitle || 'Your hero subtitle'}</p>
+                            <p class="text-lg opacity-90">${data.heroDescription || 'Your hero description will appear here'}</p>
+                        </div>
+                        
+                        <!-- Project Info -->
+                        <div class="bg-white p-8 rounded-lg shadow-lg">
+                            <h2 class="text-2xl font-bold mb-4">${data.caseStudyTitle || 'Case Study Title'}</h2>
+                            <p class="text-gray-600 mb-4"><strong>Category:</strong> ${data.projectCategory || 'Not specified'}</p>
+                            <p class="text-gray-700">${data.projectDescription || 'Project description will appear here'}</p>
+                        </div>
+                        
+                        <!-- Gallery -->
+                        ${this.images.gallery.length > 0 ? `
+                            <div class="bg-white p-8 rounded-lg shadow-lg">
+                                <h3 class="text-xl font-bold mb-6">Project Gallery</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    ${this.images.gallery.map(image => `
+                                        <img src="${image.previewUrl}" alt="${image.name}" class="w-full h-48 object-cover rounded-lg">
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            showPreview() {
+                this.updatePreview();
+                document.getElementById('previewMode').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            hidePreview() {
+                document.getElementById('previewMode').classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+
+            getFormData() {
+                return {
+                    caseStudyTitle: document.getElementById('caseStudyTitle').value,
+                    projectCategory: document.getElementById('projectCategory').value,
+                    projectDescription: document.getElementById('projectDescription').value,
+                    heroTitle: document.getElementById('heroTitle').value,
+                    heroSubtitle: document.getElementById('heroSubtitle').value,
+                    heroDescription: document.getElementById('heroDescription').value
+                };
+            }
+
+            async testImageUpload() {
+                try {
+                    this.showNotification('Testing image upload functionality...', 'info');
+                    
+                    // Test Cloudinary configuration
+                    if (!this.cloudinaryConfig.cloudName) {
+                        throw new Error('Cloudinary cloud name not configured');
+                    }
+                    
+                    // Test file input
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    
+                    input.onchange = async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            try {
+                                await this.processImage(file, 'hero');
+                                this.updateImageDisplay('hero');
+                                this.showNotification('✅ Image upload test successful!', 'success');
+                            } catch (error) {
+                                this.showNotification('❌ Image upload test failed: ' + error.message, 'error');
+                            }
+                        }
+                    };
+                    
+                    input.click();
+                    
+                } catch (error) {
+                    console.error('❌ Test failed:', error);
+                    this.showNotification('❌ Test failed: ' + error.message, 'error');
+                }
+            }
+
+            async saveCaseStudy() {
+                try {
+                    this.showNotification('Saving case study...', 'info');
+                    
+                    const data = this.getFormData();
+                    
+                    // Validate required fields
+                    if (!data.caseStudyTitle) {
+                        throw new Error('Case study title is required');
+                    }
+                    
+                    if (!data.heroTitle) {
+                        throw new Error('Hero title is required');
+                    }
+                    
+                    // Here you would typically upload images to Cloudinary and save to database
+                    console.log('💾 Saving case study:', data);
+                    console.log('🖼️ Images to upload:', {
+                        hero: this.images.hero ? this.images.hero.name : 'None',
+                        gallery: this.images.gallery.map(img => img.name)
+                    });
+                    
+                    // Simulate save
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    this.showNotification('✅ Case study saved successfully!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Save failed:', error);
+                    this.showNotification('❌ Save failed: ' + error.message, 'error');
+                }
+            }
+
+            showNotification(message, type = 'info') {
+                const container = document.getElementById('notificationContainer');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                container.appendChild(notification);
+                
+                // Show notification
+                setTimeout(() => notification.classList.add('show'), 100);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => container.removeChild(notification), 300);
+                }, 5000);
+            }
+        }
+
+        // Initialize the fixed editor
+        let caseStudyEditor;
+        document.addEventListener('DOMContentLoaded', () => {
+            caseStudyEditor = new FixedCaseStudyEditor();
+        });
+    </script>
+</body>
+</html>

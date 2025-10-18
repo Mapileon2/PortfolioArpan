@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Study Display</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Fast Image Preview System -->
+    <script src="js/fast-image-preview.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .section-card {
+            transition: all 0.3s ease;
+        }
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .step-item {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .step-item::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #667eea;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .steps-container {
+            counter-reset: step-counter;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Loading State -->
+    <div id="loadingState" class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+            <p class="text-gray-600">Loading case study...</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <a href="/admin-dashboard.html" class="text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    <div class="flex space-x-4">
+                        <button id="editBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-edit mr-2"></i>Edit
+                        </button>
+                        <button id="shareBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-share mr-2"></i>Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Case Study Content -->
+        <div id="caseStudyContent" class="max-w-6xl mx-auto">
+            <!-- Content will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="hidden min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle text-4xl text-red-600 mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Case Study Not Found</h2>
+            <p class="text-gray-600 mb-4">The requested case study could not be loaded.</p>
+            <a href="/admin-dashboard.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth-system.js"></script>
+
+    <script>
+        class CaseStudyDisplay {
+            constructor() {
+                this.caseStudyId = null;
+                this.caseStudy = null;
+                
+                this.init();
+            }
+
+            async init() {
+                // Get parameters from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                this.caseStudyId = urlParams.get('id');
+                const isPreview = urlParams.get('preview') === 'true';
+                
+                if (isPreview) {
+                    // Handle preview mode
+                    await this.loadPreviewData();
+                } else {
+                    // Handle normal mode
+                    if (!this.caseStudyId) {
+                        this.showError();
+                        return;
+                    }
+                    
+                    // Wait for dependencies
+                    await this.waitForDependencies();
+                    
+                    // Load case study from database
+                    await this.loadCaseStudy();
+                }
+                
+                // Setup event listeners
+                this.setupEventListeners();
+            }
+
+            async waitForDependencies() {
+                return new Promise((resolve) => {
+                    const checkDependencies = () => {
+                        if (window.supabaseAPI) {
+                            resolve();
+                        } else {
+                            setTimeout(checkDependencies, 100);
+                        }
+                    };
+                    checkDependencies();
+                });
+            }
+
+            async loadPreviewData() {
+                try {
+                    console.log('📖 Loading preview data from editor...');
+                    console.log('🔍 Debug Info:');
+                    console.log('- URL:', window.location.href);
+                    console.log('- URL Params:', window.location.search);
+                    
+                    // Get preview data from localStorage
+                    const previewDataStr = localStorage.getItem('caseStudyPreviewData');
+                    console.log('💾 LocalStorage data length:', previewDataStr ? previewDataStr.length : 'null');
+                    
+                    if (!previewDataStr) {
+                        console.error('❌ No preview data found in localStorage');
+                        throw new Error('No preview data found');
+                    }
+                    
+                    const previewData = JSON.parse(previewDataStr);
+                    console.log('📊 Parsed preview data:', previewData);
+                    
+                    // Check if preview data is recent (within 5 minutes)
+                    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+                    const dataAge = Date.now() - previewData.timestamp;
+                    console.log('🕒 Data age (ms):', dataAge);
+                    console.log('🕒 Data age (minutes):', Math.round(dataAge / 60000));
+                    
+                    if (previewData.timestamp < fiveMinutesAgo) {
+                        console.error('❌ Preview data expired');
+                        throw new Error('Preview data expired');
+                    }
+                    
+                    // Set case study data
+                    this.caseStudy = previewData;
+                    console.log('✅ Case study data set');
+                    
+                    // Add preview indicator to navigation
+                    this.addPreviewIndicator();
+                    
+                    // Render case study
+                    this.renderCaseStudy();
+                    
+                    // Show main content
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    
+                    console.log('✅ Preview data loaded successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load preview data:', error);
+                    console.error('❌ Error details:', error.message);
+                    this.showError('Preview data not available or expired. Please try again from the editor.');
+                }
+            }
+
+            async loadCaseStudy() {
+                try {
+                    console.log(`📖 Loading case study: ${this.caseStudyId}`);
+                    
+                    this.caseStudy = await window.supabaseAPI.getCaseStudy(this.caseStudyId);
+                    
+                    if (!this.caseStudy) {
+                        throw new Error('Case study not found');
+                    }
+                    
+                    // Render case study
+                    this.renderCaseStudy();
+                    
+                    // Show main content
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    
+                    console.log('✅ Case study loaded successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load case study:', error);
+                    this.showError();
+                }
+            }
+
+            renderCaseStudy() {
+                const container = document.getElementById('caseStudyContent');
+                const sections = this.caseStudy.sections || {};
+                
+                let html = '';
+
+                // Hero Section
+                if (sections.hero && sections.hero.enabled) {
+                    html += this.renderHeroSection(sections.hero);
+                }
+
+                // Overview Section
+                if (sections.overview && sections.overview.enabled) {
+                    html += this.renderOverviewSection(sections.overview);
+                }
+
+                // Problem Section
+                if (sections.problem && sections.problem.enabled) {
+                    html += this.renderProblemSection(sections.problem);
+                }
+
+                // Process Section
+                if (sections.process && sections.process.enabled) {
+                    html += this.renderProcessSection(sections.process);
+                }
+
+                // Solution Section
+                if (sections.solution && sections.solution.enabled) {
+                    html += this.renderSolutionSection(sections.solution);
+                }
+
+                // Showcase Section
+                if (sections.showcase && sections.showcase.enabled) {
+                    html += this.renderShowcaseSection(sections.showcase);
+                }
+
+                // Reflection Section
+                if (sections.reflection && sections.reflection.enabled) {
+                    html += this.renderReflectionSection(sections.reflection);
+                }
+
+                // Gallery Section
+                if (sections.gallery && sections.gallery.enabled) {
+                    html += this.renderGallerySection(sections.gallery);
+                }
+
+                // Video Section
+                if (sections.video && sections.video.enabled) {
+                    html += this.renderVideoSection(sections.video);
+                }
+
+                // If no content, show placeholder
+                if (!html.trim()) {
+                    html = `
+                        <div class="min-h-screen flex items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-file-alt text-6xl text-gray-300 mb-4"></i>
+                                <h2 class="text-2xl font-bold text-gray-600 mb-2">No Content Available</h2>
+                                <p class="text-gray-500">This case study doesn't have any enabled sections yet.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+                
+                // Update page title
+                const title = this.caseStudy.caseStudyTitle || this.caseStudy.project_title || 'Case Study';
+                document.title = `${title} - Portfolio`;
+                
+                console.log('✅ Case study rendered successfully');
+            }
+
+            renderHeroSection(hero) {
+                const imageUrl = this.getPreviewImageUrl(hero.image, 'hero');
+                return `
+                    <section class="hero-section text-white py-20">
+                        <div class="max-w-4xl mx-auto px-6 text-center">
+                            <h1 class="text-5xl font-bold mb-4">${hero.title || 'Untitled Project'}</h1>
+                            ${hero.subtitle ? `<h2 class="text-2xl mb-6 opacity-90">${hero.subtitle}</h2>` : ''}
+                            ${hero.description ? `<p class="text-xl opacity-80 max-w-3xl mx-auto">${hero.description}</p>` : ''}
+                        </div>
+                        ${imageUrl ? `
+                            <div class="max-w-6xl mx-auto px-6 mt-12">
+                                <div class="relative">
+                                    <img src="${imageUrl}" alt="${hero.title}" class="w-full h-auto max-h-[600px] rounded-xl shadow-2xl object-contain" onerror="this.style.display='none'"
+                                         onload="this.style.opacity='1'" style="opacity: 0; transition: opacity 0.3s ease;">
+                                    ${hero.image && hero.image.startsWith('pending-upload-') ? `
+                                        <div class="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                            📷 Preview Image
+                                        </div>
+                                        <div class="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-3 rounded-lg text-sm">
+                                            <i class="fas fa-info-circle mr-2"></i>
+                                            This image will be uploaded to Cloudinary when you save or publish
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </section>
+                `;
+            }
+
+            renderOverviewSection(overview) {
+                return `
+                    <section class="py-16 bg-white">
+                        <div class="max-w-4xl mx-auto px-6">
+                            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">${overview.title || 'Overview'}</h2>
+                            ${overview.summary ? `<p class="text-xl text-gray-600 mb-12 text-center max-w-3xl mx-auto">${overview.summary}</p>` : ''}
+                            
+                            ${overview.metrics && Array.isArray(overview.metrics) && overview.metrics.length > 0 ? `
+                                <div class="grid grid-cols-1 md:grid-cols-${Math.min(overview.metrics.length, 3)} gap-6">
+                                    ${overview.metrics.map(metric => `
+                                        <div class="metric-card text-white p-6 rounded-xl text-center">
+                                            <div class="text-3xl font-bold mb-2">${metric.value || ''}</div>
+                                            <div class="text-lg opacity-90">${metric.name || ''}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </section>
+                `;
+            }
+
+            renderProblemSection(problem) {
+                const imageUrl = this.getPreviewImageUrl(problem.image, 'problem');
+                return `
+                    <section class="py-16 bg-red-50">
+                        <div class="max-w-4xl mx-auto px-6">
+                            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">${problem.title || 'The Problem'}</h2>
+                            <div class="grid grid-cols-1 ${imageUrl ? 'lg:grid-cols-2' : ''} gap-12 items-center">
+                                <div>
+                                    ${problem.description ? `<p class="text-lg text-gray-700 leading-relaxed">${problem.description}</p>` : ''}
+                                </div>
+                                ${imageUrl ? `
+                                    <div class="relative">
+                                        <img src="${imageUrl}" alt="Problem illustration" class="w-full h-auto max-h-[500px] rounded-xl shadow-lg object-contain" onerror="this.style.display='none'"
+                                             onload="this.style.opacity='1'" style="opacity: 0; transition: opacity 0.3s ease;">
+                                        ${problem.image && problem.image.startsWith('pending-upload-') ? `
+                                            <div class="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">
+                                                📷 Preview
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            renderProcessSection(process) {
+                return `
+                    <section class="py-16 bg-white">
+                        <div class="max-w-4xl mx-auto px-6">
+                            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">${process.title || 'Process'}</h2>
+                            ${process.steps && Array.isArray(process.steps) && process.steps.length > 0 ? `
+                                <div class="steps-container space-y-6">
+                                    ${process.steps.map(step => `
+                                        <div class="step-item bg-gray-50 p-6 rounded-xl">
+                                            <p class="text-lg text-gray-700">${step || ''}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </section>
+                `;
+            }
+
+            renderSolutionSection(solution) {
+                return `
+                    <section class="py-16 bg-green-50">
+                        <div class="max-w-4xl mx-auto px-6">
+                            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">${solution.title || 'Solution'}</h2>
+                            ${solution.description ? `<p class="text-xl text-gray-600 mb-12 text-center max-w-3xl mx-auto">${solution.description}</p>` : ''}
+                            
+                            ${solution.features && Array.isArray(solution.features) && solution.features.length > 0 ? `
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    ${solution.features.map(feature => `
+                                        <div class="bg-white p-6 rounded-xl shadow-sm">
+                                            <div class="flex items-start">
+                                                <i class="fas fa-check-circle text-green-600 text-xl mr-4 mt-1"></i>
+                                                <p class="text-gray-700">${feature || ''}</p>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </section>
+                `;
+            }
+
+            renderShowcaseSection(showcase) {
+                if (!showcase.images || !Array.isArray(showcase.images) || showcase.images.length === 0) return '';
+                
+                return `
+                    <section class="py-16 bg-gray-50">
+                        <div class="max-w-6xl mx-auto px-6">
+                            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">${showcase.title || 'Showcase'}</h2>
+                            ${showcase.description ? `<p class="text-xl text-gray-600 mb-12 text-center max-w-3xl mx-auto">${showcase.description}</p>` : ''}
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${showcase.images.map(image => {
+                                    const imageUrl = this.getPreviewImageUrl(image.url, 'showcase');
+                                    return `
+                                        <div class="section-card bg-white rounded-xl overflow-hidden shadow-sm">
+                                            ${imageUrl ? `
+                                                <img src="${imageUrl}" alt="${image.title || 'Showcase image'}" class="w-full h-auto max-h-[400px] object-contain" onerror="this.style.display='none'"
+                                                     onload="this.style.opacity='1'" style="opacity: 0; transition: opacity 0.3s ease;">
+                                                ${imageUrl.startsWith('data:') ? '<div class="px-2 py-1 bg-blue-100 text-blue-800 text-xs">Preview Image</div>' : ''}
+                                            ` : ''}
+                                            ${image.title || image.description ? `
+                                                <div class="p-4">
+                                                    ${image.title ? `<h3 class="font-semibold text-gray-800 mb-2">${image.title}</h3>` : ''}
+                                                    ${image.description ? `<p class="text-gray-600 text-sm">${image.description}</p>` : ''}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            renderReflectionSection(reflection) {
+                return `
+                    <section class="py-16 bg-blue-50">
+                        <div class="max-w-4xl mx-auto px-6">
+                            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">${reflection.title || 'Reflection'}</h2>
+                            ${reflection.content ? `<div class="prose prose-lg max-w-none text-gray-700">${reflection.content.replace(/\n/g, '<br>')}</div>` : ''}
+                            
+                            ${reflection.learnings && Array.isArray(reflection.learnings) && reflection.learnings.length > 0 ? `
+                                <div class="mt-12">
+                                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Key Learnings</h3>
+                                    <div class="space-y-4">
+                                        ${reflection.learnings.map(learning => `
+                                            <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+                                                <p class="text-gray-700">${learning}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </section>
+                `;
+            }
+
+            renderGallerySection(gallery) {
+                if (!gallery.images || !Array.isArray(gallery.images) || gallery.images.length === 0) return '';
+                
+                return `
+                    <section class="py-16 bg-white">
+                        <div class="max-w-6xl mx-auto px-6">
+                            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">${gallery.title || 'Gallery'}</h2>
+                            ${gallery.description ? `<p class="text-xl text-gray-600 mb-12 text-center max-w-3xl mx-auto">${gallery.description}</p>` : ''}
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                ${gallery.images.map(image => {
+                                    const imageUrl = this.getPreviewImageUrl(image.url, 'gallery');
+                                    return `
+                                        <div class="section-card bg-gray-100 rounded-lg overflow-hidden">
+                                            ${imageUrl ? `
+                                                <img src="${imageUrl}" alt="${image.title || 'Gallery image'}" class="w-full h-auto max-h-[300px] object-contain hover:scale-105 transition-all duration-300" onerror="this.style.display='none'"
+                                                     onload="this.style.opacity='1'" style="opacity: 0; transition: opacity 0.3s ease;">
+                                                ${imageUrl.startsWith('data:') ? '<div class="px-2 py-1 bg-blue-100 text-blue-800 text-xs">Preview</div>' : ''}
+                                            ` : ''}
+                                            ${image.title ? `
+                                                <div class="p-3">
+                                                    <p class="text-sm font-medium text-gray-800">${image.title}</p>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            renderVideoSection(video) {
+                if (!video.url) return '';
+                
+                return `
+                    <section class="py-16 bg-gray-900 text-white">
+                        <div class="max-w-4xl mx-auto px-6">
+                            <h2 class="text-4xl font-bold mb-8 text-center">${video.title || 'Video'}</h2>
+                            ${video.description ? `<p class="text-xl opacity-80 mb-12 text-center max-w-3xl mx-auto">${video.description}</p>` : ''}
+                            
+                            <div class="aspect-video bg-black rounded-xl overflow-hidden">
+                                ${video.url.includes('youtube.com') || video.url.includes('youtu.be') ? `
+                                    <iframe src="${this.getYouTubeEmbedUrl(video.url)}" 
+                                            class="w-full h-full" 
+                                            frameborder="0" 
+                                            allowfullscreen>
+                                    </iframe>
+                                ` : `
+                                    <video controls class="w-full h-full">
+                                        <source src="${video.url}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                `}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            getYouTubeEmbedUrl(url) {
+                const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+                return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : url;
+            }
+
+            getPreviewImageUrl(imageUrl, section) {
+                if (!imageUrl) return null;
+                
+                // If it's already a valid URL (http/https/data), return as is
+                if (imageUrl.startsWith('http') || imageUrl.startsWith('data:')) {
+                    return imageUrl;
+                }
+                
+                // If it's a pending upload URL, show a meaningful placeholder
+                if (imageUrl.startsWith('pending-upload-')) {
+                    // Get pending image info from localStorage
+                    const pendingImageInfo = this.getPendingImageInfo();
+                    const imageId = imageUrl.replace('pending-upload-', '').split('-')[0];
+                    
+                    let fileName = 'Selected Image';
+                    let fileInfo = '';
+                    
+                    // Try to get file info for better placeholder
+                    if (pendingImageInfo) {
+                        if (pendingImageInfo[section]) {
+                            if (Array.isArray(pendingImageInfo[section])) {
+                                const imgInfo = pendingImageInfo[section].find(img => 
+                                    imageUrl.includes(img.imageId)
+                                );
+                                if (imgInfo) {
+                                    fileName = imgInfo.fileName || 'Selected Image';
+                                    fileInfo = `(${(imgInfo.fileSize / 1024 / 1024).toFixed(1)}MB)`;
+                                }
+                            } else {
+                                fileName = pendingImageInfo[section].fileName || 'Selected Image';
+                                fileInfo = `(${(pendingImageInfo[section].fileSize / 1024 / 1024).toFixed(1)}MB)`;
+                            }
+                        }
+                    }
+                    
+                    // Return a placeholder with file info
+                    const encodedText = encodeURIComponent(`${fileName.substring(0, 20)}${fileInfo}`);
+                    return `https://via.placeholder.com/800x400/3b82f6/ffffff?text=📷+${encodedText}`;
+                }
+                
+                return imageUrl;
+            }
+
+            getPendingImageInfo() {
+                try {
+                    const pendingImageInfo = localStorage.getItem('pendingImageInfo');
+                    return pendingImageInfo ? JSON.parse(pendingImageInfo) : null;
+                } catch (error) {
+                    console.error('Error getting pending image info:', error);
+                    return null;
+                }
+            }
+
+            setupEventListeners() {
+                // Edit button
+                document.getElementById('editBtn').addEventListener('click', () => {
+                    // For preview mode, go back to the complete editor
+                    if (this.caseStudy && this.caseStudy.isPreview) {
+                        window.location.href = `case_study_editor_complete.html`;
+                    } else {
+                        // For regular case studies, use the complete editor with ID
+                        window.location.href = `case_study_editor_complete.html?id=${this.caseStudyId}`;
+                    }
+                });
+
+                // Share button
+                document.getElementById('shareBtn').addEventListener('click', () => {
+                    this.shareCaseStudy();
+                });
+            }
+
+            shareCaseStudy() {
+                const url = window.location.href;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: this.caseStudy.caseStudyTitle || this.caseStudy.project_title,
+                        text: this.caseStudy.caseStudyDescription || this.caseStudy.project_description,
+                        url: url
+                    });
+                } else {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(url).then(() => {
+                        this.showNotification('success', 'Link Copied!', 'Case study link copied to clipboard');
+                    });
+                }
+            }
+
+            showNotification(type, title, message) {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 z-50 max-w-sm bg-white border-l-4 rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300`;
+                
+                // Set border color based on type
+                const borderColors = {
+                    success: 'border-green-500',
+                    error: 'border-red-500',
+                    warning: 'border-yellow-500',
+                    info: 'border-blue-500'
+                };
+                notification.classList.add(borderColors[type] || borderColors.info);
+                
+                // Set content
+                notification.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">${title}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${message}</p>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Add to page
+                document.body.appendChild(notification);
+                
+                // Animate in
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-full');
+                }, 100);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }, 5000);
+            }
+
+            addPreviewIndicator() {
+                // Add preview banner to indicate this is a preview
+                const nav = document.querySelector('nav .max-w-6xl');
+                if (nav) {
+                    const previewBanner = document.createElement('div');
+                    previewBanner.className = 'bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4';
+                    previewBanner.innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fas fa-eye mr-2"></i>
+                            <span class="font-medium">Preview Mode</span>
+                            <span class="ml-2 text-sm">This is a live preview from the editor</span>
+                            <button onclick="window.close()" class="ml-auto bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm">
+                                Close Preview
+                            </button>
+                        </div>
+                    `;
+                    nav.appendChild(previewBanner);
+                }
+            }
+
+            showError(customMessage = null) {
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('errorState').classList.remove('hidden');
+                
+                if (customMessage) {
+                    const errorText = document.querySelector('#errorState p');
+                    if (errorText) {
+                        errorText.textContent = customMessage;
+                    }
+                }
+            }
+
+            showNotification(type, title, message) {
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+                    type === 'success' ? 'bg-green-500' : 'bg-red-500'
+                } text-white`;
+                
+                notification.innerHTML = `
+                    <div class="flex items-start">
+                        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-bold">${title}</h4>
+                            <p class="text-sm">${message}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 5000);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new CaseStudyDisplay();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Tests Runner</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 20px;
+        }
+        .test-output {
+            background: #000;
+            border: 1px solid #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+            height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #00cc00;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .status.running {
+            background: #333300;
+            color: #ffff00;
+        }
+        .status.success {
+            background: #003300;
+            color: #00ff00;
+        }
+        .status.error {
+            background: #330000;
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 SYSTEM VERIFICATION SUITE</h1>
+            <p>Comprehensive testing of all implemented features</p>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="runTests()">🚀 Run All Tests</button>
+            <button class="btn" onclick="clearOutput()">🗑️ Clear Output</button>
+            <button class="btn" onclick="exportResults()">📄 Export Results</button>
+        </div>
+        
+        <div id="status" class="status">Ready to run tests...</div>
+        
+        <div class="test-output" id="output">
+System Verification Suite Ready
+===============================
+
+Click "Run All Tests" to begin comprehensive system verification.
+
+This will test:
+• Cloudinary Integration
+• Image Resizer Service  
+• Carousel Functionality
+• Admin Dashboard
+• Authentication System
+• Case Study Editor
+
+        </div>
+    </div>
+
+    <script src="system-verification.js"></script>
+    <script>
+        let verification;
+        let originalConsoleLog;
+        
+        function initializeOutput() {
+            const output = document.getElementById('output');
+            
+            // Capture console.log output
+            originalConsoleLog = console.log;
+            console.log = function(...args) {
+                const message = args.join(' ');
+                output.textContent += message + '\n';
+                output.scrollTop = output.scrollHeight;
+                originalConsoleLog.apply(console, args);
+            };
+        }
+        
+        async function runTests() {
+            const statusEl = document.getElementById('status');
+            const output = document.getElementById('output');
+            
+            statusEl.className = 'status running';
+            statusEl.textContent = '🔄 Running system verification tests...';
+            
+            output.textContent = '';
+            
+            try {
+                verification = new SystemVerification();
+                await verification.runAllTests();
+                
+                statusEl.className = 'status success';
+                statusEl.textContent = `✅ Tests completed! ${verification.passedTests}/${verification.totalTests} passed`;
+                
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ Test execution failed: ${error.message}`;
+                console.log(`\n❌ ERROR: ${error.message}`);
+            }
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').textContent = 'Output cleared. Ready for new test run.\n';
+            document.getElementById('status').className = 'status';
+            document.getElementById('status').textContent = 'Ready to run tests...';
+        }
+        
+        function exportResults() {
+            const output = document.getElementById('output').textContent;
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `system-verification-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeOutput);
+    </script>
+</body>
+</html>

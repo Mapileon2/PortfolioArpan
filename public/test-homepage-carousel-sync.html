@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Homepage Carousel Sync</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">🧪 Homepage Carousel Sync Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test Actions</h2>
+            <div class="space-y-4">
+                <button onclick="testSyncWithMockData()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    🔄 Test Sync with Mock Data
+                </button>
+                <button onclick="clearCarouselData()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    🗑️ Clear Carousel Data
+                </button>
+                <button onclick="checkCurrentData()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    📊 Check Current Data
+                </button>
+                <a href="index.html" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 inline-block">
+                    🏠 View Homepage
+                </a>
+                <a href="carousel-management-saas.html" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 inline-block">
+                    🎠 Open Carousel Manager
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="testResults" class="space-y-2">
+                <p class="text-gray-600">Click a test button to see results...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const colors = {
+                success: 'text-green-600',
+                error: 'text-red-600',
+                info: 'text-blue-600',
+                warning: 'text-yellow-600'
+            };
+            
+            const result = document.createElement('div');
+            result.className = `p-2 border-l-4 border-${type === 'success' ? 'green' : type === 'error' ? 'red' : type === 'warning' ? 'yellow' : 'blue'}-500 bg-gray-50`;
+            result.innerHTML = `
+                <span class="${colors[type]} font-semibold">[${new Date().toLocaleTimeString()}]</span>
+                <span class="ml-2">${message}</span>
+            `;
+            resultsDiv.appendChild(result);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function testSyncWithMockData() {
+            addResult('🧪 Starting sync test with mock data...', 'info');
+            
+            // Create mock carousel data
+            const mockData = [
+                {
+                    id: 'test-1',
+                    url: 'https://picsum.photos/800/400?random=101',
+                    title: 'Test Image 1',
+                    description: 'This is a test image from the carousel manager',
+                    alt: 'Test carousel image 1',
+                    order: 1
+                },
+                {
+                    id: 'test-2',
+                    url: 'https://picsum.photos/800/400?random=102',
+                    title: 'Test Image 2',
+                    description: 'Another test image to verify sync functionality',
+                    alt: 'Test carousel image 2',
+                    order: 2
+                },
+                {
+                    id: 'test-3',
+                    url: 'https://picsum.photos/800/400?random=103',
+                    title: 'Test Image 3',
+                    description: 'Third test image for comprehensive testing',
+                    alt: 'Test carousel image 3',
+                    order: 3
+                }
+            ];
+
+            try {
+                // Save to localStorage (simulating carousel manager)
+                localStorage.setItem('homepageCarouselData', JSON.stringify(mockData));
+                localStorage.setItem('carouselLastSync', new Date().toISOString());
+                
+                addResult('✅ Mock data saved to localStorage', 'success');
+                addResult(`📊 Saved ${mockData.length} test images`, 'info');
+                
+                // Dispatch the update event (simulating carousel manager)
+                window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                    detail: { 
+                        items: mockData, 
+                        timestamp: new Date().toISOString() 
+                    }
+                }));
+                
+                addResult('📡 Dispatched carouselDataUpdated event', 'success');
+                addResult('🎯 Test complete! Check the homepage to see the updated carousel', 'success');
+                
+            } catch (error) {
+                addResult('❌ Error during sync test: ' + error.message, 'error');
+            }
+        }
+
+        function clearCarouselData() {
+            addResult('🗑️ Clearing carousel data...', 'info');
+            
+            try {
+                localStorage.removeItem('homepageCarouselData');
+                localStorage.removeItem('carouselLastSync');
+                
+                // Dispatch empty update event
+                window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                    detail: { 
+                        items: [], 
+                        timestamp: new Date().toISOString() 
+                    }
+                }));
+                
+                addResult('✅ Carousel data cleared', 'success');
+                addResult('🏠 Homepage should now show default slides', 'info');
+                
+            } catch (error) {
+                addResult('❌ Error clearing data: ' + error.message, 'error');
+            }
+        }
+
+        function checkCurrentData() {
+            addResult('📊 Checking current carousel data...', 'info');
+            
+            try {
+                const carouselData = localStorage.getItem('homepageCarouselData');
+                const lastSync = localStorage.getItem('carouselLastSync');
+                
+                if (carouselData) {
+                    const data = JSON.parse(carouselData);
+                    addResult(`✅ Found ${data.length} carousel items`, 'success');
+                    addResult(`🕒 Last sync: ${lastSync ? new Date(lastSync).toLocaleString() : 'Unknown'}`, 'info');
+                    
+                    data.forEach((item, index) => {
+                        addResult(`📷 Item ${index + 1}: "${item.title}" (${item.url.substring(0, 50)}...)`, 'info');
+                    });
+                } else {
+                    addResult('⚠️ No carousel data found in localStorage', 'warning');
+                    addResult('💡 Upload images in the carousel manager to populate data', 'info');
+                }
+                
+                // Check if homepage sync script is loaded
+                if (typeof HomepageCarouselSync !== 'undefined') {
+                    addResult('✅ Homepage sync script is available', 'success');
+                } else {
+                    addResult('⚠️ Homepage sync script not detected', 'warning');
+                }
+                
+            } catch (error) {
+                addResult('❌ Error checking data: ' + error.message, 'error');
+            }
+        }
+
+        // Listen for carousel updates
+        window.addEventListener('carouselDataUpdated', function(event) {
+            addResult(`📡 Received carouselDataUpdated event with ${event.detail.items.length} items`, 'success');
+        });
+
+        // Initial check on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('🚀 Test page loaded', 'info');
+            checkCurrentData();
+        });
+    </script>
+</body>
+</html>

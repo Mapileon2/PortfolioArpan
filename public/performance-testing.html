@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Testing Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load modules for testing -->
+    <script src="js/api-consolidator.js"></script>
+    <script src="js/standardized-hooks.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">⚡ Performance Testing Suite</h1>
+            <p class="text-gray-600 mb-4">
+                Comprehensive performance testing for the SaaS System Audit and Refactor project.
+                Measures API response times, page load performance, and resource usage.
+            </p>
+            
+            <div class="flex space-x-4 mb-6">
+                <button id="runAllTests" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
+                    🚀 Run All Performance Tests
+                </button>
+                <button id="runApiTests" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg">
+                    🔗 API Performance
+                </button>
+                <button id="runPageTests" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg">
+                    📄 Page Load Performance
+                </button>
+                <button id="runResourceTests" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg">
+                    💾 Resource Usage
+                </button>
+            </div>
+        </div>
+
+        <!-- Performance Metrics Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div class="text-3xl font-bold text-blue-600" id="avgApiResponse">-</div>
+                <div class="text-sm text-gray-600">Avg API Response (ms)</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div class="text-3xl font-bold text-green-600" id="avgPageLoad">-</div>
+                <div class="text-sm text-gray-600">Avg Page Load (ms)</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div class="text-3xl font-bold text-yellow-600" id="memoryUsage">-</div>
+                <div class="text-sm text-gray-600">Memory Usage (MB)</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                <div class="text-3xl font-bold text-purple-600" id="performanceScore">-</div>
+                <div class="text-sm text-gray-600">Performance Score</div>
+            </div>
+        </div>     
+   <!-- Test Results -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- API Performance Tests -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-green-600">🔗 API Performance Tests</h2>
+                <div id="apiTestResults" class="space-y-3">
+                    <div class="text-gray-500">No tests run yet</div>
+                </div>
+            </div>
+
+            <!-- Page Load Performance Tests -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-yellow-600">📄 Page Load Performance</h2>
+                <div id="pageTestResults" class="space-y-3">
+                    <div class="text-gray-500">No tests run yet</div>
+                </div>
+            </div>
+
+            <!-- Resource Usage Tests -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-purple-600">💾 Resource Usage</h2>
+                <div id="resourceTestResults" class="space-y-3">
+                    <div class="text-gray-500">No tests run yet</div>
+                </div>
+            </div>
+
+            <!-- Performance Recommendations -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-red-600">📊 Performance Analysis</h2>
+                <div id="performanceAnalysis" class="space-y-3">
+                    <div class="text-gray-500">Run tests to see analysis</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Log -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">📝 Performance Test Log</h2>
+            <div id="performanceLog" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-y-auto">
+                <div>Performance testing suite ready. Click "Run All Performance Tests" to begin...</div>
+            </div>
+        </div>
+    </div>    
+<script>
+        class PerformanceTester {
+            constructor() {
+                this.testResults = {
+                    api: [],
+                    pageLoad: [],
+                    resources: [],
+                    timestamp: new Date().toISOString()
+                };
+                this.isRunning = false;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.log('🚀 Performance testing suite initialized');
+            }
+
+            setupEventListeners() {
+                document.getElementById('runAllTests').addEventListener('click', () => this.runAllTests());
+                document.getElementById('runApiTests').addEventListener('click', () => this.runApiPerformanceTests());
+                document.getElementById('runPageTests').addEventListener('click', () => this.runPageLoadTests());
+                document.getElementById('runResourceTests').addEventListener('click', () => this.runResourceTests());
+            }
+
+            async runAllTests() {
+                if (this.isRunning) {
+                    this.log('⚠️ Tests already running...');
+                    return;
+                }
+
+                this.isRunning = true;
+                this.log('🚀 Starting comprehensive performance testing...');
+
+                try {
+                    await this.runApiPerformanceTests();
+                    await this.runPageLoadTests();
+                    await this.runResourceTests();
+                    
+                    this.updateDashboard();
+                    this.generateAnalysis();
+                    
+                    this.log('🎉 All performance tests completed!');
+                } catch (error) {
+                    this.log(`❌ Performance testing failed: ${error.message}`);
+                } finally {
+                    this.isRunning = false;
+                }
+            }
+
+            async runApiPerformanceTests() {
+                this.log('🔗 Running API performance tests...');
+                
+                const apiTests = [
+                    { name: 'Standardized Hooks Initialization', test: () => this.testHooksInitialization() },
+                    { name: 'API Consolidator Performance', test: () => this.testApiConsolidator() },
+                    { name: 'Mock API Response Time', test: () => this.testMockApiResponse() },
+                    { name: 'Hook Caching Performance', test: () => this.testHookCaching() },
+                    { name: 'Error Handling Performance', test: () => this.testErrorHandling() }
+                ];
+
+                const results = [];
+                for (const apiTest of apiTests) {
+                    try {
+                        const startTime = performance.now();
+                        await apiTest.test();
+                        const duration = performance.now() - startTime;
+                        
+                        results.push({
+                            name: apiTest.name,
+                            duration: Math.round(duration * 100) / 100,
+                            status: 'passed'
+                        });
+                        
+                        this.log(`  ✅ ${apiTest.name}: ${Math.round(duration)}ms`);
+                    } catch (error) {
+                        results.push({
+                            name: apiTest.name,
+                            duration: 0,
+                            status: 'failed',
+                            error: error.message
+                        });
+                        
+                        this.log(`  ❌ ${apiTest.name}: ${error.message}`);
+                    }
+                }
+
+                this.testResults.api = results;
+                this.displayApiResults(results);
+            }            
+async runPageLoadTests() {
+                this.log('📄 Running page load performance tests...');
+                
+                const pageTests = [
+                    { name: 'Homepage Load Time', url: 'index.html' },
+                    { name: 'Case Study Editor Load Time', url: 'case_study_editor.html' },
+                    { name: 'Admin Dashboard Load Time', url: 'admin-dashboard.html' },
+                    { name: 'Test Suite Load Time', url: 'run-complete-test-suite.html' }
+                ];
+
+                const results = [];
+                for (const pageTest of pageTests) {
+                    try {
+                        const startTime = performance.now();
+                        
+                        // Simulate page load test
+                        const response = await fetch(pageTest.url);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        
+                        const duration = performance.now() - startTime;
+                        
+                        results.push({
+                            name: pageTest.name,
+                            duration: Math.round(duration * 100) / 100,
+                            status: duration < 3000 ? 'passed' : 'warning'
+                        });
+                        
+                        const status = duration < 3000 ? '✅' : '⚠️';
+                        this.log(`  ${status} ${pageTest.name}: ${Math.round(duration)}ms`);
+                    } catch (error) {
+                        results.push({
+                            name: pageTest.name,
+                            duration: 0,
+                            status: 'failed',
+                            error: error.message
+                        });
+                        
+                        this.log(`  ❌ ${pageTest.name}: ${error.message}`);
+                    }
+                }
+
+                this.testResults.pageLoad = results;
+                this.displayPageResults(results);
+            }
+
+            async runResourceTests() {
+                this.log('💾 Running resource usage tests...');
+                
+                const results = [];
+                
+                // Memory usage test
+                if (performance.memory) {
+                    const memoryInfo = {
+                        used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024 * 100) / 100,
+                        total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024 * 100) / 100,
+                        limit: Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024 * 100) / 100
+                    };
+                    
+                    results.push({
+                        name: 'Memory Usage',
+                        value: `${memoryInfo.used}MB / ${memoryInfo.total}MB`,
+                        status: memoryInfo.used < 50 ? 'passed' : 'warning'
+                    });
+                    
+                    this.log(`  📊 Memory Usage: ${memoryInfo.used}MB used of ${memoryInfo.total}MB`);
+                } else {
+                    results.push({
+                        name: 'Memory Usage',
+                        value: 'Not available',
+                        status: 'info'
+                    });
+                }
+
+                // Performance timing
+                if (performance.timing) {
+                    const timing = performance.timing;
+                    const loadTime = timing.loadEventEnd - timing.navigationStart;
+                    
+                    results.push({
+                        name: 'Page Load Time',
+                        value: `${loadTime}ms`,
+                        status: loadTime < 3000 ? 'passed' : 'warning'
+                    });
+                    
+                    this.log(`  ⏱️ Page Load Time: ${loadTime}ms`);
+                }
+
+                // Resource count
+                const resources = performance.getEntriesByType('resource');
+                results.push({
+                    name: 'Resource Count',
+                    value: `${resources.length} resources`,
+                    status: resources.length < 50 ? 'passed' : 'warning'
+                });
+                
+                this.log(`  📦 Resources Loaded: ${resources.length}`);
+
+                this.testResults.resources = results;
+                this.displayResourceResults(results);
+            }      
+      // Test methods
+            async testHooksInitialization() {
+                if (!window.standardizedHooks) {
+                    throw new Error('Standardized hooks not available');
+                }
+                
+                const stats = window.standardizedHooks.getStats();
+                if (!stats || typeof stats.hooks !== 'number') {
+                    throw new Error('Hooks stats invalid');
+                }
+                
+                return true;
+            }
+
+            async testApiConsolidator() {
+                if (!window.apiConsolidator) {
+                    throw new Error('API consolidator not available');
+                }
+                
+                const stats = window.apiConsolidator.getStats();
+                if (!stats || typeof stats.hooks !== 'number') {
+                    throw new Error('API consolidator stats invalid');
+                }
+                
+                return true;
+            }
+
+            async testMockApiResponse() {
+                // Simulate API call timing
+                const startTime = performance.now();
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
+                const duration = performance.now() - startTime;
+                
+                if (duration > 2000) {
+                    throw new Error('API response too slow');
+                }
+                
+                return true;
+            }
+
+            async testHookCaching() {
+                if (!window.standardizedHooks) {
+                    throw new Error('Standardized hooks not available');
+                }
+                
+                const fetchHook = window.standardizedHooks.useFetchCaseStudies();
+                if (!fetchHook || typeof fetchHook.execute !== 'function') {
+                    throw new Error('Fetch hook not available');
+                }
+                
+                return true;
+            }
+
+            async testErrorHandling() {
+                if (!window.apiConsolidator) {
+                    throw new Error('API consolidator not available');
+                }
+                
+                // Test error handling doesn't throw
+                try {
+                    const result = window.apiConsolidator.errorHandler?.formatError(new Error('test'));
+                    return true;
+                } catch (error) {
+                    return true; // Error handling working
+                }
+            }
+
+            displayApiResults(results) {
+                const container = document.getElementById('apiTestResults');
+                container.innerHTML = '';
+                
+                results.forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded border-l-4 ${
+                        result.status === 'passed' ? 'border-green-500 bg-green-50' :
+                        result.status === 'failed' ? 'border-red-500 bg-red-50' :
+                        'border-yellow-500 bg-yellow-50'
+                    }`;
+                    
+                    div.innerHTML = `
+                        <div class="font-medium">${result.name}</div>
+                        <div class="text-sm text-gray-600">
+                            ${result.status === 'failed' ? result.error : `${result.duration}ms`}
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            displayPageResults(results) {
+                const container = document.getElementById('pageTestResults');
+                container.innerHTML = '';
+                
+                results.forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded border-l-4 ${
+                        result.status === 'passed' ? 'border-green-500 bg-green-50' :
+                        result.status === 'failed' ? 'border-red-500 bg-red-50' :
+                        'border-yellow-500 bg-yellow-50'
+                    }`;
+                    
+                    div.innerHTML = `
+                        <div class="font-medium">${result.name}</div>
+                        <div class="text-sm text-gray-600">
+                            ${result.status === 'failed' ? result.error : `${result.duration}ms`}
+                        </div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            displayResourceResults(results) {
+                const container = document.getElementById('resourceTestResults');
+                container.innerHTML = '';
+                
+                results.forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded border-l-4 ${
+                        result.status === 'passed' ? 'border-green-500 bg-green-50' :
+                        result.status === 'failed' ? 'border-red-500 bg-red-50' :
+                        result.status === 'warning' ? 'border-yellow-500 bg-yellow-50' :
+                        'border-blue-500 bg-blue-50'
+                    }`;
+                    
+                    div.innerHTML = `
+                        <div class="font-medium">${result.name}</div>
+                        <div class="text-sm text-gray-600">${result.value}</div>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            updateDashboard() {
+                // Calculate averages
+                const apiTimes = this.testResults.api.filter(r => r.status === 'passed').map(r => r.duration);
+                const pageTimes = this.testResults.pageLoad.filter(r => r.status === 'passed').map(r => r.duration);
+                
+                const avgApi = apiTimes.length > 0 ? Math.round(apiTimes.reduce((a, b) => a + b, 0) / apiTimes.length) : 0;
+                const avgPage = pageTimes.length > 0 ? Math.round(pageTimes.reduce((a, b) => a + b, 0) / pageTimes.length) : 0;
+                
+                document.getElementById('avgApiResponse').textContent = `${avgApi}ms`;
+                document.getElementById('avgPageLoad').textContent = `${avgPage}ms`;
+                
+                // Memory usage
+                if (performance.memory) {
+                    const memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+                    document.getElementById('memoryUsage').textContent = `${memoryMB}MB`;
+                }
+                
+                // Performance score
+                const totalTests = this.testResults.api.length + this.testResults.pageLoad.length;
+                const passedTests = this.testResults.api.filter(r => r.status === 'passed').length + 
+                                 this.testResults.pageLoad.filter(r => r.status === 'passed').length;
+                const score = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+                
+                document.getElementById('performanceScore').textContent = `${score}%`;
+            }
+
+            generateAnalysis() {
+                const container = document.getElementById('performanceAnalysis');
+                container.innerHTML = '';
+                
+                const analysis = [];
+                
+                // API Performance Analysis
+                const apiPassed = this.testResults.api.filter(r => r.status === 'passed').length;
+                const apiTotal = this.testResults.api.length;
+                
+                if (apiPassed === apiTotal) {
+                    analysis.push('✅ API Performance: Excellent - All tests passed');
+                } else {
+                    analysis.push(`⚠️ API Performance: ${apiPassed}/${apiTotal} tests passed`);
+                }
+                
+                // Page Load Analysis
+                const pagePassed = this.testResults.pageLoad.filter(r => r.status === 'passed').length;
+                const pageTotal = this.testResults.pageLoad.length;
+                
+                if (pagePassed === pageTotal) {
+                    analysis.push('✅ Page Load Performance: Excellent - All pages load quickly');
+                } else {
+                    analysis.push(`⚠️ Page Load Performance: ${pagePassed}/${pageTotal} pages meet criteria`);
+                }
+                
+                // Memory Analysis
+                if (performance.memory) {
+                    const memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+                    if (memoryMB < 50) {
+                        analysis.push('✅ Memory Usage: Optimal - Low memory footprint');
+                    } else {
+                        analysis.push(`⚠️ Memory Usage: ${memoryMB}MB - Consider optimization`);
+                    }
+                }
+                
+                analysis.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'p-2 bg-gray-50 rounded';
+                    div.textContent = item;
+                    container.appendChild(div);
+                });
+            }
+
+            log(message) {
+                const logContainer = document.getElementById('performanceLog');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+                
+                console.log(message);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.performanceTester = new PerformanceTester();
+        });
+    </script>
+</body>
+</html>

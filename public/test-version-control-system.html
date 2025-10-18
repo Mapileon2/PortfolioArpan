@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Version Control System Test</title>
+    <link rel="stylesheet" href="css/version-control.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        
+        .main-content {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        
+        .version-control-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-controls {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .test-controls h3 {
+            margin: 0 0 1rem 0;
+            color: #1976d2;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .test-btn {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .test-btn:hover {
+            background: #1565c0;
+        }
+        
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Version Control System Test</h1>
+            <p>Testing the comprehensive version control functionality for case studies</p>
+        </div>
+        
+        <div class="content">
+            <div class="main-content">
+                <div class="test-controls">
+                    <h3>Test Controls</h3>
+                    <div class="test-buttons">
+                        <button class="test-btn" onclick="initializeVersionControl()">Initialize System</button>
+                        <button class="test-btn" onclick="loadSampleData()">Load Sample Data</button>
+                        <button class="test-btn" onclick="createTestVersion()">Create Test Version</button>
+                        <button class="test-btn" onclick="testComparison()">Test Comparison</button>
+                        <button class="test-btn" onclick="testRevert()">Test Revert</button>
+                        <button class="test-btn" onclick="testComments()">Test Comments</button>
+                        <button class="test-btn" onclick="testStats()">Test Statistics</button>
+                    </div>
+                </div>
+                
+                <div id="status" class="status">
+                    <strong>Status:</strong> Ready to test version control system
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <h3>Case Study Content Simulation</h3>
+                    <div style="background: white; padding: 1rem; border-radius: 4px; border: 1px solid #ddd;">
+                        <h4>Sample Case Study: E-commerce Platform Redesign</h4>
+                        <p><strong>Project Description:</strong> Complete redesign of the user interface and user experience for a major e-commerce platform.</p>
+                        
+                        <div style="margin: 1rem 0;">
+                            <h5>Key Sections:</h5>
+                            <ul>
+                                <li>Problem Statement</li>
+                                <li>Research & Analysis</li>
+                                <li>Design Process</li>
+                                <li>Solution Implementation</li>
+                                <li>Results & Impact</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: #f8f9fa; padding: 0.5rem; border-radius: 4px; margin-top: 1rem;">
+                            <small><strong>Version:</strong> <span id="current-version">1.0</span> | <strong>Last Modified:</strong> <span id="last-modified">Just now</span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="version-control-panel">
+                <div id="version-control-container">
+                    <!-- Version control UI will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the version control components -->
+    <script src="js/version-control-service.js"></script>
+    <script src="js/version-control-ui-complete.js"></script>
+    
+    <script>
+        // Mock Supabase client for testing
+        const mockSupabase = {
+            auth: {
+                getUser: () => Promise.resolve({
+                    data: { user: { id: 'test-user-123', email: 'test@example.com' } },
+                    error: null
+                })
+            }
+        };
+
+        // Mock version service for testing
+        class MockVersionService {
+            constructor() {
+                this.versions = [
+                    {
+                        id: 'v1',
+                        version_number: 1,
+                        content: {
+                            project_title: 'E-commerce Platform Redesign',
+                            project_description: 'Initial version of the case study',
+                            sections: {
+                                problem: 'Users were experiencing difficulty navigating the site',
+                                research: 'Conducted user interviews and usability testing',
+                                design: 'Created wireframes and prototypes',
+                                implementation: 'Developed new interface components',
+                                results: 'Improved conversion rate by 25%'
+                            }
+                        },
+                        change_summary: 'Initial case study creation',
+                        created_by: 'test-user-123',
+                        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                        is_current: false,
+                        user_profiles: {
+                            full_name: 'John Designer',
+                            email: 'john@example.com',
+                            avatar_url: 'https://via.placeholder.com/40'
+                        },
+                        version_comments: []
+                    },
+                    {
+                        id: 'v2',
+                        version_number: 2,
+                        content: {
+                            project_title: 'E-commerce Platform Redesign',
+                            project_description: 'Updated version with research findings',
+                            sections: {
+                                problem: 'Users were experiencing difficulty navigating the site and finding products',
+                                research: 'Conducted user interviews, usability testing, and analytics review',
+                                design: 'Created wireframes and prototypes based on research insights',
+                                implementation: 'Developed new interface components with improved navigation',
+                                results: 'Improved conversion rate by 25% and reduced bounce rate by 15%'
+                            }
+                        },
+                        change_summary: 'Added detailed research findings and updated problem statement',
+                        created_by: 'test-user-123',
+                        created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                        is_current: false,
+                        user_profiles: {
+                            full_name: 'John Designer',
+                            email: 'john@example.com',
+                            avatar_url: 'https://via.placeholder.com/40'
+                        },
+                        version_comments: [
+                            {
+                                id: 'c1',
+                                version_id: 'v2',
+                                comment: 'Great addition of the analytics data!',
+                                created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                                user_profiles: {
+                                    full_name: 'Sarah Manager',
+                                    email: 'sarah@example.com',
+                                    avatar_url: 'https://via.placeholder.com/40'
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'v3',
+                        version_number: 3,
+                        content: {
+                            project_title: 'E-commerce Platform Redesign',
+                            project_description: 'Final version with complete implementation details',
+                            sections: {
+                                problem: 'Users were experiencing difficulty navigating the site and finding products',
+                                research: 'Conducted user interviews, usability testing, and analytics review',
+                                design: 'Created wireframes, prototypes, and high-fidelity mockups based on research insights',
+                                implementation: 'Developed new interface components with improved navigation, search functionality, and mobile responsiveness',
+                                results: 'Improved conversion rate by 35%, reduced bounce rate by 20%, and increased mobile engagement by 40%'
+                            }
+                        },
+                        change_summary: 'Added final implementation details and updated results with latest metrics',
+                        created_by: 'test-user-123',
+                        created_at: new Date().toISOString(),
+                        is_current: true,
+                        user_profiles: {
+                            full_name: 'John Designer',
+                            email: 'john@example.com',
+                            avatar_url: 'https://via.placeholder.com/40'
+                        },
+                        version_comments: []
+                    }
+                ];
+            }
+
+            async getVersionHistory(caseStudyId, options = {}) {
+                await this.delay(500); // Simulate API delay
+                return {
+                    success: true,
+                    versions: this.versions,
+                    pagination: {
+                        total: this.versions.length,
+                        limit: options.limit || 20,
+                        offset: options.offset || 0,
+                        hasMore: false
+                    },
+                    message: `Retrieved ${this.versions.length} versions`
+                };
+            }
+
+            async compareVersions(versionId1, versionId2) {
+                await this.delay(300);
+                const version1 = this.versions.find(v => v.id === versionId1);
+                const version2 = this.versions.find(v => v.id === versionId2);
+                
+                if (!version1 || !version2) {
+                    return { success: false, error: 'Version not found' };
+                }
+
+                // Generate mock diff
+                const diff = {
+                    added: [],
+                    removed: [],
+                    modified: [
+                        {
+                            field: 'sections.results',
+                            old: version1.content.sections.results,
+                            new: version2.content.sections.results
+                        }
+                    ],
+                    unchanged: ['project_title', 'sections.problem', 'sections.research']
+                };
+
+                const stats = {
+                    totalChanges: 1,
+                    additions: 0,
+                    deletions: 0,
+                    modifications: 1,
+                    unchanged: 3,
+                    changePercentage: 25
+                };
+
+                return {
+                    success: true,
+                    comparison: {
+                        version1: {
+                            id: version1.id,
+                            version_number: version1.version_number,
+                            created_at: version1.created_at,
+                            change_summary: version1.change_summary,
+                            author: version1.user_profiles
+                        },
+                        version2: {
+                            id: version2.id,
+                            version_number: version2.version_number,
+                            created_at: version2.created_at,
+                            change_summary: version2.change_summary,
+                            author: version2.user_profiles
+                        },
+                        diff: diff,
+                        stats: stats
+                    }
+                };
+            }
+
+            async revertToVersion(caseStudyId, versionId, revertReason) {
+                await this.delay(800);
+                const targetVersion = this.versions.find(v => v.id === versionId);
+                
+                if (!targetVersion) {
+                    return { success: false, error: 'Version not found' };
+                }
+
+                // Simulate creating a new version for the revert
+                const newVersion = {
+                    id: 'v' + (this.versions.length + 1),
+                    version_number: this.versions.length + 1,
+                    content: targetVersion.content,
+                    change_summary: `Reverted to version ${targetVersion.version_number}${revertReason ? ': ' + revertReason : ''}`,
+                    created_by: 'test-user-123',
+                    created_at: new Date().toISOString(),
+                    is_current: true,
+                    user_profiles: {
+                        full_name: 'John Designer',
+                        email: 'john@example.com',
+                        avatar_url: 'https://via.placeholder.com/40'
+                    },
+                    version_comments: []
+                };
+
+                // Mark previous current version as not current
+                this.versions.forEach(v => v.is_current = false);
+                this.versions.push(newVersion);
+
+                return {
+                    success: true,
+                    revertedToVersion: targetVersion.version_number,
+                    message: `Successfully reverted to version ${targetVersion.version_number}`
+                };
+            }
+
+            async addVersionComment(versionId, comment) {
+                await this.delay(300);
+                const version = this.versions.find(v => v.id === versionId);
+                
+                if (!version) {
+                    return { success: false, error: 'Version not found' };
+                }
+
+                const newComment = {
+                    id: 'c' + Date.now(),
+                    version_id: versionId,
+                    comment: comment,
+                    created_at: new Date().toISOString(),
+                    user_profiles: {
+                        full_name: 'John Designer',
+                        email: 'john@example.com',
+                        avatar_url: 'https://via.placeholder.com/40'
+                    }
+                };
+
+                if (!version.version_comments) {
+                    version.version_comments = [];
+                }
+                version.version_comments.push(newComment);
+
+                return {
+                    success: true,
+                    comment: newComment,
+                    message: 'Comment added successfully'
+                };
+            }
+
+            async getVersionStats(caseStudyId) {
+                await this.delay(200);
+                const firstVersion = this.versions[0];
+                const lastVersion = this.versions[this.versions.length - 1];
+                const uniqueAuthors = new Set(this.versions.map(v => v.created_by));
+
+                return {
+                    success: true,
+                    stats: {
+                        total_versions: this.versions.length,
+                        unique_authors: uniqueAuthors.size,
+                        first_version_date: firstVersion.created_at,
+                        last_version_date: lastVersion.created_at,
+                        days_since_first_version: 7,
+                        average_versions_per_day: '0.4'
+                    }
+                };
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Global variables
+        let versionService;
+        let versionControlUI;
+
+        // Test functions
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            const colors = {
+                info: '#007bff',
+                success: '#28a745',
+                error: '#dc3545',
+                warning: '#ffc107'
+            };
+            
+            statusEl.innerHTML = `<strong>Status:</strong> ${message}`;
+            statusEl.style.borderLeftColor = colors[type];
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function initializeVersionControl() {
+            try {
+                updateStatus('Initializing version control system...', 'info');
+                
+                // Create mock version service
+                versionService = new MockVersionService();
+                
+                // Initialize version control UI
+                versionControlUI = new VersionControlUI(versionService, 'version-control-container');
+                
+                // Set up callbacks
+                versionControlUI.setOnRevertCallback((result) => {
+                    updateStatus(`Version reverted successfully to version ${result.revertedToVersion}`, 'success');
+                    document.getElementById('current-version').textContent = result.revertedToVersion + '.0';
+                    document.getElementById('last-modified').textContent = 'Just now';
+                });
+                
+                updateStatus('Version control system initialized successfully!', 'success');
+            } catch (error) {
+                console.error('Error initializing version control:', error);
+                updateStatus('Failed to initialize version control system', 'error');
+            }
+        }
+
+        function loadSampleData() {
+            if (!versionControlUI) {
+                updateStatus('Please initialize the version control system first', 'warning');
+                return;
+            }
+            
+            updateStatus('Loading sample version history...', 'info');
+            versionControlUI.loadVersionHistory('test-case-study-123');
+            updateStatus('Sample data loaded successfully!', 'success');
+        }
+
+        function createTestVersion() {
+            if (!versionService) {
+                updateStatus('Please initialize the version control system first', 'warning');
+                return;
+            }
+            
+            updateStatus('Creating test version...', 'info');
+            
+            // Simulate creating a new version
+            const newVersion = {
+                id: 'v' + (versionService.versions.length + 1),
+                version_number: versionService.versions.length + 1,
+                content: {
+                    project_title: 'E-commerce Platform Redesign',
+                    project_description: 'Test version with additional content',
+                    sections: {
+                        problem: 'Users were experiencing difficulty navigating the site and finding products',
+                        research: 'Conducted comprehensive user research including interviews, surveys, and analytics',
+                        design: 'Created wireframes, prototypes, and high-fidelity mockups with accessibility considerations',
+                        implementation: 'Developed responsive interface with improved navigation, search, and mobile experience',
+                        results: 'Achieved 45% conversion improvement, 25% bounce rate reduction, and 50% mobile engagement increase'
+                    }
+                },
+                change_summary: 'Added accessibility considerations and updated performance metrics',
+                created_by: 'test-user-123',
+                created_at: new Date().toISOString(),
+                is_current: true,
+                user_profiles: {
+                    full_name: 'John Designer',
+                    email: 'john@example.com',
+                    avatar_url: 'https://via.placeholder.com/40'
+                },
+                version_comments: []
+            };
+            
+            // Mark previous versions as not current
+            versionService.versions.forEach(v => v.is_current = false);
+            versionService.versions.push(newVersion);
+            
+            // Refresh the UI
+            if (versionControlUI) {
+                versionControlUI.refresh();
+            }
+            
+            updateStatus(`Test version ${newVersion.version_number} created successfully!`, 'success');
+            document.getElementById('current-version').textContent = newVersion.version_number + '.0';
+        }
+
+        function testComparison() {
+            if (!versionControlUI || !versionService.versions.length) {
+                updateStatus('Please load sample data first', 'warning');
+                return;
+            }
+            
+            updateStatus('Testing version comparison...', 'info');
+            
+            // Auto-select two versions for comparison
+            if (versionService.versions.length >= 2) {
+                versionControlUI.selectForComparison(versionService.versions[0].id);
+                versionControlUI.selectForComparison(versionService.versions[1].id);
+                
+                setTimeout(() => {
+                    versionControlUI.compareSelectedVersions();
+                    updateStatus('Version comparison test completed!', 'success');
+                }, 500);
+            } else {
+                updateStatus('Need at least 2 versions to test comparison', 'warning');
+            }
+        }
+
+        function testRevert() {
+            if (!versionControlUI || !versionService.versions.length) {
+                updateStatus('Please load sample data first', 'warning');
+                return;
+            }
+            
+            updateStatus('Testing version revert functionality...', 'info');
+            
+            // Find a non-current version to revert to
+            const nonCurrentVersion = versionService.versions.find(v => !v.is_current);
+            if (nonCurrentVersion) {
+                versionControlUI.revertToVersion(nonCurrentVersion.id);
+                updateStatus('Revert dialog opened - you can test the revert functionality', 'success');
+            } else {
+                updateStatus('No non-current versions available for revert test', 'warning');
+            }
+        }
+
+        function testComments() {
+            if (!versionControlUI || !versionService.versions.length) {
+                updateStatus('Please load sample data first', 'warning');
+                return;
+            }
+            
+            updateStatus('Testing comment functionality...', 'info');
+            
+            // Open comment dialog for the first version
+            if (versionService.versions.length > 0) {
+                versionControlUI.addComment(versionService.versions[0].id);
+                updateStatus('Comment dialog opened - you can test adding comments', 'success');
+            }
+        }
+
+        function testStats() {
+            if (!versionControlUI) {
+                updateStatus('Please initialize the version control system first', 'warning');
+                return;
+            }
+            
+            updateStatus('Testing statistics functionality...', 'info');
+            versionControlUI.showVersionStats();
+            updateStatus('Statistics dialog opened!', 'success');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus('Page loaded - ready to test version control system', 'info');
+        });
+    </script>
+</body>
+</html>

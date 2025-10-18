@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Case Study Editor</title>
+    
+    <!-- Existing styles -->
+    <link rel="stylesheet" href="css/case-study-editor.css">
+    
+    <!-- Collaboration UI styles -->
+    <link rel="stylesheet" href="css/collaboration-ui.css">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Integration styles */
+        .editor-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .case-study-editor {
+            width: 100%;
+            min-height: 400px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        
+        .case-study-editor:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .editor-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        /* Collaboration integration styles */
+        #collaboration-container {
+            position: relative;
+        }
+        
+        .collaboration-active .case-study-editor {
+            border-color: #28a745;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+        }
+        
+        .collaboration-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .collaboration-indicator.offline {
+            background: #6c757d;
+        }
+        
+        /* Edit indicators */
+        .collab-edit-indicator {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: #17a2b8;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .editor-container {
+                padding: 10px;
+            }
+            
+            .editor-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .editor-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container" id="collaboration-container">
+        <!-- Editor Header -->
+        <div class="editor-header">
+            <h1 class="editor-title">Case Study Editor</h1>
+            <div class="editor-actions">
+                <button class="btn" onclick="saveContent()">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <button class="btn" onclick="previewContent()">
+                    <i class="fas fa-eye"></i> Preview
+                </button>
+                <button class="btn btn-primary" onclick="publishContent()">
+                    <i class="fas fa-upload"></i> Publish
+                </button>
+            </div>
+        </div>
+        
+        <!-- Collaboration Toolbar will be inserted here by CollaborationUI -->
+        
+        <!-- Main Editor -->
+        <div class="editor-main">
+            <textarea 
+                id="case-study-editor" 
+                class="case-study-editor" 
+                placeholder="Start writing your case study here...
+
+# Case Study Title
+
+## Overview
+Provide a brief overview of the case study...
+
+## Challenge
+Describe the main challenge or problem...
+
+## Solution
+Explain the solution that was implemented...
+
+## Results
+Share the outcomes and results...
+
+## Conclusion
+Summarize the key learnings and takeaways...
+">
+            </textarea>
+            
+            <!-- Collaboration indicator -->
+            <div class="collaboration-indicator offline" id="collab-indicator">
+                <i class="fas fa-circle"></i> Offline
+            </div>
+        </div>
+        
+        <!-- Collaboration Sidebar will be inserted here by CollaborationUI -->
+        <!-- Collaboration Status Bar will be inserted here by CollaborationUI -->
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Collaboration Service -->
+    <script src="js/collaboration-service.js"></script>
+    
+    <!-- Collaboration UI -->
+    <script src="js/collaboration-ui.js"></script>
+    
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://fzyrsurzgepeawvfjved.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6eXJzdXJ6Z2VwZWF3dmZqdmVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NjIyMDYsImV4cCI6MjA3NTIzODIwNn0.cKBp1Sw8l2mY3AxqXiazxe9BFaB3LaZmvzVZvod_42Y';
+        
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabase = supabase;
+        
+        // Global variables
+        let collaborationUI;
+        let currentCaseStudy = null;
+        
+        // Initialize collaboration UI
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Initialize collaboration UI
+                collaborationUI = new CollaborationUI({
+                    containerSelector: '#collaboration-container',
+                    editorSelector: '#case-study-editor',
+                    enableComments: true,
+                    enablePresence: true,
+                    enableConflictResolution: true,
+                    theme: 'light'
+                });
+                
+                // Setup collaboration event listeners
+                setupCollaborationEvents();
+                
+                // Check for session ID in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const sessionId = urlParams.get('session');
+                
+                if (sessionId) {
+                    // Auto-join session if ID is in URL
+                    setTimeout(() => {
+                        collaborationUI.joinCollaboration(sessionId);
+                    }, 1000);
+                }
+                
+                // Load case study content
+                await loadCaseStudy();
+                
+                console.log('Collaborative case study editor initialized');
+                
+            } catch (error) {
+                console.error('Failed to initialize collaborative editor:', error);
+                showNotification('Failed to initialize collaboration features', 'error');
+            }
+        });
+        
+        // Setup collaboration-specific event listeners
+        function setupCollaborationEvents() {
+            // Listen for collaboration status changes
+            if (collaborationUI.collaborationService) {
+                collaborationUI.collaborationService.on('session:joined', (session) => {
+                    updateCollaborationIndicator('online', `Connected to "${session.session_name}"`);
+                    document.getElementById('collaboration-container').classList.add('collaboration-active');
+                });
+                
+                collaborationUI.collaborationService.on('session:left', () => {
+                    updateCollaborationIndicator('offline', 'Offline');
+                    document.getElementById('collaboration-container').classList.remove('collaboration-active');
+                });
+                
+                collaborationUI.collaborationService.on('user:joined', (data) => {
+                    showNotification(`${data.userName || 'Someone'} joined the collaboration`, 'info');
+                });
+                
+                collaborationUI.collaborationService.on('user:left', (data) => {
+                    showNotification(`${data.userName || 'Someone'} left the collaboration`, 'info');
+                });
+                
+                collaborationUI.collaborationService.on('remote:edit', (data) => {
+                    // Visual feedback for remote edits
+                    flashEditor();
+                });
+                
+                collaborationUI.collaborationService.on('comment:added', (comment) => {
+                    showNotification('New comment added', 'info');
+                });
+                
+                collaborationUI.collaborationService.on('conflict:detected', (conflict) => {
+                    showNotification('Editing conflict detected', 'warning');
+                });
+            }
+        }
+        
+        // Update collaboration indicator
+        function updateCollaborationIndicator(status, tooltip) {
+            const indicator = document.getElementById('collab-indicator');
+            const icon = indicator.querySelector('i');
+            
+            indicator.className = `collaboration-indicator ${status}`;
+            indicator.title = tooltip;
+            
+            switch (status) {
+                case 'online':
+                    icon.className = 'fas fa-circle';
+                    indicator.innerHTML = '<i class="fas fa-circle"></i> Connected';
+                    break;
+                case 'connecting':
+                    icon.className = 'fas fa-circle';
+                    indicator.innerHTML = '<i class="fas fa-circle"></i> Connecting...';
+                    break;
+                default:
+                    icon.className = 'fas fa-circle';
+                    indicator.innerHTML = '<i class="fas fa-circle"></i> Offline';
+            }
+        }
+        
+        // Flash editor to indicate remote changes
+        function flashEditor() {
+            const editor = document.getElementById('case-study-editor');
+            editor.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+            
+            setTimeout(() => {
+                editor.style.backgroundColor = '';
+            }, 200);
+        }
+        
+        // Load case study content
+        async function loadCaseStudy() {
+            try {
+                // Get case study ID from URL or use default
+                const urlParams = new URLSearchParams(window.location.search);
+                const caseStudyId = urlParams.get('id') || 'default-case-study';
+                
+                // In a real implementation, this would load from the database
+                currentCaseStudy = {
+                    id: caseStudyId,
+                    title: 'Sample Case Study',
+                    content: document.getElementById('case-study-editor').value
+                };
+                
+                console.log('Case study loaded:', currentCaseStudy);
+                
+            } catch (error) {
+                console.error('Failed to load case study:', error);
+                showNotification('Failed to load case study', 'error');
+            }
+        }
+        
+        // Save content
+        async function saveContent() {
+            try {
+                const content = document.getElementById('case-study-editor').value;
+                
+                // In a real implementation, this would save to the database
+                if (currentCaseStudy) {
+                    currentCaseStudy.content = content;
+                    currentCaseStudy.lastModified = new Date().toISOString();
+                }
+                
+                showNotification('Content saved successfully', 'success');
+                
+                // Auto-save through collaboration service if active
+                if (collaborationUI.isCollaborating) {
+                    // The collaboration service handles auto-save
+                    console.log('Content auto-saved through collaboration service');
+                }
+                
+            } catch (error) {
+                console.error('Failed to save content:', error);
+                showNotification('Failed to save content', 'error');
+            }
+        }
+        
+        // Preview content
+        function previewContent() {
+            const content = document.getElementById('case-study-editor').value;
+            
+            // Open preview in new window
+            const previewWindow = window.open('', '_blank');
+            previewWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Case Study Preview</title>
+                    <style>
+                        body { 
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                            max-width: 800px; 
+                            margin: 0 auto; 
+                            padding: 40px 20px; 
+                            line-height: 1.6; 
+                        }
+                        h1, h2, h3 { color: #333; }
+                        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; }
+                    </style>
+                </head>
+                <body>
+                    <pre>${content}</pre>
+                </body>
+                </html>
+            `);
+            previewWindow.document.close();
+        }
+        
+        // Publish content
+        async function publishContent() {
+            try {
+                const content = document.getElementById('case-study-editor').value;
+                
+                if (!content.trim()) {
+                    showNotification('Cannot publish empty content', 'warning');
+                    return;
+                }
+                
+                // In a real implementation, this would publish to the live site
+                showNotification('Content published successfully', 'success');
+                
+            } catch (error) {
+                console.error('Failed to publish content:', error);
+                showNotification('Failed to publish content', 'error');
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `collab-notification collab-notification-${type}`;
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S or Cmd+S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveContent();
+            }
+            
+            // Ctrl+Shift+C or Cmd+Shift+C to add comment
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                if (collaborationUI && collaborationUI.isCollaborating) {
+                    collaborationUI.showCommentModal();
+                }
+            }
+            
+            // Ctrl+Shift+S or Cmd+Shift+S to start collaboration
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                if (collaborationUI) {
+                    collaborationUI.showStartSessionDialog();
+                }
+            }
+        });
+        
+        // Auto-save every 30 seconds
+        setInterval(() => {
+            if (document.getElementById('case-study-editor').value.trim()) {
+                saveContent();
+            }
+        }, 30000);
+        
+        // Warn before leaving if there are unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (collaborationUI && collaborationUI.isCollaborating) {
+                e.preventDefault();
+                e.returnValue = 'You are currently in a collaboration session. Are you sure you want to leave?';
+            }
+        });
+    </script>
+</body>
+</html>

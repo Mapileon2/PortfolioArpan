@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Cloudinary Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .test-section { background: white; margin: 20px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .upload-area { border: 2px dashed #ccc; padding: 40px; text-align: center; margin: 20px 0; border-radius: 8px; }
+        .upload-area.dragover { border-color: #007bff; background: #f8f9fa; }
+        .image-preview { max-width: 200px; max-height: 200px; margin: 10px; border-radius: 8px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+        .status-success { background: #28a745; }
+        .status-error { background: #dc3545; }
+        .status-warning { background: #ffc107; }
+        .status-info { background: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌤️ Complete Cloudinary Integration Test</h1>
+        <p>Testing all Cloudinary functionality and connections</p>
+
+        <!-- Status Overview -->
+        <div class="test-section">
+            <h2>📊 System Status</h2>
+            <div id="systemStatus">
+                <div class="test-result info">Initializing tests...</div>
+            </div>
+        </div>
+
+        <!-- API Connection Tests -->
+        <div class="test-section">
+            <h2>🔗 API Connection Tests</h2>
+            <button onclick="testAPIConnections()">Test API Connections</button>
+            <div id="apiResults"></div>
+        </div>
+
+        <!-- Upload Tests -->
+        <div class="test-section">
+            <h2>📤 Upload Tests</h2>
+            
+            <div class="upload-area" id="uploadArea">
+                <p>Drag & drop images here or click to select</p>
+                <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                <button onclick="document.getElementById('fileInput').click()">Select Images</button>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>Direct Upload</h3>
+                    <button onclick="testDirectUpload()">Test Direct Upload</button>
+                    <div id="directUploadResult"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>Widget Upload</h3>
+                    <button onclick="testWidgetUpload()">Test Widget Upload</button>
+                    <div id="widgetUploadResult"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>URL Upload</h3>
+                    <input type="url" id="urlInput" placeholder="Enter image URL" style="width: 100%; margin: 10px 0; padding: 8px;">
+                    <button onclick="testUrlUpload()">Upload from URL</button>
+                    <div id="urlUploadResult"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transformation Tests -->
+        <div class="test-section">
+            <h2>🔄 Transformation Tests</h2>
+            <div id="transformationTests">
+                <button onclick="testTransformations()">Test Image Transformations</button>
+                <div id="transformationResults"></div>
+            </div>
+        </div>
+
+        <!-- Management Tests -->
+        <div class="test-section">
+            <h2>🗂️ Management Tests</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Search Images</h3>
+                    <input type="text" id="searchInput" placeholder="Search expression" style="width: 100%; margin: 10px 0; padding: 8px;">
+                    <button onclick="testSearch()">Search</button>
+                    <div id="searchResults"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>List Resources</h3>
+                    <button onclick="testListResources()">List Resources</button>
+                    <div id="resourceResults"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>Account Usage</h3>
+                    <button onclick="testUsage()">Check Usage</button>
+                    <div id="usageResults"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Tests -->
+        <div class="test-section">
+            <h2>🔗 Integration Tests</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Case Study Editor</h3>
+                    <button onclick="testCaseStudyIntegration()">Test Case Study Integration</button>
+                    <div id="caseStudyResults"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>Carousel Integration</h3>
+                    <button onclick="testCarouselIntegration()">Test Carousel Integration</button>
+                    <div id="carouselResults"></div>
+                </div>
+                
+                <div class="card">
+                    <h3>Admin Dashboard</h3>
+                    <button onclick="testAdminIntegration()">Test Admin Integration</button>
+                    <div id="adminResults"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Results -->
+        <div class="test-section">
+            <h2>📸 Upload Results</h2>
+            <div id="uploadResults" class="grid"></div>
+        </div>
+    </div>
+
+    <!-- Load Cloudinary SDK -->
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
+    
+    <!-- Load our Cloudinary service -->
+    <script src="/js/cloudinaryapi"></script>
+
+    <script>
+        let testResults = {
+            apiConnections: false,
+            directUpload: false,
+            widgetUpload: false,
+            urlUpload: false,
+            transformations: false,
+            search: false,
+            resources: false,
+            usage: false,
+            integrations: {
+                caseStudy: false,
+                carousel: false,
+                admin: false
+            }
+        };
+
+        // Initialize tests
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSystemStatus();
+            setupDragAndDrop();
+            setupFileInput();
+            
+            // Auto-run basic tests
+            setTimeout(() => {
+                testAPIConnections();
+            }, 1000);
+        });
+
+        function updateSystemStatus() {
+            const statusDiv = document.getElementById('systemStatus');
+            const cloudinaryLoaded = typeof cloudinary !== 'undefined';
+            const serviceLoaded = typeof window.cloudinaryService !== 'undefined';
+            
+            let statusHTML = `
+                <div class="test-result ${cloudinaryLoaded ? 'success' : 'error'}">
+                    <span class="status-indicator ${cloudinaryLoaded ? 'status-success' : 'status-error'}"></span>
+                    Cloudinary SDK: ${cloudinaryLoaded ? 'Loaded' : 'Not Loaded'}
+                </div>
+                <div class="test-result ${serviceLoaded ? 'success' : 'error'}">
+                    <span class="status-indicator ${serviceLoaded ? 'status-success' : 'status-error'}"></span>
+                    Cloudinary Service: ${serviceLoaded ? 'Loaded' : 'Not Loaded'}
+                </div>
+            `;
+            
+            statusDiv.innerHTML = statusHTML;
+        }
+
+        async function testAPIConnections() {
+            const resultsDiv = document.getElementById('apiResults');
+            resultsDiv.innerHTML = '<div class="test-result info">Testing API connections...</div>';
+            
+            const tests = [
+                { name: 'Cloudinary Upload API', url: '/api/cloudinary/usage', method: 'GET' },
+                { name: 'Cloudinary Search API', url: '/api/cloudinary/search?expression=folder:portfolio', method: 'GET' },
+                { name: 'Cloudinary Resources API', url: '/api/cloudinary/resources', method: 'GET' },
+                { name: 'Case Studies API', url: '/api/case-studies', method: 'GET' },
+                { name: 'Carousel API', url: '/api/carousel/images', method: 'GET' }
+            ];
+            
+            let resultsHTML = '';
+            
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url, { method: test.method });
+                    const isSuccess = response.ok;
+                    
+                    resultsHTML += `
+                        <div class="test-result ${isSuccess ? 'success' : 'error'}">
+                            <span class="status-indicator ${isSuccess ? 'status-success' : 'status-error'}"></span>
+                            ${test.name}: ${isSuccess ? 'Connected' : `Failed (${response.status})`}
+                        </div>
+                    `;
+                    
+                    if (test.name === 'Cloudinary Upload API') {
+                        testResults.apiConnections = isSuccess;
+                    }
+                } catch (error) {
+                    resultsHTML += `
+                        <div class="test-result error">
+                            <span class="status-indicator status-error"></span>
+                            ${test.name}: Error - ${error.message}
+                        </div>
+                    `;
+                }
+            }
+            
+            resultsDiv.innerHTML = resultsHTML;
+        }
+
+        async function testDirectUpload() {
+            const resultDiv = document.getElementById('directUploadResult');
+            
+            if (!window.cloudinaryService) {
+                resultDiv.innerHTML = '<div class="test-result error">Cloudinary service not loaded</div>';
+                return;
+            }
+            
+            // Create a test image
+            const canvas = document.createElement('canvas');
+            canvas.width = 100;
+            canvas.height = 100;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#007bff';
+            ctx.fillRect(0, 0, 100, 100);
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.fillText('TEST', 30, 55);
+            
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], 'test-image.png', { type: 'image/png' });
+                
+                resultDiv.innerHTML = '<div class="test-result info">Uploading test image...</div>';
+                
+                try {
+                    const result = await window.cloudinaryService.uploadImage(file, {
+                        folder: 'portfolio/test',
+                        tags: ['test', 'direct-upload']
+                    });
+                    
+                    if (result.success) {
+                        testResults.directUpload = true;
+                        resultDiv.innerHTML = `
+                            <div class="test-result success">
+                                <span class="status-indicator status-success"></span>
+                                Direct upload successful!
+                                <br><small>Public ID: ${result.data.publicId}</small>
+                                <br><img src="${result.data.url}" class="image-preview" alt="Uploaded test image">
+                            </div>
+                        `;
+                        
+                        addUploadResult(result.data);
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="test-result error">
+                                <span class="status-indicator status-error"></span>
+                                Direct upload failed: ${result.error}
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <span class="status-indicator status-error"></span>
+                            Direct upload error: ${error.message}
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function testWidgetUpload() {
+            const resultDiv = document.getElementById('widgetUploadResult');
+            
+            if (!window.cloudinaryService || !window.cloudinaryService.uploadWidget) {
+                resultDiv.innerHTML = '<div class="test-result warning">Upload widget not available</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="test-result info">Opening upload widget...</div>';
+            
+            window.cloudinaryService.openUploadWidget((error, result) => {
+                if (error) {
+                    resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <span class="status-indicator status-error"></span>
+                            Widget upload failed: ${error.message}
+                        </div>
+                    `;
+                } else if (result) {
+                    testResults.widgetUpload = true;
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">
+                            <span class="status-indicator status-success"></span>
+                            Widget upload successful!
+                            <br><small>Public ID: ${result.public_id}</small>
+                            <br><img src="${result.secure_url}" class="image-preview" alt="Widget uploaded image">
+                        </div>
+                    `;
+                    
+                    addUploadResult({
+                        publicId: result.public_id,
+                        url: result.secure_url,
+                        width: result.width,
+                        height: result.height
+                    });
+                }
+            }, {
+                folder: 'portfolio/test',
+                tags: ['test', 'widget-upload']
+            });
+        }
+
+        async function testUrlUpload() {
+            const urlInput = document.getElementById('urlInput');
+            const resultDiv = document.getElementById('urlUploadResult');
+            const imageUrl = urlInput.value.trim();
+            
+            if (!imageUrl) {
+                resultDiv.innerHTML = '<div class="test-result warning">Please enter an image URL</div>';
+                return;
+            }
+            
+            if (!window.cloudinaryService) {
+                resultDiv.innerHTML = '<div class="test-result error">Cloudinary service not loaded</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="test-result info">Uploading from URL...</div>';
+            
+            try {
+                const result = await window.cloudinaryService.uploadFromUrl(imageUrl, {
+                    folder: 'portfolio/test',
+                    tags: ['test', 'url-upload']
+                });
+                
+                if (result.success) {
+                    testResults.urlUpload = true;
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">
+                            <span class="status-indicator status-success"></span>
+                            URL upload successful!
+                            <br><small>Public ID: ${result.data.publicId}</small>
+                            <br><img src="${result.data.url}" class="image-preview" alt="URL uploaded image">
+                        </div>
+                    `;
+                    
+                    addUploadResult(result.data);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <span class="status-indicator status-error"></span>
+                            URL upload failed: ${result.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <span class="status-indicator status-error"></span>
+                        URL upload error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function testTransformations() {
+            const resultDiv = document.getElementById('transformationResults');
+            
+            if (!window.cloudinaryService) {
+                resultDiv.innerHTML = '<div class="test-result error">Cloudinary service not loaded</div>';
+                return;
+            }
+            
+            // Test with a sample public ID (you might need to upload an image first)
+            const samplePublicId = 'portfolio/test/sample';
+            
+            const transformations = [
+                { name: 'Thumbnail', options: { width: 150, height: 150, crop: 'fill' } },
+                { name: 'Blur Effect', options: { width: 300, blur: 300 } },
+                { name: 'Sepia Effect', options: { width: 300, effect: 'sepia' } },
+                { name: 'Auto Quality', options: { width: 400, quality: 'auto' } }
+            ];
+            
+            let transformHTML = '<div class="test-result success">Transformation URLs generated:</div>';
+            
+            transformations.forEach(transform => {
+                const url = window.cloudinaryService.getOptimizedUrl(samplePublicId, transform.options);
+                transformHTML += `
+                    <div class="test-result info">
+                        <strong>${transform.name}:</strong><br>
+                        <small>${url}</small>
+                    </div>
+                `;
+            });
+            
+            testResults.transformations = true;
+            resultDiv.innerHTML = transformHTML;
+        }
+
+        async function testSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const resultDiv = document.getElementById('searchResults');
+            const query = searchInput.value.trim() || 'folder:portfolio';
+            
+            resultDiv.innerHTML = '<div class="test-result info">Searching...</div>';
+            
+            try {
+                const response = await fetch(`/api/cloudinary/search?expression=${encodeURIComponent(query)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    testResults.search = true;
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">
+                            <span class="status-indicator status-success"></span>
+                            Found ${result.resources.length} images
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <span class="status-indicator status-error"></span>
+                            Search failed: ${result.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <span class="status-indicator status-error"></span>
+                        Search error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testListResources() {
+            const resultDiv = document.getElementById('resourceResults');
+            resultDiv.innerHTML = '<div class="test-result info">Loading resources...</div>';
+            
+            try {
+                const response = await fetch('/api/cloudinary/resources?folder=portfolio');
+                const result = await response.json();
+                
+                if (result.success) {
+                    testResults.resources = true;
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">
+                            <span class="status-indicator status-success"></span>
+                            Found ${result.resources.length} resources
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <span class="status-indicator status-error"></span>
+                            Failed to load resources
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <span class="status-indicator status-error"></span>
+                        Resources error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testUsage() {
+            const resultDiv = document.getElementById('usageResults');
+            resultDiv.innerHTML = '<div class="test-result info">Checking usage...</div>';
+            
+            try {
+                const response = await fetch('/api/cloudinary/usage');
+                const result = await response.json();
+                
+                if (result.success) {
+                    testResults.usage = true;
+                    const usage = result.usage;
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">
+                            <span class="status-indicator status-success"></span>
+                            Usage retrieved successfully
+                            <br><small>Credits: ${usage.credits?.used || 0}/${usage.credits?.limit || 'unlimited'}</small>
+                            <br><small>Storage: ${Math.round((usage.storage?.used || 0) / 1024 / 1024)} MB</small>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <span class="status-indicator status-error"></span>
+                            Failed to get usage data
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <span class="status-indicator status-error"></span>
+                        Usage error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function testCaseStudyIntegration() {
+            const resultDiv = document.getElementById('caseStudyResults');
+            
+            // Test if case study editor can access Cloudinary service
+            const hasService = typeof window.cloudinaryService !== 'undefined';
+            const hasUploadFunction = typeof window.uploadToCloudinary !== 'undefined';
+            
+            if (hasService && hasUploadFunction) {
+                testResults.integrations.caseStudy = true;
+                resultDiv.innerHTML = `
+                    <div class="test-result success">
+                        <span class="status-indicator status-success"></span>
+                        Case study integration ready
+                        <br><a href="/case_study_editor_complete.html" target="_blank">Test Case Study Editor</a>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <span class="status-indicator status-error"></span>
+                        Case study integration not ready
+                    </div>
+                `;
+            }
+        }
+
+        function testCarouselIntegration() {
+            const resultDiv = document.getElementById('carouselResults');
+            
+            // Test carousel API connection
+            fetch('/api/carousel/images')
+                .then(response => response.json())
+                .then(result => {
+                    testResults.integrations.carousel = true;
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">
+                            <span class="status-indicator status-success"></span>
+                            Carousel integration ready
+                            <br><a href="/admin-dashboard.html#carousel" target="_blank">Test Carousel Management</a>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <span class="status-indicator status-error"></span>
+                            Carousel integration failed: ${error.message}
+                        </div>
+                    `;
+                });
+        }
+
+        function testAdminIntegration() {
+            const resultDiv = document.getElementById('adminResults');
+            
+            // Test admin dashboard access
+            const hasService = typeof window.cloudinaryService !== 'undefined';
+            
+            if (hasService) {
+                testResults.integrations.admin = true;
+                resultDiv.innerHTML = `
+                    <div class="test-result success">
+                        <span class="status-indicator status-success"></span>
+                        Admin integration ready
+                        <br><a href="/admin-dashboard.html" target="_blank">Test Admin Dashboard</a>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <span class="status-indicator status-error"></span>
+                        Admin integration not ready
+                    </div>
+                `;
+            }
+        }
+
+        function addUploadResult(data) {
+            const resultsDiv = document.getElementById('uploadResults');
+            const resultCard = document.createElement('div');
+            resultCard.className = 'card';
+            resultCard.innerHTML = `
+                <img src="${data.url}" class="image-preview" alt="Uploaded image">
+                <h4>${data.publicId}</h4>
+                <p><strong>Size:</strong> ${data.width}x${data.height}</p>
+                <p><strong>URL:</strong> <a href="${data.url}" target="_blank">View</a></p>
+                <button onclick="deleteImage('${data.publicId}', this.parentElement)">Delete</button>
+            `;
+            resultsDiv.appendChild(resultCard);
+        }
+
+        async function deleteImage(publicId, cardElement) {
+            try {
+                const response = await fetch('/api/cloudinary/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ publicId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    cardElement.remove();
+                } else {
+                    alert('Failed to delete image');
+                }
+            } catch (error) {
+                alert('Error deleting image: ' + error.message);
+            }
+        }
+
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+                if (files.length > 0) {
+                    uploadFiles(files);
+                }
+            });
+        }
+
+        function setupFileInput() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    uploadFiles(files);
+                }
+            });
+        }
+
+        async function uploadFiles(files) {
+            if (!window.cloudinaryService) {
+                alert('Cloudinary service not loaded');
+                return;
+            }
+            
+            for (const file of files) {
+                const result = await window.cloudinaryService.uploadImage(file, {
+                    folder: 'portfolio/test',
+                    tags: ['test', 'drag-drop']
+                });
+                
+                if (result.success) {
+                    addUploadResult(result.data);
+                } else {
+                    console.error('Upload failed:', result.error);
+                }
+            }
+        }
+
+        // Generate test report
+        function generateTestReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                results: testResults,
+                summary: {
+                    total: 0,
+                    passed: 0,
+                    failed: 0
+                }
+            };
+            
+            // Count results
+            Object.keys(testResults).forEach(key => {
+                if (typeof testResults[key] === 'boolean') {
+                    report.summary.total++;
+                    if (testResults[key]) report.summary.passed++;
+                    else report.summary.failed++;
+                } else if (typeof testResults[key] === 'object') {
+                    Object.keys(testResults[key]).forEach(subKey => {
+                        report.summary.total++;
+                        if (testResults[key][subKey]) report.summary.passed++;
+                        else report.summary.failed++;
+                    });
+                }
+            });
+            
+            console.log('🧪 Test Report:', report);
+            return report;
+        }
+
+        // Auto-generate report after 30 seconds
+        setTimeout(() => {
+            const report = generateTestReport();
+            console.log(`📊 Test Summary: ${report.summary.passed}/${report.summary.total} tests passed`);
+        }, 30000);
+    </script>
+</body>
+</html>

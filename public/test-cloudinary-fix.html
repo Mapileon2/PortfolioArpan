@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cloudinary Upload Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h1 class="text-3xl font-bold text-blue-600 mb-4">🔧 Cloudinary Upload Fix Test</h1>
+            <p class="text-gray-600 mb-6">
+                This page tests the Cloudinary upload fix that handles the "Upload preset must be whitelisted" error.
+            </p>
+        </div>
+
+        <!-- Upload Test -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">📁 Upload Test</h2>
+            <div class="space-y-4">
+                <input type="file" id="testFile" accept="image/*" 
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                
+                <div class="flex space-x-4">
+                    <button onclick="testUpload()" 
+                            class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+                        🚀 Test Upload (Auto-Fix)
+                    </button>
+                    <button onclick="createPreset()" 
+                            class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+                        🔧 Create Unsigned Preset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">📊 Results</h2>
+            <div id="results" class="space-y-4">
+                <p class="text-gray-500">Select a file and click "Test Upload" to begin...</p>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mt-8">
+            <h3 class="text-lg font-semibold text-yellow-800 mb-2">📋 Manual Fix Instructions</h3>
+            <p class="text-yellow-700 mb-4">If the auto-fix doesn't work, manually create the preset:</p>
+            <ol class="list-decimal list-inside space-y-2 text-yellow-700">
+                <li>Go to <a href="https://cloudinary.com/console" target="_blank" class="underline">Cloudinary Console</a></li>
+                <li>Navigate to Settings → Upload</li>
+                <li>Scroll to "Upload presets" section</li>
+                <li>Click "Add upload preset"</li>
+                <li>Set name to <code class="bg-yellow-100 px-2 py-1 rounded">ml_default</code></li>
+                <li>Set signing mode to <strong>"Unsigned"</strong></li>
+                <li>Set folder to <code class="bg-yellow-100 px-2 py-1 rounded">portfolio</code></li>
+                <li>Save the preset</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Load the fix -->
+    <script src="js/cloudinary-upload-fix.js"></script>
+
+    <script>
+        function logResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-blue-600';
+            
+            const resultElement = document.createElement('div');
+            resultElement.className = `border-l-4 border-${type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue'}-500 pl-4 py-2`;
+            resultElement.innerHTML = `
+                <span class="text-gray-500 text-sm">[${timestamp}]</span>
+                <span class="${colorClass}">${message}</span>
+            `;
+            
+            resultsDiv.appendChild(resultElement);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        async function testUpload() {
+            const fileInput = document.getElementById('testFile');
+            
+            if (!fileInput.files[0]) {
+                logResult('❌ Please select a file first', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            logResult(`🔄 Starting upload for: ${file.name}`, 'info');
+
+            try {
+                const result = await window.cloudinaryUploadFix.uploadImage(file, {
+                    folder: 'portfolio/test',
+                    tags: 'test-upload'
+                });
+
+                if (result.success) {
+                    logResult(`✅ Upload successful via ${result.method} method!`, 'success');
+                    if (result.preset) {
+                        logResult(`📋 Used preset: ${result.preset}`, 'success');
+                    }
+                    logResult(`🔗 URL: ${result.data.secure_url}`, 'success');
+                    
+                    // Show the uploaded image
+                    const imageElement = document.createElement('div');
+                    imageElement.className = 'mt-4 p-4 bg-green-50 rounded';
+                    imageElement.innerHTML = `
+                        <p class="text-green-700 font-semibold mb-2">Uploaded Image:</p>
+                        <img src="${result.data.secure_url}" alt="Uploaded" class="max-w-xs rounded shadow">
+                        <p class="text-sm text-green-600 mt-2">
+                            <a href="${result.data.secure_url}" target="_blank" class="underline">View full size</a>
+                        </p>
+                    `;
+                    document.getElementById('results').appendChild(imageElement);
+                } else {
+                    logResult('❌ Upload failed', 'error');
+                }
+            } catch (error) {
+                logResult(`❌ Upload error: ${error.message}`, 'error');
+                logResult('💡 Try creating the unsigned preset manually', 'info');
+            }
+        }
+
+        async function createPreset() {
+            logResult('🔧 Attempting to create unsigned preset...', 'info');
+            
+            try {
+                const result = await window.cloudinaryUploadFix.createUnsignedPreset('ml_default');
+                
+                if (result) {
+                    logResult('✅ Successfully created ml_default preset!', 'success');
+                    logResult('🎉 You can now use unsigned uploads', 'success');
+                } else {
+                    logResult('❌ Failed to create preset automatically', 'error');
+                    logResult('📋 Please create it manually in the Cloudinary dashboard', 'info');
+                }
+            } catch (error) {
+                logResult(`❌ Error creating preset: ${error.message}`, 'error');
+                logResult('📋 Please create it manually in the Cloudinary dashboard', 'info');
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            logResult('🚀 Cloudinary Upload Fix Test loaded', 'info');
+            logResult('📋 Cloud Name: dgymjtqil', 'info');
+            logResult('🔑 API Key: 951533987774134', 'info');
+        });
+    </script>
+</body>
+</html>

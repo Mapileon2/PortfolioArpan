@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete System Diagnosis</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .diagnostic-section {
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .diagnostic-section:last-child {
+            border-bottom: none;
+        }
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        .check-item.checking {
+            border-color: #3498db;
+            background: #ebf3fd;
+        }
+        .check-item.passed {
+            border-color: #27ae60;
+            background: #d5f4e6;
+        }
+        .check-item.failed {
+            border-color: #e74c3c;
+            background: #fdeaea;
+        }
+        .check-item.warning {
+            border-color: #f39c12;
+            background: #fef9e7;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-badge.pending { background: #bdc3c7; color: white; }
+        .status-badge.checking { background: #3498db; color: white; }
+        .status-badge.passed { background: #27ae60; color: white; }
+        .status-badge.failed { background: #e74c3c; color: white; }
+        .status-badge.warning { background: #f39c12; color: white; }
+        .details {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+            display: none;
+        }
+        .check-item.failed .details,
+        .check-item.warning .details,
+        .check-item.passed .details {
+            display: block;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        .btn:hover { background: #2980b9; }
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        .summary {
+            background: #34495e;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .summary-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 15px;
+        }
+        .summary-stat {
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .summary-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Complete System Diagnosis</h1>
+            <p>Comprehensive health check for Case Study system and Homepage integration</p>
+            <button class="btn" onclick="runCompleteDiagnosis()">🚀 Run Complete Diagnosis</button>
+            <button class="btn" onclick="runQuickCheck()">⚡ Quick Health Check</button>
+        </div>
+
+        <!-- Server & API Health -->
+        <div class="diagnostic-section">
+            <div class="section-title">
+                🖥️ Server & API Health
+            </div>
+            <div class="check-item" id="check-server-running">
+                <span>Server Running (Port 3012)</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-api-endpoints">
+                <span>API Endpoints Accessible</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-cors-headers">
+                <span>CORS Headers Configured</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+        </div>
+
+        <!-- Database Connectivity -->
+        <div class="diagnostic-section">
+            <div class="section-title">
+                🗄️ Database Connectivity
+            </div>
+            <div class="check-item" id="check-supabase-connection">
+                <span>Supabase Connection</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-case-studies-table">
+                <span>Case Studies Table Access</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-data-integrity">
+                <span>Data Integrity</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+        </div>
+
+        <!-- Case Study Functionality -->
+        <div class="diagnostic-section">
+            <div class="section-title">
+                📚 Case Study Functionality
+            </div>
+            <div class="check-item" id="check-case-study-crud">
+                <span>CRUD Operations (Create, Read, Update, Delete)</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-data-persistence">
+                <span>Data Persistence After Save</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-validation-rules">
+                <span>Validation Rules</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-error-handling">
+                <span>Error Handling</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+        </div>
+
+        <!-- Homepage Integration -->
+        <div class="diagnostic-section">
+            <div class="section-title">
+                🏠 Homepage Integration
+            </div>
+            <div class="check-item" id="check-homepage-load">
+                <span>Homepage Loading</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-case-studies-display">
+                <span>Case Studies Display on Homepage</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-frontend-api-connection">
+                <span>Frontend-API Connection</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-real-time-updates">
+                <span>Real-time Updates</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+        </div>
+
+        <!-- Image & Media -->
+        <div class="diagnostic-section">
+            <div class="section-title">
+                🖼️ Image & Media Integration
+            </div>
+            <div class="check-item" id="check-cloudinary-config">
+                <span>Cloudinary Configuration</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-image-upload">
+                <span>Image Upload Functionality</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-image-display">
+                <span>Image Display & Loading</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+        </div>
+
+        <!-- Performance & Security -->
+        <div class="diagnostic-section">
+            <div class="section-title">
+                ⚡ Performance & Security
+            </div>
+            <div class="check-item" id="check-response-times">
+                <span>API Response Times</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-error-rates">
+                <span>Error Rates</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+            <div class="check-item" id="check-security-headers">
+                <span>Security Headers</span>
+                <span class="status-badge pending">Pending</span>
+                <div class="details"></div>
+            </div>
+        </div>
+
+        <div class="summary" id="summarySection" style="display: none;">
+            <h3>📊 Diagnosis Summary</h3>
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <div class="summary-value" id="summaryPassed">0</div>
+                    <div class="summary-label">Passed</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-value" id="summaryFailed">0</div>
+                    <div class="summary-label">Failed</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-value" id="summaryWarnings">0</div>
+                    <div class="summary-label">Warnings</div>
+                </div>
+            </div>
+            <div id="summaryRecommendations" style="margin-top: 20px; text-align: left;"></div>
+        </div>
+    </div>
+
+    <script src="js/system-diagnosis.js"></script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Persistence Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: #2563eb;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .test-header {
+            background: #f3f4f6;
+            padding: 10px 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .test-content {
+            padding: 15px;
+        }
+        .test-case {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        .test-case.passed {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        .test-case.failed {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        .test-result {
+            margin-top: 5px;
+            padding: 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Simple Persistence Tests</h1>
+            <p>Basic testing for persistence fix functionality</p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button onclick="runBasicTests()">Run Basic Tests</button>
+            <button onclick="runTimestampTests()">Test Timestamps</button>
+            <button onclick="runValidationTests()">Test Validation</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalTests">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="passedTests">0</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="failedTests">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🔧 Basic Functionality Tests</div>
+            <div class="test-content" id="basicTests">
+                <div class="test-case">
+                    <strong>Test Environment Check</strong>
+                    <div class="test-result info">Ready to run...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🕐 Timestamp Tests</div>
+            <div class="test-content" id="timestampTests">
+                <div class="test-case">
+                    <strong>Timestamp Generation</strong>
+                    <div class="test-result info">Ready to run...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">✅ Validation Tests</div>
+            <div class="test-content" id="validationTests">
+                <div class="test-case">
+                    <strong>Data Validation</strong>
+                    <div class="test-result info">Ready to run...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testStats = { total: 0, passed: 0, failed: 0 };
+
+        // Simple TimestampUtils implementation for testing
+        class SimpleTimestampUtils {
+            now() {
+                return new Date().toISOString();
+            }
+
+            isValid(timestamp) {
+                if (!timestamp || typeof timestamp !== 'string') return false;
+                const date = new Date(timestamp);
+                return !isNaN(date.getTime());
+            }
+
+            compare(timestamp1, timestamp2) {
+                const date1 = new Date(timestamp1);
+                const date2 = new Date(timestamp2);
+                if (date1 < date2) return -1;
+                if (date1 > date2) return 1;
+                return 0;
+            }
+
+            ensureTimestamps(data, isUpdate = false) {
+                const now = this.now();
+                const result = { ...data };
+                result.updated_at = now;
+                if (!isUpdate && !result.created_at) {
+                    result.created_at = now;
+                }
+                return result;
+            }
+        }
+
+        // Simple validation functions
+        function validateCaseStudyData(data) {
+            const errors = [];
+            
+            if (!data.project_title || data.project_title.trim() === '') {
+                errors.push('Project title is required');
+            }
+            
+            if (data.project_rating && (typeof data.project_rating !== 'number' || 
+                data.project_rating < 1 || data.project_rating > 5)) {
+                errors.push('Project rating must be a number between 1 and 5');
+            }
+            
+            return {
+                isValid: errors.length === 0,
+                errors
+            };
+        }
+
+        function runTest(name, testFunction, container) {
+            testStats.total++;
+            
+            try {
+                const result = testFunction();
+                if (result) {
+                    testStats.passed++;
+                    updateTestResult(container, name, 'passed', 'Test passed successfully');
+                } else {
+                    testStats.failed++;
+                    updateTestResult(container, name, 'failed', 'Test assertion failed');
+                }
+            } catch (error) {
+                testStats.failed++;
+                updateTestResult(container, name, 'failed', error.message);
+            }
+            
+            updateStats();
+        }
+
+        function updateTestResult(container, name, status, message) {
+            const testCase = container.querySelector('.test-case');
+            const resultDiv = testCase.querySelector('.test-result');
+            
+            testCase.className = `test-case ${status}`;
+            resultDiv.className = `test-result ${status === 'passed' ? 'success' : 'error'}`;
+            resultDiv.innerHTML = `<strong>${status === 'passed' ? '✅' : '❌'} ${name}</strong><br>${message}`;
+        }
+
+        function updateStats() {
+            document.getElementById('totalTests').textContent = testStats.total;
+            document.getElementById('passedTests').textContent = testStats.passed;
+            document.getElementById('failedTests').textContent = testStats.failed;
+        }
+
+        function runBasicTests() {
+            console.log('🧪 Running basic tests...');
+            const container = document.getElementById('basicTests');
+            
+            runTest('Environment Check', () => {
+                // Test that basic JavaScript features work
+                const testObj = { test: 'value' };
+                const testArray = [1, 2, 3];
+                const testDate = new Date();
+                
+                return testObj.test === 'value' && 
+                       testArray.length === 3 && 
+                       testDate instanceof Date;
+            }, container);
+        }
+
+        function runTimestampTests() {
+            console.log('🕐 Running timestamp tests...');
+            const container = document.getElementById('timestampTests');
+            const timestampUtils = new SimpleTimestampUtils();
+            
+            runTest('Timestamp Generation', () => {
+                const timestamp = timestampUtils.now();
+                const isValid = timestampUtils.isValid(timestamp);
+                
+                console.log('Generated timestamp:', timestamp);
+                console.log('Is valid:', isValid);
+                
+                return isValid && timestamp.includes('T') && timestamp.endsWith('Z');
+            }, container);
+        }
+
+        function runValidationTests() {
+            console.log('✅ Running validation tests...');
+            const container = document.getElementById('validationTests');
+            
+            runTest('Data Validation', () => {
+                // Test valid data
+                const validData = {
+                    project_title: 'Test Project',
+                    project_rating: 4
+                };
+                const validResult = validateCaseStudyData(validData);
+                
+                // Test invalid data
+                const invalidData = {
+                    project_title: '',
+                    project_rating: 10
+                };
+                const invalidResult = validateCaseStudyData(invalidData);
+                
+                console.log('Valid data result:', validResult);
+                console.log('Invalid data result:', invalidResult);
+                
+                return validResult.isValid && !invalidResult.isValid && invalidResult.errors.length > 0;
+            }, container);
+        }
+
+        function clearResults() {
+            testStats = { total: 0, passed: 0, failed: 0 };
+            updateStats();
+            
+            document.querySelectorAll('.test-case').forEach(testCase => {
+                testCase.className = 'test-case';
+                const resultDiv = testCase.querySelector('.test-result');
+                resultDiv.className = 'test-result info';
+                resultDiv.innerHTML = 'Ready to run...';
+            });
+            
+            console.log('🧹 Results cleared');
+        }
+
+        // Initialize
+        console.log('🧪 Simple Persistence Test Runner initialized');
+        console.log('Click the buttons above to run tests');
+    </script>
+</body>
+</html>

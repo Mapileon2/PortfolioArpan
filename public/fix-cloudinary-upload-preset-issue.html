@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Cloudinary Upload Preset Issue</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h1 class="text-3xl font-bold text-red-600 mb-4">🚨 Cloudinary Upload Preset Fix</h1>
+            <p class="text-gray-600 mb-6">
+                The error "Upload preset must be whitelisted for unsigned uploads" means the <code>ml_default</code> 
+                preset is not configured for unsigned uploads in your Cloudinary dashboard.
+            </p>
+        </div>
+
+        <!-- Quick Fix Options -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Option 1: Create Unsigned Preset -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-green-600 mb-4">✅ Option 1: Create Unsigned Preset</h2>
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-600">Follow these steps in your Cloudinary dashboard:</p>
+                    <ol class="list-decimal list-inside space-y-2 text-sm">
+                        <li>Go to <a href="https://cloudinary.com/console" target="_blank" class="text-blue-600 underline">Cloudinary Console</a></li>
+                        <li>Navigate to Settings → Upload</li>
+                        <li>Scroll to "Upload presets"</li>
+                        <li>Click "Add upload preset"</li>
+                        <li>Set name to <code class="bg-gray-100 px-2 py-1 rounded">ml_default</code></li>
+                        <li>Set signing mode to <strong>"Unsigned"</strong></li>
+                        <li>Set folder to <code class="bg-gray-100 px-2 py-1 rounded">portfolio</code></li>
+                        <li>Save the preset</li>
+                    </ol>
+                    <button onclick="testUnsignedUpload()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Test Unsigned Upload
+                    </button>
+                </div>
+            </div>
+
+            <!-- Option 2: Use Signed Upload -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-blue-600 mb-4">🔐 Option 2: Use Signed Upload</h2>
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-600">Use server-side signed uploads (more secure):</p>
+                    <div class="bg-gray-100 p-4 rounded text-sm">
+                        <p class="font-semibold mb-2">This approach:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Generates signatures on the server</li>
+                            <li>More secure (API secret not exposed)</li>
+                            <li>Works without preset configuration</li>
+                            <li>Recommended for production</li>
+                        </ul>
+                    </div>
+                    <button onclick="testSignedUpload()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Test Signed Upload
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">🧪 Test Results</h2>
+            <div id="testResults" class="space-y-4">
+                <p class="text-gray-500">Click a test button above to check upload functionality...</p>
+            </div>
+        </div>
+
+        <!-- File Upload Test -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">📁 Upload Test</h2>
+            <input type="file" id="testFile" accept="image/*" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            <div class="flex space-x-4">
+                <button onclick="uploadWithUnsigned()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Upload (Unsigned)
+                </button>
+                <button onclick="uploadWithSigned()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Upload (Signed)
+                </button>
+            </div>
+            <div id="uploadResults" class="mt-4"></div>
+        </div>
+    </div>
+
+    <script>
+        // Cloudinary configuration
+        const cloudinaryConfig = {
+            cloudName: 'dgymjtqil',
+            apiKey: '951533987774134',
+            apiSecret: 'jTPgMHSl-6m7LptvsBA5eDbOWwc' // Only for server-side use
+        };
+
+        function logResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'error' ? 'text-red-600' : type === 'success' ? 'text-green-600' : 'text-blue-600';
+            
+            resultsDiv.innerHTML += `
+                <div class="border-l-4 border-${type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue'}-500 pl-4 py-2">
+                    <span class="text-gray-500 text-sm">[${timestamp}]</span>
+                    <span class="${colorClass}">${message}</span>
+                </div>
+            `;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        async function testUnsignedUpload() {
+            logResult('Testing unsigned upload configuration...', 'info');
+            
+            try {
+                // Test if the preset exists and is configured for unsigned uploads
+                const testUrl = `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`;
+                
+                // Create a small test image (1x1 pixel PNG)
+                const canvas = document.createElement('canvas');
+                canvas.width = 1;
+                canvas.height = 1;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(0, 0, 1, 1);
+                
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append('file', blob, 'test.png');
+                    formData.append('upload_preset', 'ml_default');
+                    formData.append('folder', 'portfolio/test');
+                    
+                    try {
+                        const response = await fetch(testUrl, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            logResult('✅ Unsigned upload works! Preset is configured correctly.', 'success');
+                            logResult(`Uploaded: ${result.secure_url}`, 'success');
+                        } else {
+                            const error = await response.json();
+                            logResult(`❌ Unsigned upload failed: ${error.error?.message || 'Unknown error'}`, 'error');
+                            logResult('Please create the ml_default preset as unsigned in your Cloudinary dashboard.', 'error');
+                        }
+                    } catch (error) {
+                        logResult(`❌ Network error: ${error.message}`, 'error');
+                    }
+                }, 'image/png');
+                
+            } catch (error) {
+                logResult(`❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSignedUpload() {
+            logResult('Testing signed upload (requires server endpoint)...', 'info');
+            
+            try {
+                // First, get signature from server
+                const timestamp = Math.round(Date.now() / 1000);
+                const signatureResponse = await fetch('/api/cloudinary/signature', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        timestamp: timestamp,
+                        folder: 'portfolio/test'
+                    })
+                });
+                
+                if (!signatureResponse.ok) {
+                    throw new Error('Failed to get signature from server');
+                }
+                
+                const signatureData = await signatureResponse.json();
+                logResult('✅ Got signature from server', 'success');
+                
+                // Create test image
+                const canvas = document.createElement('canvas');
+                canvas.width = 1;
+                canvas.height = 1;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#00FF00';
+                ctx.fillRect(0, 0, 1, 1);
+                
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append('file', blob, 'test-signed.png');
+                    formData.append('api_key', signatureData.api_key);
+                    formData.append('timestamp', signatureData.timestamp);
+                    formData.append('signature', signatureData.signature);
+                    formData.append('folder', 'portfolio/test');
+                    
+                    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`;
+                    
+                    try {
+                        const response = await fetch(uploadUrl, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            logResult('✅ Signed upload works! Server signature is working.', 'success');
+                            logResult(`Uploaded: ${result.secure_url}`, 'success');
+                        } else {
+                            const error = await response.json();
+                            logResult(`❌ Signed upload failed: ${error.error?.message || 'Unknown error'}`, 'error');
+                        }
+                    } catch (error) {
+                        logResult(`❌ Upload error: ${error.message}`, 'error');
+                    }
+                }, 'image/png');
+                
+            } catch (error) {
+                logResult(`❌ Signed upload test failed: ${error.message}`, 'error');
+                logResult('Make sure your server is running and has the /api/cloudinary/signature endpoint', 'error');
+            }
+        }
+
+        async function uploadWithUnsigned() {
+            const fileInput = document.getElementById('testFile');
+            const resultsDiv = document.getElementById('uploadResults');
+            
+            if (!fileInput.files[0]) {
+                resultsDiv.innerHTML = '<p class="text-red-600">Please select a file first</p>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            resultsDiv.innerHTML = '<p class="text-blue-600">Uploading with unsigned preset...</p>';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'ml_default');
+                formData.append('folder', 'portfolio/test');
+                
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    resultsDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <p>✅ Upload successful!</p>
+                            <p>URL: <a href="${result.secure_url}" target="_blank" class="underline">${result.secure_url}</a></p>
+                            <img src="${result.secure_url}" alt="Uploaded" class="mt-2 max-w-xs rounded">
+                        </div>
+                    `;
+                } else {
+                    const error = await response.json();
+                    resultsDiv.innerHTML = `<p class="text-red-600">❌ Upload failed: ${error.error?.message || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function uploadWithSigned() {
+            const fileInput = document.getElementById('testFile');
+            const resultsDiv = document.getElementById('uploadResults');
+            
+            if (!fileInput.files[0]) {
+                resultsDiv.innerHTML = '<p class="text-red-600">Please select a file first</p>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            resultsDiv.innerHTML = '<p class="text-blue-600">Getting signature and uploading...</p>';
+            
+            try {
+                // Get signature from server
+                const timestamp = Math.round(Date.now() / 1000);
+                const signatureResponse = await fetch('/api/cloudinary/signature', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        timestamp: timestamp,
+                        folder: 'portfolio/test'
+                    })
+                });
+                
+                if (!signatureResponse.ok) {
+                    throw new Error('Failed to get signature');
+                }
+                
+                const signatureData = await signatureResponse.json();
+                
+                // Upload with signature
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('api_key', signatureData.api_key);
+                formData.append('timestamp', signatureData.timestamp);
+                formData.append('signature', signatureData.signature);
+                formData.append('folder', 'portfolio/test');
+                
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    resultsDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <p>✅ Signed upload successful!</p>
+                            <p>URL: <a href="${result.secure_url}" target="_blank" class="underline">${result.secure_url}</a></p>
+                            <img src="${result.secure_url}" alt="Uploaded" class="mt-2 max-w-xs rounded">
+                        </div>
+                    `;
+                } else {
+                    const error = await response.json();
+                    resultsDiv.innerHTML = `<p class="text-red-600">❌ Upload failed: ${error.error?.message || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            logResult('Page loaded. Ready to test Cloudinary configuration.', 'info');
+            logResult('Cloud Name: dgymjtqil', 'info');
+            logResult('API Key: 951533987774134', 'info');
+            logResult('Upload Preset: ml_default', 'info');
+        });
+    </script>
+</body>
+</html>

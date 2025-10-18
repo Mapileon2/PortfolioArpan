@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel Management - Working Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">🎠 Carousel Management</h1>
+                    <p class="text-gray-600">Working carousel management system</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="carouselManager.openUpload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-upload mr-2"></i>Upload Images
+                    </button>
+                    <button onclick="carouselManager.loadImages()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-sync mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Analytics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-600 text-sm font-medium">Total Images</p>
+                            <p id="totalImages" class="text-2xl font-bold text-blue-900">0</p>
+                        </div>
+                        <i class="fas fa-images text-blue-500 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-600 text-sm font-medium">Active</p>
+                            <p id="activeImages" class="text-2xl font-bold text-green-900">0</p>
+                        </div>
+                        <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-yellow-600 text-sm font-medium">Storage</p>
+                            <p id="storageUsed" class="text-2xl font-bold text-yellow-900">0 MB</p>
+                        </div>
+                        <i class="fas fa-hdd text-yellow-500 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-600 text-sm font-medium">Status</p>
+                            <p id="systemStatus" class="text-2xl font-bold text-purple-900">Ready</p>
+                        </div>
+                        <i class="fas fa-check text-purple-500 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>        <!--
+ Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Carousel Items -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Carousel Items</h2>
+                    <div id="carouselItems" class="space-y-4">
+                        <!-- Items will be rendered here -->
+                    </div>
+                    <div id="emptyState" class="text-center py-12">
+                        <i class="fas fa-images text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">No carousel items yet</h3>
+                        <p class="text-gray-500 mb-6">Upload images to start building your carousel</p>
+                        <button onclick="carouselManager.openUpload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-2"></i>Upload First Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview & Controls -->
+            <div class="space-y-6">
+                <!-- Live Preview -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Live Preview</h3>
+                    <div id="carouselPreview" class="bg-gray-100 rounded-lg overflow-hidden h-48">
+                        <div class="h-full flex items-center justify-center text-gray-500">
+                            <div class="text-center">
+                                <i class="fas fa-images text-4xl mb-4"></i>
+                                <p>No active images</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-center space-x-2">
+                        <button onclick="carouselManager.previewPrevious()" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700 transition">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button onclick="carouselManager.toggleAutoplay()" id="autoplayBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                            <i class="fas fa-play mr-1"></i>Auto Play
+                        </button>
+                        <button onclick="carouselManager.previewNext()" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700 transition">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <button onclick="carouselManager.openUpload()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-2"></i>Add Images
+                        </button>
+                        <button onclick="carouselManager.saveOrder()" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-save mr-2"></i>Save Order
+                        </button>
+                        <button onclick="carouselManager.exportData()" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
+                            <i class="fas fa-download mr-2"></i>Export Data
+                        </button>
+                        <button onclick="carouselManager.syncToHomepage()" class="w-full bg-yellow-600 text-white py-2 rounded-lg hover:bg-yellow-700 transition">
+                            <i class="fas fa-sync mr-2"></i>Sync to Homepage
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/carousel-working-manager.js"></script>
+</body>
+</html>

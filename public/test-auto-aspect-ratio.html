@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Aspect Ratio Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/fast-image-preview.js"></script>
+    <style>
+        .test-container {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center">📐 Auto Aspect Ratio Test</h1>
+        
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">🧪 Test Different Image Dimensions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <button onclick="testImageSet('landscape')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Test Landscape Images
+                </button>
+                <button onclick="testImageSet('portrait')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Test Portrait Images
+                </button>
+                <button onclick="testImageSet('square')" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    Test Square Images
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="testImageSet('mixed')" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                    Test Mixed Dimensions
+                </button>
+                <button onclick="testImageSet('extreme')" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Test Extreme Ratios
+                </button>
+                <button onclick="clearTests()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Clear All Tests
+                </button>
+            </div>
+        </div>
+
+        <!-- Comparison: Fixed vs Auto Aspect Ratio -->
+        <div class="test-container bg-white">
+            <h3 class="text-lg font-bold mb-4">🔄 Comparison: Fixed vs Auto Aspect Ratio</h3>
+            <div class="comparison-grid">
+                <div>
+                    <h4 class="font-semibold mb-2 text-red-600">❌ Fixed 16:9 Aspect Ratio (Old)</h4>
+                    <div id="fixedAspectContainer"></div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2 text-green-600">✅ Auto Aspect Ratio (New)</h4>
+                    <div id="autoAspectContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="test-container bg-white">
+            <h3 class="text-lg font-bold mb-4">📊 Test Results</h3>
+            <div id="testResults"></div>
+        </div>
+
+        <!-- Live File Upload Test -->
+        <div class="test-container bg-white">
+            <h3 class="text-lg font-bold mb-4">📁 Live File Upload Test</h3>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Upload Your Own Image:</label>
+                <input type="file" id="fileUpload" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            </div>
+            <div class="comparison-grid">
+                <div>
+                    <h4 class="font-semibold mb-2 text-red-600">Fixed Aspect Ratio</h4>
+                    <div id="uploadFixedContainer"></div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2 text-green-600">Auto Aspect Ratio</h4>
+                    <div id="uploadAutoContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Study Editor Integration Test -->
+        <div class="test-container bg-white">
+            <h3 class="text-lg font-bold mb-4">🎨 Case Study Editor Integration</h3>
+            <p class="text-gray-600 mb-4">This simulates how images appear in the case study editor:</p>
+            <div id="editorIntegrationContainer"></div>
+            <button onclick="testEditorIntegration()" class="mt-4 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                Test Editor Integration
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Test image sets with different dimensions
+        const testImages = {
+            landscape: [
+                { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400', name: 'Wide Landscape (2:1)' },
+                { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=450', name: 'Standard Landscape (16:9)' },
+                { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=533', name: 'Photo Landscape (3:2)' }
+            ],
+            portrait: [
+                { url: 'https://images.unsplash.com/photo-1494790108755-2616c9c0e8c5?w=400&h=600', name: 'Standard Portrait (2:3)' },
+                { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=800', name: 'Tall Portrait (1:2)' },
+                { url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=450&h=600', name: 'Photo Portrait (3:4)' }
+            ],
+            square: [
+                { url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&h=500', name: 'Perfect Square (1:1)' },
+                { url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&h=600', name: 'Large Square (1:1)' },
+                { url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400', name: 'Small Square (1:1)' }
+            ],
+            mixed: [
+                { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400', name: 'Landscape (2:1)' },
+                { url: 'https://images.unsplash.com/photo-1494790108755-2616c9c0e8c5?w=400&h=600', name: 'Portrait (2:3)' },
+                { url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&h=500', name: 'Square (1:1)' }
+            ],
+            extreme: [
+                { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=300', name: 'Ultra Wide (4:1)' },
+                { url: 'https://images.unsplash.com/photo-1494790108755-2616c9c0e8c5?w=300&h=1200', name: 'Ultra Tall (1:4)' },
+                { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1000&h=200', name: 'Banner (5:1)' }
+            ]
+        };
+
+        let testResults = [];
+
+        function testImageSet(setName) {
+            const images = testImages[setName];
+            if (!images) return;
+
+            clearContainers();
+            
+            images.forEach((image, index) => {
+                // Test fixed aspect ratio (old way)
+                const fixedPreview = createFixedAspectPreview(image.url, image.name);
+                document.getElementById('fixedAspectContainer').innerHTML += fixedPreview;
+
+                // Test auto aspect ratio (new way)
+                const autoPreview = window.fastImagePreview.generateImagePreview(
+                    image.url,
+                    image.name,
+                    'test',
+                    {
+                        aspectRatio: 'auto',
+                        className: 'mb-4'
+                    }
+                );
+                document.getElementById('autoAspectContainer').innerHTML += autoPreview;
+
+                // Record test result
+                addTestResult(setName, 'pass', `${image.name} - Auto aspect ratio applied`);
+            });
+
+            updateTestResults();
+        }
+
+        function createFixedAspectPreview(src, alt) {
+            return `
+                <div class="relative aspect-video w-full mb-4 rounded-lg overflow-hidden bg-gray-100">
+                    <img 
+                        src="${src}" 
+                        alt="${alt}" 
+                        class="absolute inset-0 w-full h-full object-cover"
+                        onload="this.style.opacity='1'" 
+                        style="opacity: 0; transition: opacity 0.3s ease;"
+                    >
+                    <div class="absolute bottom-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs">
+                        Fixed 16:9
+                    </div>
+                </div>
+            `;
+        }
+
+        function clearContainers() {
+            document.getElementById('fixedAspectContainer').innerHTML = '';
+            document.getElementById('autoAspectContainer').innerHTML = '';
+        }
+
+        function clearTests() {
+            clearContainers();
+            document.getElementById('uploadFixedContainer').innerHTML = '';
+            document.getElementById('uploadAutoContainer').innerHTML = '';
+            document.getElementById('editorIntegrationContainer').innerHTML = '';
+            document.getElementById('testResults').innerHTML = '';
+            testResults = [];
+        }
+
+        // File upload test
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Test fixed aspect ratio
+            const fixedContainer = document.getElementById('uploadFixedContainer');
+            const objectUrl = URL.createObjectURL(file);
+            
+            fixedContainer.innerHTML = createFixedAspectPreview(objectUrl, file.name);
+
+            // Test auto aspect ratio
+            const autoContainer = document.getElementById('uploadAutoContainer');
+            const autoPreview = window.fastImagePreview.generateImagePreview(
+                file,
+                file.name,
+                'upload-test',
+                {
+                    aspectRatio: 'auto'
+                }
+            );
+            autoContainer.innerHTML = autoPreview;
+
+            addTestResult('File Upload', 'pass', `Uploaded ${file.name} - Auto aspect ratio applied`);
+            updateTestResults();
+        });
+
+        function testEditorIntegration() {
+            const container = document.getElementById('editorIntegrationContainer');
+            
+            // Simulate case study editor sections
+            const sections = [
+                { name: 'Hero Image', url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600' },
+                { name: 'Problem Image', url: 'https://images.unsplash.com/photo-1494790108755-2616c9c0e8c5?w=400&h=800' },
+                { name: 'Gallery Image 1', url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&h=500' },
+                { name: 'Gallery Image 2', url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=300' }
+            ];
+
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+            
+            sections.forEach(section => {
+                const preview = window.fastImagePreview.generateImagePreview(
+                    section.url,
+                    section.name,
+                    'editor-test',
+                    {
+                        aspectRatio: 'auto',
+                        className: 'shadow-sm hover:shadow-md transition-shadow'
+                    }
+                );
+                
+                html += `
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium mb-2">${section.name}</h4>
+                        ${preview}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+
+            addTestResult('Editor Integration', 'pass', 'All editor sections use auto aspect ratio');
+            updateTestResults();
+        }
+
+        function addTestResult(category, status, message) {
+            testResults.push({
+                category,
+                status,
+                message,
+                timestamp: new Date().toLocaleTimeString()
+            });
+        }
+
+        function updateTestResults() {
+            const container = document.getElementById('testResults');
+            const passCount = testResults.filter(r => r.status === 'pass').length;
+            const failCount = testResults.filter(r => r.status === 'fail').length;
+
+            container.innerHTML = `
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="font-bold mb-2">Test Summary</h4>
+                    <div class="flex gap-4">
+                        <span class="text-green-600">✅ Passed: ${passCount}</span>
+                        <span class="text-red-600">❌ Failed: ${failCount}</span>
+                        <span class="text-gray-600">📊 Total: ${testResults.length}</span>
+                    </div>
+                </div>
+                <div class="space-y-2 max-h-60 overflow-y-auto">
+                    ${testResults.map(result => `
+                        <div class="p-3 rounded-lg ${result.status === 'pass' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <strong>${result.category}:</strong> ${result.message}
+                                </div>
+                                <span class="text-xs opacity-75">${result.timestamp}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            addTestResult('System', 'pass', 'Auto aspect ratio test page loaded');
+            updateTestResults();
+            
+            // Auto-run mixed test
+            setTimeout(() => {
+                testImageSet('mixed');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

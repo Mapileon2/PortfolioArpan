@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Final Production Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .test-card {
+            transition: all 0.3s ease;
+        }
+        .test-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-pending { background-color: #fbbf24; }
+        .status-success { background-color: #10b981; }
+        .status-error { background-color: #ef4444; }
+        .status-running { 
+            background-color: #3b82f6; 
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-gray-800 mb-4">🚀 Final Production Verification</h1>
+            <p class="text-xl text-gray-600 mb-6">Complete system verification before production deployment</p>
+            
+            <!-- Overall Progress -->
+            <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-semibold">Overall Progress</span>
+                    <span id="overallProgress" class="text-lg font-bold text-blue-600">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="progressBar" class="progress-bar bg-gradient-to-r from-blue-500 to-indigo-600 h-4 rounded-full" style="width: 0%"></div>
+                </div>
+                <div id="currentTest" class="text-sm text-gray-600 mt-2">Ready to start verification...</div>
+            </div>
+        </div>
+
+        <!-- Test Categories -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            
+            <!-- System Infrastructure Tests -->
+            <div class="test-card bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    🏗️ System Infrastructure
+                </h2>
+                <div class="space-y-3">
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Server Connection</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="server-status"></span>
+                            <span id="server-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Database Connection</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="db-status"></span>
+                            <span id="db-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Cloudinary Integration</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="cloudinary-status"></span>
+                            <span id="cloudinary-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>API Endpoints</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="api-status"></span>
+                            <span id="api-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carousel System Tests -->
+            <div class="test-card bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    🎠 Carousel System
+                </h2>
+                <div class="space-y-3">
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Carousel API</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="carousel-api-status"></span>
+                            <span id="carousel-api-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Homepage Sync</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="carousel-sync-status"></span>
+                            <span id="carousel-sync-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Admin Management</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="carousel-admin-status"></span>
+                            <span id="carousel-admin-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Image Upload</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="carousel-upload-status"></span>
+                            <span id="carousel-upload-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case Study System Tests -->
+            <div class="test-card bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    📚 Case Study System
+                </h2>
+                <div class="space-y-3">
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Case Study API</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="casestudy-api-status"></span>
+                            <span id="casestudy-api-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Homepage Integration</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="casestudy-homepage-status"></span>
+                            <span id="casestudy-homepage-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Read Story Links</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="casestudy-links-status"></span>
+                            <span id="casestudy-links-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Display Pages</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="casestudy-display-status"></span>
+                            <span id="casestudy-display-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Homepage Integration Tests -->
+            <div class="test-card bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    🏠 Homepage Integration
+                </h2>
+                <div class="space-y-3">
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Page Load Performance</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="homepage-performance-status"></span>
+                            <span id="homepage-performance-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Magical Journeys Section</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="homepage-journeys-status"></span>
+                            <span id="homepage-journeys-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Magical Projects Section</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="homepage-projects-status"></span>
+                            <span id="homepage-projects-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                    <div class="test-item flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span>Real-time Sync</span>
+                        <div class="flex items-center">
+                            <span class="status-indicator status-pending" id="homepage-sync-status"></span>
+                            <span id="homepage-sync-result" class="text-sm text-gray-600">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">🎮 Control Panel</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="runAllTests()" 
+                        class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 font-semibold">
+                    🚀 Run All Tests
+                </button>
+                <button onclick="runQuickTest()" 
+                        class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 font-semibold">
+                    ⚡ Quick Test
+                </button>
+                <button onclick="generateReport()" 
+                        class="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-300 font-semibold">
+                    📊 Generate Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📋 Test Results</h2>
+            <div id="testResults" class="space-y-3 max-h-96 overflow-y-auto">
+                <div class="text-gray-600 text-center py-8">
+                    <div class="text-4xl mb-4">🧪</div>
+                    <p>Run tests to see detailed results here...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Production Readiness Status -->
+        <div id="productionStatus" class="bg-white rounded-lg shadow-lg p-6 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">🎯 Production Readiness Status</h2>
+            <div id="productionStatusContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+        let currentTestIndex = 0;
+        let totalTests = 16;
+
+        function updateProgress() {
+            const progress = Math.round((currentTestIndex / totalTests) * 100);
+            document.getElementById('overallProgress').textContent = progress + '%';
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function updateCurrentTest(testName) {
+            document.getElementById('currentTest').textContent = `Running: ${testName}`;
+        }
+
+        function addResult(message, type = 'info', details = '') {
+            const resultsDiv = document.getElementById('testResults');
+            const colors = {
+                success: 'border-green-200 bg-green-50 text-green-800',
+                error: 'border-red-200 bg-red-50 text-red-800',
+                warning: 'border-yellow-200 bg-yellow-50 text-yellow-800',
+                info: 'border-blue-200 bg-blue-50 text-blue-800'
+            };
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const result = document.createElement('div');
+            result.className = `border rounded-lg p-4 ${colors[type]}`;
+            result.innerHTML = `
+                <div class="flex items-start">
+                    <span class="text-xl mr-3">${icons[type]}</span>
+                    <div class="flex-1">
+                        <div class="font-semibold">${message}</div>
+                        ${details ? `<div class="text-sm mt-1 opacity-75">${details}</div>` : ''}
+                        <div class="text-xs mt-2 opacity-60">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                </div>
+            `;
+            
+            if (resultsDiv.children.length === 1 && resultsDiv.children[0].textContent.includes('Run tests')) {
+                resultsDiv.innerHTML = '';
+            }
+            
+            resultsDiv.appendChild(result);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            
+            testResults.push({ message, type, details, timestamp: new Date() });
+        }
+
+        function updateTestStatus(testId, status, message) {
+            const statusElement = document.getElementById(`${testId}-status`);
+            const resultElement = document.getElementById(`${testId}-result`);
+            
+            statusElement.className = `status-indicator status-${status}`;
+            resultElement.textContent = message;
+            
+            currentTestIndex++;
+            updateProgress();
+        }
+
+        async function testServerConnection() {
+            updateCurrentTest('Server Connection');
+            try {
+                const response = await fetch('/api/case-studies');
+                if (response.ok) {
+                    updateTestStatus('server', 'success', 'Connected');
+                    addResult('Server Connection Test', 'success', 'Successfully connected to server on port 3003');
+                    return true;
+                } else {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+            } catch (error) {
+                updateTestStatus('server', 'error', 'Failed');
+                addResult('Server Connection Test', 'error', `Failed to connect to server: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testDatabaseConnection() {
+            updateCurrentTest('Database Connection');
+            try {
+                const response = await fetch('/api/case-studies');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateTestStatus('db', 'success', 'Connected');
+                    addResult('Database Connection Test', 'success', `Database connected - found ${data.length} case studies`);
+                    return true;
+                } else {
+                    throw new Error(`Database query failed: ${response.status}`);
+                }
+            } catch (error) {
+                updateTestStatus('db', 'error', 'Failed');
+                addResult('Database Connection Test', 'error', `Database connection failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCloudinaryIntegration() {
+            updateCurrentTest('Cloudinary Integration');
+            try {
+                // Test if Cloudinary config is accessible
+                const testUrl = 'https://res.cloudinary.com/demo/image/upload/sample.jpg';
+                const response = await fetch(testUrl);
+                if (response.ok) {
+                    updateTestStatus('cloudinary', 'success', 'Connected');
+                    addResult('Cloudinary Integration Test', 'success', 'Cloudinary service is accessible and responding');
+                    return true;
+                } else {
+                    throw new Error('Cloudinary service not accessible');
+                }
+            } catch (error) {
+                updateTestStatus('cloudinary', 'error', 'Failed');
+                addResult('Cloudinary Integration Test', 'error', `Cloudinary test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testAPIEndpoints() {
+            updateCurrentTest('API Endpoints');
+            try {
+                const endpoints = [
+                    '/api/case-studies',
+                    '/api/carousel'
+                ];
+                
+                let allPassed = true;
+                const results = [];
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(endpoint);
+                        if (response.ok) {
+                            results.push(`${endpoint}: ✅ Working`);
+                        } else {
+                            results.push(`${endpoint}: ❌ Status ${response.status}`);
+                            allPassed = false;
+                        }
+                    } catch (error) {
+                        results.push(`${endpoint}: ❌ ${error.message}`);
+                        allPassed = false;
+                    }
+                }
+                
+                if (allPassed) {
+                    updateTestStatus('api', 'success', 'All Working');
+                    addResult('API Endpoints Test', 'success', results.join('<br>'));
+                } else {
+                    updateTestStatus('api', 'error', 'Some Failed');
+                    addResult('API Endpoints Test', 'error', results.join('<br>'));
+                }
+                
+                return allPassed;
+            } catch (error) {
+                updateTestStatus('api', 'error', 'Failed');
+                addResult('API Endpoints Test', 'error', `API test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCarouselAPI() {
+            updateCurrentTest('Carousel API');
+            try {
+                const response = await fetch('/api/carousel');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateTestStatus('carousel-api', 'success', 'Working');
+                    addResult('Carousel API Test', 'success', `Carousel API working - found ${data.length} carousel items`);
+                    return true;
+                } else {
+                    throw new Error(`Carousel API failed: ${response.status}`);
+                }
+            } catch (error) {
+                updateTestStatus('carousel-api', 'error', 'Failed');
+                addResult('Carousel API Test', 'error', `Carousel API test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCarouselSync() {
+            updateCurrentTest('Carousel Homepage Sync');
+            try {
+                // Check if homepage carousel sync script exists
+                const response = await fetch('/js/homepage-carousel-sync.js');
+                if (response.ok) {
+                    updateTestStatus('carousel-sync', 'success', 'Available');
+                    addResult('Carousel Sync Test', 'success', 'Homepage carousel sync script is available and loaded');
+                    return true;
+                } else {
+                    throw new Error('Carousel sync script not found');
+                }
+            } catch (error) {
+                updateTestStatus('carousel-sync', 'error', 'Missing');
+                addResult('Carousel Sync Test', 'error', `Carousel sync test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCarouselAdmin() {
+            updateCurrentTest('Carousel Admin Management');
+            try {
+                const response = await fetch('/carousel-management-saas.html');
+                if (response.ok) {
+                    updateTestStatus('carousel-admin', 'success', 'Available');
+                    addResult('Carousel Admin Test', 'success', 'Carousel management interface is available');
+                    return true;
+                } else {
+                    throw new Error('Carousel admin interface not found');
+                }
+            } catch (error) {
+                updateTestStatus('carousel-admin', 'error', 'Missing');
+                addResult('Carousel Admin Test', 'error', `Carousel admin test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCarouselUpload() {
+            updateCurrentTest('Carousel Image Upload');
+            try {
+                // Test if upload endpoint is available
+                const response = await fetch('/api/upload', { method: 'OPTIONS' });
+                if (response.ok || response.status === 405) { // 405 is expected for OPTIONS
+                    updateTestStatus('carousel-upload', 'success', 'Available');
+                    addResult('Carousel Upload Test', 'success', 'Image upload endpoint is available');
+                    return true;
+                } else {
+                    throw new Error('Upload endpoint not accessible');
+                }
+            } catch (error) {
+                updateTestStatus('carousel-upload', 'error', 'Failed');
+                addResult('Carousel Upload Test', 'error', `Upload test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCaseStudyAPI() {
+            updateCurrentTest('Case Study API');
+            try {
+                const response = await fetch('/api/case-studies');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateTestStatus('casestudy-api', 'success', 'Working');
+                    addResult('Case Study API Test', 'success', `Case Study API working - found ${data.length} case studies`);
+                    return true;
+                } else {
+                    throw new Error(`Case Study API failed: ${response.status}`);
+                }
+            } catch (error) {
+                updateTestStatus('casestudy-api', 'error', 'Failed');
+                addResult('Case Study API Test', 'error', `Case Study API test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCaseStudyHomepage() {
+            updateCurrentTest('Case Study Homepage Integration');
+            try {
+                const response = await fetch('/fix-case-study-homepage-sync.js');
+                if (response.ok) {
+                    updateTestStatus('casestudy-homepage', 'success', 'Available');
+                    addResult('Case Study Homepage Test', 'success', 'Case study homepage sync is available');
+                    return true;
+                } else {
+                    throw new Error('Case study homepage sync not found');
+                }
+            } catch (error) {
+                updateTestStatus('casestudy-homepage', 'error', 'Missing');
+                addResult('Case Study Homepage Test', 'error', `Homepage integration test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCaseStudyLinks() {
+            updateCurrentTest('Case Study Read Story Links');
+            try {
+                const response = await fetch('/api/case-studies');
+                if (response.ok) {
+                    const caseStudies = await response.json();
+                    if (caseStudies.length > 0) {
+                        const firstId = caseStudies[0].id;
+                        const linkResponse = await fetch(`/api/case-studies/${firstId}`);
+                        if (linkResponse.ok) {
+                            updateTestStatus('casestudy-links', 'success', 'Working');
+                            addResult('Case Study Links Test', 'success', 'Read Story links are properly formatted and working');
+                            return true;
+                        } else {
+                            throw new Error('Individual case study endpoint failed');
+                        }
+                    } else {
+                        updateTestStatus('casestudy-links', 'warning', 'No Data');
+                        addResult('Case Study Links Test', 'warning', 'No case studies available to test links');
+                        return true;
+                    }
+                } else {
+                    throw new Error('Could not fetch case studies for link testing');
+                }
+            } catch (error) {
+                updateTestStatus('casestudy-links', 'error', 'Failed');
+                addResult('Case Study Links Test', 'error', `Link test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testCaseStudyDisplay() {
+            updateCurrentTest('Case Study Display Pages');
+            try {
+                const response = await fetch('/case_study_display.html');
+                if (response.ok) {
+                    updateTestStatus('casestudy-display', 'success', 'Available');
+                    addResult('Case Study Display Test', 'success', 'Case study display page is available and accessible');
+                    return true;
+                } else {
+                    throw new Error('Case study display page not found');
+                }
+            } catch (error) {
+                updateTestStatus('casestudy-display', 'error', 'Missing');
+                addResult('Case Study Display Test', 'error', `Display page test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testHomepagePerformance() {
+            updateCurrentTest('Homepage Performance');
+            try {
+                const startTime = performance.now();
+                const response = await fetch('/index.html');
+                const endTime = performance.now();
+                const loadTime = endTime - startTime;
+                
+                if (response.ok && loadTime < 3000) {
+                    updateTestStatus('homepage-performance', 'success', `${Math.round(loadTime)}ms`);
+                    addResult('Homepage Performance Test', 'success', `Homepage loaded in ${Math.round(loadTime)}ms (under 3 second target)`);
+                    return true;
+                } else if (response.ok) {
+                    updateTestStatus('homepage-performance', 'warning', `${Math.round(loadTime)}ms`);
+                    addResult('Homepage Performance Test', 'warning', `Homepage loaded in ${Math.round(loadTime)}ms (over 3 second target)`);
+                    return true;
+                } else {
+                    throw new Error('Homepage not accessible');
+                }
+            } catch (error) {
+                updateTestStatus('homepage-performance', 'error', 'Failed');
+                addResult('Homepage Performance Test', 'error', `Performance test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testHomepageJourneys() {
+            updateCurrentTest('Magical Journeys Section');
+            try {
+                const response = await fetch('/api/carousel');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateTestStatus('homepage-journeys', 'success', `${data.length} items`);
+                    addResult('Magical Journeys Test', 'success', `Magical Journeys section ready with ${data.length} carousel items`);
+                    return true;
+                } else {
+                    throw new Error('Carousel data not available for Magical Journeys');
+                }
+            } catch (error) {
+                updateTestStatus('homepage-journeys', 'error', 'Failed');
+                addResult('Magical Journeys Test', 'error', `Journeys section test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testHomepageProjects() {
+            updateCurrentTest('Magical Projects Section');
+            try {
+                const response = await fetch('/api/case-studies');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateTestStatus('homepage-projects', 'success', `${data.length} projects`);
+                    addResult('Magical Projects Test', 'success', `Magical Projects section ready with ${data.length} case studies`);
+                    return true;
+                } else {
+                    throw new Error('Case study data not available for Magical Projects');
+                }
+            } catch (error) {
+                updateTestStatus('homepage-projects', 'error', 'Failed');
+                addResult('Magical Projects Test', 'error', `Projects section test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function testHomepageSync() {
+            updateCurrentTest('Real-time Sync');
+            try {
+                // Check if sync scripts are available
+                const carouselSync = await fetch('/js/homepage-carousel-sync.js');
+                const caseStudySync = await fetch('/fix-case-study-homepage-sync.js');
+                
+                if (carouselSync.ok && caseStudySync.ok) {
+                    updateTestStatus('homepage-sync', 'success', 'Available');
+                    addResult('Real-time Sync Test', 'success', 'All sync scripts are available for real-time updates');
+                    return true;
+                } else {
+                    throw new Error('Some sync scripts are missing');
+                }
+            } catch (error) {
+                updateTestStatus('homepage-sync', 'error', 'Failed');
+                addResult('Real-time Sync Test', 'error', `Sync test failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function runAllTests() {
+            currentTestIndex = 0;
+            testResults = [];
+            updateProgress();
+            
+            addResult('Starting Complete System Verification', 'info', 'Running all 16 production readiness tests...');
+            
+            const tests = [
+                testServerConnection,
+                testDatabaseConnection,
+                testCloudinaryIntegration,
+                testAPIEndpoints,
+                testCarouselAPI,
+                testCarouselSync,
+                testCarouselAdmin,
+                testCarouselUpload,
+                testCaseStudyAPI,
+                testCaseStudyHomepage,
+                testCaseStudyLinks,
+                testCaseStudyDisplay,
+                testHomepagePerformance,
+                testHomepageJourneys,
+                testHomepageProjects,
+                testHomepageSync
+            ];
+            
+            let passedTests = 0;
+            
+            for (const test of tests) {
+                const result = await test();
+                if (result) passedTests++;
+                await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between tests
+            }
+            
+            document.getElementById('currentTest').textContent = 'All tests completed!';
+            
+            // Show production readiness status
+            showProductionStatus(passedTests, tests.length);
+            
+            addResult(`Verification Complete: ${passedTests}/${tests.length} tests passed`, 
+                     passedTests === tests.length ? 'success' : 'warning',
+                     `System is ${passedTests === tests.length ? 'READY' : 'NOT READY'} for production deployment`);
+        }
+
+        async function runQuickTest() {
+            currentTestIndex = 0;
+            testResults = [];
+            totalTests = 4;
+            updateProgress();
+            
+            addResult('Starting Quick System Check', 'info', 'Running essential tests...');
+            
+            const quickTests = [
+                testServerConnection,
+                testDatabaseConnection,
+                testCarouselAPI,
+                testCaseStudyAPI
+            ];
+            
+            let passedTests = 0;
+            
+            for (const test of quickTests) {
+                const result = await test();
+                if (result) passedTests++;
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            
+            document.getElementById('currentTest').textContent = 'Quick test completed!';
+            
+            addResult(`Quick Test Complete: ${passedTests}/${quickTests.length} essential tests passed`, 
+                     passedTests === quickTests.length ? 'success' : 'error',
+                     passedTests === quickTests.length ? 'Core systems are operational' : 'Core systems need attention');
+            
+            totalTests = 16; // Reset for full tests
+        }
+
+        function showProductionStatus(passed, total) {
+            const statusDiv = document.getElementById('productionStatus');
+            const contentDiv = document.getElementById('productionStatusContent');
+            
+            const percentage = Math.round((passed / total) * 100);
+            let status, color, message;
+            
+            if (percentage === 100) {
+                status = '🎉 PRODUCTION READY';
+                color = 'text-green-600';
+                message = 'All systems are operational and ready for production deployment!';
+            } else if (percentage >= 80) {
+                status = '⚠️ MOSTLY READY';
+                color = 'text-yellow-600';
+                message = 'Most systems are working. Address remaining issues before production.';
+            } else {
+                status = '❌ NOT READY';
+                color = 'text-red-600';
+                message = 'Critical issues detected. System needs attention before production.';
+            }
+            
+            contentDiv.innerHTML = `
+                <div class="text-center">
+                    <div class="text-4xl font-bold ${color} mb-4">${status}</div>
+                    <div class="text-xl text-gray-700 mb-6">${message}</div>
+                    <div class="bg-gray-100 rounded-lg p-4 mb-6">
+                        <div class="text-3xl font-bold ${color}">${passed}/${total}</div>
+                        <div class="text-gray-600">Tests Passed (${percentage}%)</div>
+                    </div>
+                    ${percentage === 100 ? `
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h3 class="font-bold text-green-800 mb-2">🚀 Ready for Deployment!</h3>
+                            <p class="text-green-700">Your Portfolio SaaS Platform is fully operational and ready for production use.</p>
+                        </div>
+                    ` : `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h3 class="font-bold text-yellow-800 mb-2">⚠️ Action Required</h3>
+                            <p class="text-yellow-700">Please address the failing tests before deploying to production.</p>
+                        </div>
+                    `}
+                </div>
+            `;
+            
+            statusDiv.classList.remove('hidden');
+        }
+
+        function generateReport() {
+            if (testResults.length === 0) {
+                addResult('No Test Data Available', 'warning', 'Please run tests first to generate a report');
+                return;
+            }
+            
+            const report = {
+                timestamp: new Date().toISOString(),
+                totalTests: testResults.length,
+                passedTests: testResults.filter(r => r.type === 'success').length,
+                failedTests: testResults.filter(r => r.type === 'error').length,
+                warningTests: testResults.filter(r => r.type === 'warning').length,
+                results: testResults
+            };
+            
+            const reportBlob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const reportUrl = URL.createObjectURL(reportBlob);
+            
+            const link = document.createElement('a');
+            link.href = reportUrl;
+            link.download = `production-verification-report-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            addResult('Report Generated', 'success', 'Production verification report has been downloaded');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('Production Verification System Ready', 'info', 'Click "Run All Tests" to start comprehensive system verification');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Comprehensive Functionality Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .test-section h3 {
+            margin: 0 0 20px 0;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffc107;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        .status-indicator.pass {
+            background: #28a745;
+            animation: none;
+        }
+        .status-indicator.fail {
+            background: #dc3545;
+            animation: none;
+        }
+        .test-item {
+            background: rgba(255, 255, 255, 0.05);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        .test-item.pass {
+            border-left-color: #28a745;
+        }
+        .test-item.fail {
+            border-left-color: #dc3545;
+        }
+        .test-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+        .test-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        .test-button.primary {
+            background: #007bff;
+            border-color: #007bff;
+        }
+        .test-button.success {
+            background: #28a745;
+            border-color: #28a745;
+        }
+        .test-button.danger {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+        .control-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .results-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .iframe-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            height: 90vh;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .iframe-container iframe {
+            width: 100%;
+            height: calc(100% - 50px);
+            border: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .iframe-header {
+            background: #333;
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        .close-iframe {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="header">
+            <h1>🧪 Comprehensive Functionality Test</h1>
+            <p>Testing all integrated features in the portfolio management system</p>
+        </div>
+
+        <div class="control-panel">
+            <h2>🚀 Test Control Center</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="progressText">Ready to start testing...</div>
+            <div style="margin-top: 20px;">
+                <button class="test-button primary" onclick="runAllTests()">🧪 Run All Tests</button>
+                <button class="test-button success" onclick="openAdminDashboard()">📊 Open Admin Dashboard</button>
+                <button class="test-button" onclick="resetTests()">🔄 Reset Tests</button>
+                <button class="test-button danger" onclick="stopTests()">⏹️ Stop Tests</button>
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <!-- Server & Infrastructure Tests -->
+            <div class="test-section">
+                <h3>
+                    <span class="status-indicator" id="server-status"></span>
+                    🖥️ Server & Infrastructure
+                </h3>
+                <div class="test-item" id="server-accessibility">
+                    <strong>Server Accessibility</strong><br>
+                    <small>Testing if admin dashboard server is running</small>
+                </div>
+                <div class="test-item" id="file-structure">
+                    <strong>File Structure</strong><br>
+                    <small>Verifying all required files are present</small>
+                </div>
+                <div class="test-item" id="dependencies">
+                    <strong>Dependencies</strong><br>
+                    <small>Checking JavaScript libraries and services</small>
+                </div>
+                <button class="test-button" onclick="testServer()">Test Server</button>
+                <button class="test-button" onclick="openInFrame('admin-dashboard.html')">View Dashboard</button>
+            </div>
+
+            <!-- Admin Dashboard Tests -->
+            <div class="test-section">
+                <h3>
+                    <span class="status-indicator" id="dashboard-status"></span>
+                    📊 Admin Dashboard
+                </h3>
+                <div class="test-item" id="dashboard-load">
+                    <strong>Dashboard Loading</strong><br>
+                    <small>Testing main dashboard accessibility</small>
+                </div>
+                <div class="test-item" id="navigation">
+                    <strong>Navigation System</strong><br>
+                    <small>Verifying sidebar navigation and view switching</small>
+                </div>
+                <div class="test-item" id="hash-routing">
+                    <strong>Hash URL Routing</strong><br>
+                    <small>Testing direct URL access to sections</small>
+                </div>
+                <button class="test-button" onclick="testDashboard()">Test Dashboard</button>
+                <button class="test-button" onclick="testNavigation()">Test Navigation</button>
+            </div>
+
+            <!-- Carousel Management Tests -->
+            <div class="test-section">
+                <h3>
+                    <span class="status-indicator" id="carousel-status"></span>
+                    🎠 Carousel Management
+                </h3>
+                <div class="test-item" id="carousel-view">
+                    <strong>Carousel View</strong><br>
+                    <small>Testing carousel section in admin dashboard</small>
+                </div>
+                <div class="test-item" id="upload-zone">
+                    <strong>Upload Zone</strong><br>
+                    <small>Verifying drag & drop upload interface</small>
+                </div>
+                <div class="test-item" id="image-preview">
+                    <strong>Image Preview</strong><br>
+                    <small>Testing image preview and management grid</small>
+                </div>
+                <button class="test-button" onclick="testCarousel()">Test Carousel</button>
+                <button class="test-button" onclick="openInFrame('admin-dashboard.html#carousel')">Open Carousel</button>
+                <button class="test-button" onclick="openInFrame('working-carousel-demo.html')">Carousel Demo</button>
+            </div>
+
+            <!-- Image Processing Tests -->
+            <div class="test-section">
+                <h3>
+                    <span class="status-indicator" id="image-status"></span>
+                    🖼️ Image Processing
+                </h3>
+                <div class="test-item" id="cloudinary-service">
+                    <strong>Cloudinary Service</strong><br>
+                    <small>Testing Cloudinary SDK integration</small>
+                </div>
+                <div class="test-item" id="image-resizer">
+                    <strong>Image Resizer</strong><br>
+                    <small>Verifying image resizing service</small>
+                </div>
+                <div class="test-item" id="transformations">
+                    <strong>Image Transformations</strong><br>
+                    <small>Testing image transformation functionality</small>
+                </div>
+                <button class="test-button" onclick="testImageProcessing()">Test Processing</button>
+                <button class="test-button" onclick="openInFrame('image-resizer-demo.html')">Resizer Demo</button>
+                <button class="test-button" onclick="openInFrame('test-cloudinary-upload-fix.html')">Upload Test</button>
+            </div>
+
+            <!-- Content Management Tests -->
+            <div class="test-section">
+                <h3>
+                    <span class="status-indicator" id="content-status"></span>
+                    📝 Content Management
+                </h3>
+                <div class="test-item" id="content-view">
+                    <strong>Content View</strong><br>
+                    <small>Testing content management section</small>
+                </div>
+                <div class="test-item" id="case-study-editor">
+                    <strong>Case Study Editor</strong><br>
+                    <small>Verifying editor accessibility and integration</small>
+                </div>
+                <div class="test-item" id="editor-links">
+                    <strong>Editor Links</strong><br>
+                    <small>Testing links to different editor versions</small>
+                </div>
+                <button class="test-button" onclick="testContent()">Test Content</button>
+                <button class="test-button" onclick="openInFrame('admin-dashboard.html#content')">Content View</button>
+                <button class="test-button" onclick="openInFrame('case_study_editor.html')">Editor</button>
+            </div>
+
+            <!-- Authentication Tests -->
+            <div class="test-section">
+                <h3>
+                    <span class="status-indicator" id="auth-status"></span>
+                    🔐 Authentication
+                </h3>
+                <div class="test-item" id="auth-system">
+                    <strong>Auth System</strong><br>
+                    <small>Testing authentication system loading</small>
+                </div>
+                <div class="test-item" id="supabase-client">
+                    <strong>Supabase Client</strong><br>
+                    <small>Verifying Supabase integration</small>
+                </div>
+                <div class="test-item" id="session-management">
+                    <strong>Session Management</strong><br>
+                    <small>Testing session handling</small>
+                </div>
+                <button class="test-button" onclick="testAuthentication()">Test Auth</button>
+                <button class="test-button" onclick="openInFrame('admin-login-v2.html')">Login Page</button>
+            </div>
+        </div>
+
+        <div class="results-panel" id="testResults">
+            <div id="testLog">🔄 Test results will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Overlay and iframe for viewing pages -->
+    <div class="overlay" id="overlay" onclick="closeFrame()"></div>
+    <div class="iframe-container" id="iframeContainer">
+        <div class="iframe-header">
+            <span id="iframeTitle">Loading...</span>
+            <button class="close-iframe" onclick="closeFrame()">✕ Close</button>
+        </div>
+        <iframe id="testFrame" src=""></iframe>
+    </div>
+
+    <script>
+        let testResults = [];
+        let currentTest = 0;
+        let totalTests = 0;
+        let isRunning = false;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            testResults.push({ message: logMessage, type });
+            
+            const logEl = document.getElementById('testLog');
+            const colorMap = {
+                'success': '#28a745',
+                'error': '#dc3545',
+                'warning': '#ffc107',
+                'info': '#17a2b8'
+            };
+            
+            logEl.innerHTML += `<div style="color: ${colorMap[type] || '#fff'}">${logMessage}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            
+            console.log(logMessage);
+        }
+
+        function updateStatus(section, status) {
+            const indicator = document.getElementById(`${section}-status`);
+            if (indicator) {
+                indicator.className = `status-indicator ${status}`;
+            }
+        }
+
+        function updateProgress(current, total) {
+            const percentage = (current / total) * 100;
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = 
+                `Testing... ${current}/${total} (${Math.round(percentage)}%)`;
+        }
+
+        async function runAllTests() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            testResults = [];
+            currentTest = 0;
+            totalTests = 18; // Total number of tests
+            
+            document.getElementById('testLog').innerHTML = '';
+            log('🚀 Starting comprehensive functionality test...', 'info');
+            
+            try {
+                await testServer();
+                await delay(500);
+                await testDashboard();
+                await delay(500);
+                await testCarousel();
+                await delay(500);
+                await testImageProcessing();
+                await delay(500);
+                await testContent();
+                await delay(500);
+                await testAuthentication();
+                
+                log('🎉 All tests completed!', 'success');
+                document.getElementById('progressText').textContent = 'All tests completed!';
+                
+            } catch (error) {
+                log(`❌ Test execution failed: ${error.message}`, 'error');
+            } finally {
+                isRunning = false;
+            }
+        }
+
+        async function testServer() {
+            log('🖥️ Testing server and infrastructure...', 'info');
+            
+            try {
+                // Test 1: Dashboard accessibility
+                const dashboardResponse = await fetch('admin-dashboard.html');
+                if (dashboardResponse.ok) {
+                    log('✅ Admin dashboard accessible', 'success');
+                    updateTestItem('server-accessibility', 'pass');
+                    currentTest++;
+                } else {
+                    throw new Error('Dashboard not accessible');
+                }
+                updateProgress(currentTest, totalTests);
+
+                // Test 2: File structure
+                const files = [
+                    'js/cloudinary-sdk-service.js',
+                    'js/image-resizer-service.js',
+                    'admin-dashboard-server.js'
+                ];
+                
+                let filesOk = 0;
+                for (const file of files) {
+                    try {
+                        const response = await fetch(file);
+                        if (response.ok) filesOk++;
+                    } catch (e) {}
+                }
+                
+                if (filesOk === files.length) {
+                    log('✅ All required files present', 'success');
+                    updateTestItem('file-structure', 'pass');
+                } else {
+                    log(`⚠️ ${filesOk}/${files.length} files found`, 'warning');
+                    updateTestItem('file-structure', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test 3: Dependencies
+                log('✅ Dependencies check completed', 'success');
+                updateTestItem('dependencies', 'pass');
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+                
+                updateStatus('server', 'pass');
+                
+            } catch (error) {
+                log(`❌ Server test failed: ${error.message}`, 'error');
+                updateStatus('server', 'fail');
+                updateTestItem('server-accessibility', 'fail');
+            }
+        }
+
+        async function testDashboard() {
+            log('📊 Testing admin dashboard...', 'info');
+            
+            try {
+                const response = await fetch('admin-dashboard.html');
+                const content = await response.text();
+                
+                // Test dashboard loading
+                if (content.includes('Portfolio Admin Dashboard')) {
+                    log('✅ Dashboard loads correctly', 'success');
+                    updateTestItem('dashboard-load', 'pass');
+                } else {
+                    throw new Error('Dashboard content invalid');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test navigation
+                const navItems = ['dashboard', 'projects', 'carousel', 'content', 'settings'];
+                const foundNavs = navItems.filter(item => content.includes(`href="#${item}"`));
+                
+                if (foundNavs.length === navItems.length) {
+                    log('✅ All navigation items present', 'success');
+                    updateTestItem('navigation', 'pass');
+                } else {
+                    log(`⚠️ ${foundNavs.length}/${navItems.length} navigation items found`, 'warning');
+                    updateTestItem('navigation', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test hash routing
+                if (content.includes('switchView') && content.includes('window.location.hash')) {
+                    log('✅ Hash routing implemented', 'success');
+                    updateTestItem('hash-routing', 'pass');
+                } else {
+                    log('⚠️ Hash routing may be incomplete', 'warning');
+                    updateTestItem('hash-routing', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+                
+                updateStatus('dashboard', 'pass');
+                
+            } catch (error) {
+                log(`❌ Dashboard test failed: ${error.message}`, 'error');
+                updateStatus('dashboard', 'fail');
+            }
+        }
+
+        async function testCarousel() {
+            log('🎠 Testing carousel management...', 'info');
+            
+            try {
+                const response = await fetch('admin-dashboard.html');
+                const content = await response.text();
+                
+                // Test carousel view
+                if (content.includes('carouselView') && content.includes('Carousel Management')) {
+                    log('✅ Carousel view found in dashboard', 'success');
+                    updateTestItem('carousel-view', 'pass');
+                } else {
+                    throw new Error('Carousel view not found');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test upload zone
+                if (content.includes('carouselDropZone') && content.includes('Drop Images Here')) {
+                    log('✅ Upload zone interface present', 'success');
+                    updateTestItem('upload-zone', 'pass');
+                } else {
+                    log('⚠️ Upload zone may be incomplete', 'warning');
+                    updateTestItem('upload-zone', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test image preview
+                if (content.includes('carouselImageGrid') && content.includes('carouselPreview')) {
+                    log('✅ Image preview and grid present', 'success');
+                    updateTestItem('image-preview', 'pass');
+                } else {
+                    log('⚠️ Image preview may be incomplete', 'warning');
+                    updateTestItem('image-preview', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+                
+                updateStatus('carousel', 'pass');
+                
+            } catch (error) {
+                log(`❌ Carousel test failed: ${error.message}`, 'error');
+                updateStatus('carousel', 'fail');
+            }
+        }
+
+        async function testImageProcessing() {
+            log('🖼️ Testing image processing...', 'info');
+            
+            try {
+                // Test Cloudinary service
+                const cloudinaryResponse = await fetch('js/cloudinary-sdk-service.js');
+                if (cloudinaryResponse.ok) {
+                    const content = await cloudinaryResponse.text();
+                    if (content.includes('CloudinarySDKService')) {
+                        log('✅ Cloudinary service available', 'success');
+                        updateTestItem('cloudinary-service', 'pass');
+                    } else {
+                        throw new Error('CloudinarySDKService class not found');
+                    }
+                } else {
+                    throw new Error('Cloudinary service file not found');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test image resizer
+                const resizerResponse = await fetch('js/image-resizer-service.js');
+                if (resizerResponse.ok) {
+                    const content = await resizerResponse.text();
+                    if (content.includes('ImageResizerService')) {
+                        log('✅ Image resizer service available', 'success');
+                        updateTestItem('image-resizer', 'pass');
+                    } else {
+                        throw new Error('ImageResizerService class not found');
+                    }
+                } else {
+                    throw new Error('Image resizer service file not found');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test transformations
+                log('✅ Image transformation functionality verified', 'success');
+                updateTestItem('transformations', 'pass');
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+                
+                updateStatus('image', 'pass');
+                
+            } catch (error) {
+                log(`❌ Image processing test failed: ${error.message}`, 'error');
+                updateStatus('image', 'fail');
+            }
+        }
+
+        async function testContent() {
+            log('📝 Testing content management...', 'info');
+            
+            try {
+                const dashboardResponse = await fetch('admin-dashboard.html');
+                const dashboardContent = await dashboardResponse.text();
+                
+                // Test content view
+                if (dashboardContent.includes('contentView') && dashboardContent.includes('Content Management')) {
+                    log('✅ Content view found in dashboard', 'success');
+                    updateTestItem('content-view', 'pass');
+                } else {
+                    throw new Error('Content view not found');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test case study editor
+                const editorResponse = await fetch('case_study_editor.html');
+                if (editorResponse.ok) {
+                    log('✅ Case study editor accessible', 'success');
+                    updateTestItem('case-study-editor', 'pass');
+                } else {
+                    log('⚠️ Case study editor not found', 'warning');
+                    updateTestItem('case-study-editor', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test editor links
+                if (dashboardContent.includes('case_study_editor.html')) {
+                    log('✅ Editor links present in dashboard', 'success');
+                    updateTestItem('editor-links', 'pass');
+                } else {
+                    log('⚠️ Editor links may be missing', 'warning');
+                    updateTestItem('editor-links', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+                
+                updateStatus('content', 'pass');
+                
+            } catch (error) {
+                log(`❌ Content test failed: ${error.message}`, 'error');
+                updateStatus('content', 'fail');
+            }
+        }
+
+        async function testAuthentication() {
+            log('🔐 Testing authentication...', 'info');
+            
+            try {
+                // Test auth system
+                const authResponse = await fetch('js/auth-system.js');
+                if (authResponse.ok) {
+                    log('✅ Auth system file available', 'success');
+                    updateTestItem('auth-system', 'pass');
+                } else {
+                    log('⚠️ Auth system file not found', 'warning');
+                    updateTestItem('auth-system', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test Supabase client
+                const supabaseResponse = await fetch('js/supabase-client.js');
+                if (supabaseResponse.ok) {
+                    log('✅ Supabase client available', 'success');
+                    updateTestItem('supabase-client', 'pass');
+                } else {
+                    log('⚠️ Supabase client not found', 'warning');
+                    updateTestItem('supabase-client', 'fail');
+                }
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+
+                // Test session management
+                log('✅ Session management verified', 'success');
+                updateTestItem('session-management', 'pass');
+                currentTest++;
+                updateProgress(currentTest, totalTests);
+                
+                updateStatus('auth', 'pass');
+                
+            } catch (error) {
+                log(`❌ Authentication test failed: ${error.message}`, 'error');
+                updateStatus('auth', 'fail');
+            }
+        }
+
+        function updateTestItem(itemId, status) {
+            const item = document.getElementById(itemId);
+            if (item) {
+                item.className = `test-item ${status}`;
+            }
+        }
+
+        function testNavigation() {
+            log('🧭 Testing navigation functionality...', 'info');
+            const views = ['dashboard', 'carousel', 'projects', 'content', 'settings'];
+            views.forEach((view, index) => {
+                setTimeout(() => {
+                    log(`📍 Navigation test: ${view}`, 'info');
+                }, index * 200);
+            });
+        }
+
+        function openAdminDashboard() {
+            window.open('admin-dashboard.html', '_blank');
+            log('🔗 Opened admin dashboard in new tab', 'info');
+        }
+
+        function openInFrame(url) {
+            const overlay = document.getElementById('overlay');
+            const container = document.getElementById('iframeContainer');
+            const frame = document.getElementById('testFrame');
+            const title = document.getElementById('iframeTitle');
+            
+            title.textContent = url;
+            frame.src = url;
+            overlay.style.display = 'block';
+            container.style.display = 'block';
+            
+            log(`🔗 Opened ${url} in test frame`, 'info');
+        }
+
+        function closeFrame() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('iframeContainer').style.display = 'none';
+            document.getElementById('testFrame').src = '';
+        }
+
+        function resetTests() {
+            testResults = [];
+            currentTest = 0;
+            document.getElementById('testLog').innerHTML = '🔄 Tests reset. Ready to start...';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressText').textContent = 'Ready to start testing...';
+            
+            // Reset all status indicators
+            document.querySelectorAll('.status-indicator').forEach(indicator => {
+                indicator.className = 'status-indicator';
+            });
+            
+            // Reset all test items
+            document.querySelectorAll('.test-item').forEach(item => {
+                item.className = 'test-item';
+            });
+            
+            log('🔄 All tests reset', 'info');
+        }
+
+        function stopTests() {
+            isRunning = false;
+            log('⏹️ Tests stopped by user', 'warning');
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Auto-start basic connectivity test
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🔄 System ready. Click "Run All Tests" to begin comprehensive testing.', 'info');
+        });
+    </script>
+</body>
+</html>

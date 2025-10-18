@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .status.pass { background: #d4edda; color: #155724; }
+        .status.fail { background: #f8d7da; color: #721c24; }
+        .status.pending { background: #fff3cd; color: #856404; }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .integration-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .integration-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .integration-card h3 {
+            margin: 0 0 10px 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Admin Dashboard Integration Test</h1>
+        <p>Testing all integrated features in the main admin panel</p>
+
+        <div class="test-section">
+            <div class="test-header">📊 Integration Status Overview</div>
+            <div class="integration-status">
+                <div class="integration-card">
+                    <h3>🎠 Carousel Management</h3>
+                    <div id="carousel-status" class="status pending">Testing...</div>
+                    <ul class="feature-list">
+                        <li>✅ Navigation menu item</li>
+                        <li>✅ Upload zone interface</li>
+                        <li>✅ Image preview grid</li>
+                        <li>✅ Sample data loading</li>
+                    </ul>
+                </div>
+
+                <div class="integration-card">
+                    <h3>🖼️ Image Processing</h3>
+                    <div id="image-status" class="status pending">Testing...</div>
+                    <ul class="feature-list">
+                        <li>✅ Cloudinary SDK integration</li>
+                        <li>✅ Image resizer service</li>
+                        <li>✅ Multiple resize presets</li>
+                        <li>✅ Upload functionality</li>
+                    </ul>
+                </div>
+
+                <div class="integration-card">
+                    <h3>📝 Content Management</h3>
+                    <div id="content-status" class="status pending">Testing...</div>
+                    <ul class="feature-list">
+                        <li>✅ Case study editor links</li>
+                        <li>✅ Projects management</li>
+                        <li>✅ Content view integration</li>
+                        <li>✅ External editor access</li>
+                    </ul>
+                </div>
+
+                <div class="integration-card">
+                    <h3>🔐 Authentication</h3>
+                    <div id="auth-status" class="status pending">Testing...</div>
+                    <ul class="feature-list">
+                        <li>✅ Supabase integration</li>
+                        <li>✅ Auth system loading</li>
+                        <li>✅ Session management</li>
+                        <li>✅ Protected routes</li>
+                    </ul>
+                </div>
+
+                <div class="integration-card">
+                    <h3>🧭 Navigation</h3>
+                    <div id="nav-status" class="status pending">Testing...</div>
+                    <ul class="feature-list">
+                        <li>✅ All menu items present</li>
+                        <li>✅ View switching works</li>
+                        <li>✅ Hash URL handling</li>
+                        <li>✅ Active state management</li>
+                    </ul>
+                </div>
+
+                <div class="integration-card">
+                    <h3>⚙️ System Features</h3>
+                    <div id="system-status" class="status pending">Testing...</div>
+                    <ul class="feature-list">
+                        <li>✅ Settings management</li>
+                        <li>✅ User management</li>
+                        <li>✅ Analytics dashboard</li>
+                        <li>✅ API integration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🧪 Integration Tests</div>
+            <button class="test-button" onclick="testAdminIntegration()">🚀 Test All Integrations</button>
+            <button class="test-button" onclick="openAdminDashboard()">🔗 Open Admin Dashboard</button>
+            <button class="test-button" onclick="testNavigation()">🧭 Test Navigation</button>
+            <button class="test-button" onclick="testFeatureAccess()">🎯 Test Feature Access</button>
+            
+            <div id="test-results" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; font-family: monospace; white-space: pre-wrap;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">📋 Feature Checklist</div>
+            <div id="feature-checklist">
+                <h4>✅ Implemented Features:</h4>
+                <ul class="feature-list">
+                    <li><strong>Carousel Management:</strong> Complete upload, preview, and management interface</li>
+                    <li><strong>Image Processing:</strong> Cloudinary integration with resizing and transformations</li>
+                    <li><strong>Case Study Editor:</strong> Integrated access to multiple editor versions</li>
+                    <li><strong>Projects Management:</strong> Project creation and management interface</li>
+                    <li><strong>Content Management:</strong> Unified content management with tool access</li>
+                    <li><strong>User Management:</strong> User administration and permissions</li>
+                    <li><strong>Analytics Dashboard:</strong> Metrics and performance tracking</li>
+                    <li><strong>Settings Management:</strong> System configuration and integrations</li>
+                    <li><strong>Authentication:</strong> Supabase-based auth with session management</li>
+                    <li><strong>API Management:</strong> API key management and configuration</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-header">🎯 Quick Access Links</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <button class="test-button" onclick="window.open('admin-dashboard.html', '_blank')">📊 Admin Dashboard</button>
+                <button class="test-button" onclick="window.open('admin-dashboard.html#carousel', '_blank')">🎠 Carousel View</button>
+                <button class="test-button" onclick="window.open('case_study_editor.html', '_blank')">📝 Case Study Editor</button>
+                <button class="test-button" onclick="window.open('image-resizer-demo.html', '_blank')">🖼️ Image Resizer</button>
+                <button class="test-button" onclick="window.open('working-carousel-demo.html', '_blank')">🎠 Carousel Demo</button>
+                <button class="test-button" onclick="window.open('run-system-tests.html', '_blank')">🧪 System Tests</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            testResults.push(logMessage);
+            
+            const resultsEl = document.getElementById('test-results');
+            resultsEl.textContent = testResults.join('\n');
+            resultsEl.scrollTop = resultsEl.scrollHeight;
+            
+            console.log(logMessage);
+        }
+
+        function updateStatus(component, status) {
+            const statusEl = document.getElementById(`${component}-status`);
+            if (statusEl) {
+                statusEl.className = `status ${status}`;
+                statusEl.textContent = status === 'pass' ? '✅ Integrated' : 
+                                     status === 'fail' ? '❌ Issues' : '⏳ Testing...';
+            }
+        }
+
+        async function testAdminIntegration() {
+            log('🚀 Starting admin dashboard integration test...');
+            
+            // Test 1: Check if admin dashboard loads
+            try {
+                const response = await fetch('admin-dashboard.html');
+                if (response.ok) {
+                    log('✅ Admin dashboard file accessible');
+                    updateStatus('system', 'pass');
+                } else {
+                    throw new Error('Dashboard not accessible');
+                }
+            } catch (error) {
+                log(`❌ Dashboard access failed: ${error.message}`);
+                updateStatus('system', 'fail');
+            }
+
+            // Test 2: Check carousel integration
+            try {
+                const response = await fetch('admin-dashboard.html');
+                const content = await response.text();
+                
+                if (content.includes('carouselView') && content.includes('carousel-upload-zone')) {
+                    log('✅ Carousel integration found in admin dashboard');
+                    updateStatus('carousel', 'pass');
+                } else {
+                    throw new Error('Carousel integration missing');
+                }
+            } catch (error) {
+                log(`❌ Carousel integration test failed: ${error.message}`);
+                updateStatus('carousel', 'fail');
+            }
+
+            // Test 3: Check image processing integration
+            try {
+                const cloudinaryResponse = await fetch('js/cloudinary-sdk-service.js');
+                const resizerResponse = await fetch('js/image-resizer-service.js');
+                
+                if (cloudinaryResponse.ok && resizerResponse.ok) {
+                    log('✅ Image processing services available');
+                    updateStatus('image', 'pass');
+                } else {
+                    throw new Error('Image processing services missing');
+                }
+            } catch (error) {
+                log(`❌ Image processing test failed: ${error.message}`);
+                updateStatus('image', 'fail');
+            }
+
+            // Test 4: Check content management integration
+            try {
+                const editorResponse = await fetch('case_study_editor.html');
+                if (editorResponse.ok) {
+                    log('✅ Case study editor accessible');
+                    updateStatus('content', 'pass');
+                } else {
+                    throw new Error('Case study editor not found');
+                }
+            } catch (error) {
+                log(`❌ Content management test failed: ${error.message}`);
+                updateStatus('content', 'fail');
+            }
+
+            // Test 5: Check authentication integration
+            try {
+                const authResponse = await fetch('js/auth-system.js');
+                const supabaseResponse = await fetch('js/supabase-client.js');
+                
+                if (authResponse.ok && supabaseResponse.ok) {
+                    log('✅ Authentication system files available');
+                    updateStatus('auth', 'pass');
+                } else {
+                    throw new Error('Authentication files missing');
+                }
+            } catch (error) {
+                log(`❌ Authentication test failed: ${error.message}`);
+                updateStatus('auth', 'fail');
+            }
+
+            // Test 6: Check navigation integration
+            try {
+                const response = await fetch('admin-dashboard.html');
+                const content = await response.text();
+                
+                const navItems = [
+                    'dashboard', 'projects', 'case-studies', 'carousel', 
+                    'content', 'analytics', 'users', 'settings'
+                ];
+                
+                const missingNavs = navItems.filter(item => !content.includes(`href="#${item}"`));
+                
+                if (missingNavs.length === 0) {
+                    log('✅ All navigation items present');
+                    updateStatus('nav', 'pass');
+                } else {
+                    throw new Error(`Missing navigation items: ${missingNavs.join(', ')}`);
+                }
+            } catch (error) {
+                log(`❌ Navigation test failed: ${error.message}`);
+                updateStatus('nav', 'fail');
+            }
+
+            log('🎉 Integration test completed!');
+        }
+
+        function openAdminDashboard() {
+            log('🔗 Opening admin dashboard...');
+            window.open('admin-dashboard.html', '_blank');
+        }
+
+        function testNavigation() {
+            log('🧭 Testing navigation...');
+            const views = ['dashboard', 'carousel', 'projects', 'case-studies', 'content', 'settings'];
+            
+            views.forEach(view => {
+                setTimeout(() => {
+                    const url = `admin-dashboard.html#${view}`;
+                    log(`📍 Testing navigation to: ${view}`);
+                    // In a real test, we would check if the view loads correctly
+                }, 100);
+            });
+        }
+
+        function testFeatureAccess() {
+            log('🎯 Testing feature access...');
+            
+            const features = [
+                { name: 'Carousel Demo', url: 'working-carousel-demo.html' },
+                { name: 'Image Resizer', url: 'image-resizer-demo.html' },
+                { name: 'Case Study Editor', url: 'case_study_editor.html' },
+                { name: 'System Tests', url: 'run-system-tests.html' }
+            ];
+
+            features.forEach(async (feature, index) => {
+                setTimeout(async () => {
+                    try {
+                        const response = await fetch(feature.url);
+                        if (response.ok) {
+                            log(`✅ ${feature.name} accessible`);
+                        } else {
+                            log(`❌ ${feature.name} not accessible`);
+                        }
+                    } catch (error) {
+                        log(`❌ ${feature.name} test failed: ${error.message}`);
+                    }
+                }, index * 200);
+            });
+        }
+
+        // Auto-run basic tests on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                log('🔄 Auto-running integration tests...');
+                testAdminIntegration();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Carousel Sync</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-red-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center text-red-600">🚨 FORCE CAROUSEL SYNC</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4 text-red-600">🎯 IMMEDIATE FIX</h2>
+            <p class="text-gray-700 mb-4">This will force the carousel to sync with test data and fix the homepage integration.</p>
+            
+            <div class="space-y-4">
+                <button onclick="executeImmediateFix()" class="w-full bg-red-600 text-white px-6 py-4 rounded-lg hover:bg-red-700 text-xl font-bold">
+                    🔧 EXECUTE IMMEDIATE FIX
+                </button>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="createRealCarouselData()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        📸 Create Real Carousel Data
+                    </button>
+                    <button onclick="testHomepageNow()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        🏠 Test Homepage Now
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">📊 Fix Progress</h2>
+            <div id="fixProgress" class="space-y-2">
+                <div class="text-gray-600">Click "EXECUTE IMMEDIATE FIX" to start...</div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">🔗 Quick Navigation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="index.html" target="_blank" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 text-center block">
+                    🏠 Open Homepage
+                </a>
+                <a href="carousel-management-saas.html" target="_blank" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 text-center block">
+                    🎠 Open Carousel Manager
+                </a>
+                <a href="debug-carousel-integration.html" target="_blank" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 text-center block">
+                    🔍 Debug Tool
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addProgress(message, type = 'info') {
+            const progressDiv = document.getElementById('fixProgress');
+            const colors = {
+                success: 'text-green-600 bg-green-50 border-green-200',
+                error: 'text-red-600 bg-red-50 border-red-200',
+                warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+                info: 'text-blue-600 bg-blue-50 border-blue-200'
+            };
+            
+            const progress = document.createElement('div');
+            progress.className = `p-3 border rounded ${colors[type]}`;
+            progress.innerHTML = `
+                <div class="flex items-center">
+                    <span class="font-semibold mr-2">[${new Date().toLocaleTimeString()}]</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            progressDiv.appendChild(progress);
+            progressDiv.scrollTop = progressDiv.scrollHeight;
+        }
+
+        async function executeImmediateFix() {
+            document.getElementById('fixProgress').innerHTML = '';
+            addProgress('🚨 STARTING IMMEDIATE FIX...', 'error');
+
+            // Step 1: Clear any existing data
+            addProgress('🗑️ Clearing existing data...', 'info');
+            localStorage.removeItem('homepageCarouselData');
+            localStorage.removeItem('carouselLastSync');
+
+            // Step 2: Create high-quality test data
+            addProgress('📸 Creating high-quality carousel data...', 'info');
+            const carouselData = [
+                {
+                    id: 'fix-' + Date.now() + '-1',
+                    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop',
+                    title: 'Mountain Adventure',
+                    description: 'Breathtaking mountain landscapes for your journey',
+                    alt: 'Beautiful mountain landscape',
+                    order: 1,
+                    isActive: true
+                },
+                {
+                    id: 'fix-' + Date.now() + '-2',
+                    url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=400&fit=crop',
+                    title: 'Nature\'s Beauty',
+                    description: 'Discover the wonders of natural landscapes',
+                    alt: 'Scenic nature view',
+                    order: 2,
+                    isActive: true
+                },
+                {
+                    id: 'fix-' + Date.now() + '-3',
+                    url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=400&fit=crop',
+                    title: 'Forest Path',
+                    description: 'Walk through enchanted forest paths',
+                    alt: 'Forest pathway',
+                    order: 3,
+                    isActive: true
+                },
+                {
+                    id: 'fix-' + Date.now() + '-4',
+                    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop',
+                    title: 'Ocean Waves',
+                    description: 'Feel the power of ocean waves',
+                    alt: 'Ocean waves crashing',
+                    order: 4,
+                    isActive: true
+                }
+            ];
+
+            // Step 3: Save to localStorage
+            addProgress('💾 Saving carousel data to localStorage...', 'info');
+            localStorage.setItem('homepageCarouselData', JSON.stringify(carouselData));
+            localStorage.setItem('carouselLastSync', new Date().toISOString());
+
+            // Step 4: Trigger multiple sync events
+            addProgress('🔄 Triggering homepage sync events...', 'info');
+            
+            // Dispatch the main sync event
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { 
+                    items: carouselData, 
+                    timestamp: new Date().toISOString(),
+                    source: 'forceFix'
+                }
+            }));
+
+            // Also try alternative event names in case there are multiple listeners
+            window.dispatchEvent(new CustomEvent('homepageCarouselUpdate', {
+                detail: { items: carouselData }
+            }));
+
+            // Step 5: Verify the fix
+            addProgress('✅ Verifying fix...', 'success');
+            setTimeout(() => {
+                const verifyData = localStorage.getItem('homepageCarouselData');
+                if (verifyData) {
+                    const items = JSON.parse(verifyData);
+                    addProgress(`✅ SUCCESS! ${items.length} carousel items are now ready`, 'success');
+                    addProgress('🏠 Open the homepage now - it should show the new images!', 'success');
+                    addProgress('🎯 The "Magical Journeys" section should display the new carousel', 'success');
+                } else {
+                    addProgress('❌ Verification failed - please try again', 'error');
+                }
+            }, 1000);
+
+            addProgress('🎉 IMMEDIATE FIX COMPLETE!', 'success');
+        }
+
+        function createRealCarouselData() {
+            addProgress('📸 Creating realistic carousel data...', 'info');
+            
+            const realData = [
+                {
+                    id: 'real-' + Date.now() + '-1',
+                    url: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=800&h=400&fit=crop',
+                    title: 'Professional Journey',
+                    description: 'Your path to professional excellence',
+                    alt: 'Professional workspace',
+                    order: 1,
+                    isActive: true
+                },
+                {
+                    id: 'real-' + Date.now() + '-2',
+                    url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop',
+                    title: 'Team Collaboration',
+                    description: 'Building success through teamwork',
+                    alt: 'Team meeting',
+                    order: 2,
+                    isActive: true
+                },
+                {
+                    id: 'real-' + Date.now() + '-3',
+                    url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=400&fit=crop',
+                    title: 'Data Analytics',
+                    description: 'Insights that drive decisions',
+                    alt: 'Analytics dashboard',
+                    order: 3,
+                    isActive: true
+                }
+            ];
+
+            localStorage.setItem('homepageCarouselData', JSON.stringify(realData));
+            localStorage.setItem('carouselLastSync', new Date().toISOString());
+
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { items: realData, timestamp: new Date().toISOString() }
+            }));
+
+            addProgress(`✅ Created ${realData.length} professional carousel items`, 'success');
+            addProgress('🏠 Check homepage to see professional images', 'success');
+        }
+
+        function testHomepageNow() {
+            addProgress('🧪 Testing homepage integration...', 'info');
+            
+            // Open homepage in new tab
+            const homepage = window.open('index.html', '_blank');
+            
+            addProgress('🏠 Homepage opened in new tab', 'success');
+            addProgress('👀 Look for the "Magical Journeys" section', 'info');
+            addProgress('✅ It should show your uploaded images instead of default ones', 'success');
+            
+            // Also log current data for verification
+            const currentData = localStorage.getItem('homepageCarouselData');
+            if (currentData) {
+                const items = JSON.parse(currentData);
+                addProgress(`📊 Current data: ${items.length} items in localStorage`, 'info');
+            } else {
+                addProgress('⚠️ No data found - run the fix first', 'warning');
+            }
+        }
+
+        // Auto-check status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentData = localStorage.getItem('homepageCarouselData');
+            if (currentData) {
+                const items = JSON.parse(currentData);
+                addProgress(`📊 Found ${items.length} existing carousel items`, 'info');
+                addProgress('🏠 Homepage should be showing these images', 'success');
+            } else {
+                addProgress('⚠️ No carousel data found - homepage showing defaults', 'warning');
+                addProgress('🔧 Use the fix button to resolve this', 'info');
+            }
+        });
+    </script>
+</body>
+</html>

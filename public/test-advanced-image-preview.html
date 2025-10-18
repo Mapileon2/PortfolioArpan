@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Image Preview Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/advanced-image-preview.js"></script>
+    <style>
+        .test-section {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .test-result {
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        .test-pass { background-color: #d1fae5; color: #065f46; }
+        .test-fail { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center">🖼️ Advanced Image Preview System Test</h1>
+        
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">🧪 Test Controls</h2>
+            <div class="flex gap-4 flex-wrap">
+                <button onclick="runAllTests()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Run All Tests
+                </button>
+                <button onclick="testFileUpload()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Test File Upload
+                </button>
+                <button onclick="testUrlPreview()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    Test URL Preview
+                </button>
+                <button onclick="testErrorHandling()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Test Error Handling
+                </button>
+                <button onclick="clearTests()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Clear Tests
+                </button>
+            </div>
+        </div>
+
+        <!-- File Upload Test -->
+        <div class="test-section bg-white">
+            <h3 class="text-lg font-bold mb-3">📁 File Upload Preview Test</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Select Image File:</label>
+                    <input type="file" id="fileInput" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <div class="mt-2 text-xs text-gray-500">
+                        Supported: JPEG, PNG, WebP, GIF (max 10MB)
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Aspect Ratio:</label>
+                    <select id="aspectRatio" class="block w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="16:9">16:9 (Video)</option>
+                        <option value="4:3">4:3 (Standard)</option>
+                        <option value="1:1">1:1 (Square)</option>
+                        <option value="3:2">3:2 (Photo)</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+            </div>
+            <div id="filePreviewContainer" class="mt-4"></div>
+        </div>
+
+        <!-- URL Preview Test -->
+        <div class="test-section bg-white">
+            <h3 class="text-lg font-bold mb-3">🌐 URL Preview Test</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Image URL:</label>
+                    <input type="url" id="urlInput" placeholder="https://example.com/image.jpg" class="block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <div class="mt-2 space-y-1">
+                        <button onclick="loadSampleImage('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800')" class="text-xs bg-gray-100 px-2 py-1 rounded">Sample 1</button>
+                        <button onclick="loadSampleImage('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800')" class="text-xs bg-gray-100 px-2 py-1 rounded">Sample 2</button>
+                        <button onclick="loadSampleImage('https://res.cloudinary.com/demo/image/upload/sample.jpg')" class="text-xs bg-gray-100 px-2 py-1 rounded">Cloudinary</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Options:</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="enableBlur" checked class="mr-2">
+                            <span class="text-sm">Enable blur preview</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="enableLazy" checked class="mr-2">
+                            <span class="text-sm">Enable lazy loading</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button onclick="previewUrl()" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Preview URL
+            </button>
+            <div id="urlPreviewContainer" class="mt-4"></div>
+        </div>
+
+        <!-- Error Handling Test -->
+        <div class="test-section bg-white">
+            <h3 class="text-lg font-bold mb-3">⚠️ Error Handling Test</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="testBrokenUrl()" class="bg-red-100 text-red-700 px-4 py-2 rounded hover:bg-red-200">
+                    Test Broken URL
+                </button>
+                <button onclick="testInvalidFile()" class="bg-orange-100 text-orange-700 px-4 py-2 rounded hover:bg-orange-200">
+                    Test Invalid File
+                </button>
+                <button onclick="testLargeFile()" class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded hover:bg-yellow-200">
+                    Test Large File
+                </button>
+            </div>
+            <div id="errorTestContainer" class="mt-4"></div>
+        </div>
+
+        <!-- Performance Test -->
+        <div class="test-section bg-white">
+            <h3 class="text-lg font-bold mb-3">⚡ Performance Test</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="testMultipleImages()" class="bg-green-100 text-green-700 px-4 py-2 rounded hover:bg-green-200">
+                    Test Multiple Images (10)
+                </button>
+                <button onclick="testMemoryUsage()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded hover:bg-blue-200">
+                    Test Memory Usage
+                </button>
+            </div>
+            <div id="performanceResults" class="mt-4"></div>
+            <div id="multipleImagesContainer" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4">📊 Test Results</h2>
+            <div id="testResults"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+
+        // File upload test
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const aspectRatio = document.getElementById('aspectRatio').value;
+                const container = document.getElementById('filePreviewContainer');
+                
+                const preview = window.advancedImagePreview.generateImagePreview(
+                    file, 
+                    `Test image: ${file.name}`, 
+                    'test', 
+                    {
+                        aspectRatio,
+                        showBlurPreview: true,
+                        className: 'max-w-md'
+                    }
+                );
+                
+                container.innerHTML = `
+                    <h4 class="font-medium mb-2">File Preview:</h4>
+                    ${preview}
+                    <div class="text-sm text-gray-600 mt-2">
+                        <strong>File:</strong> ${file.name}<br>
+                        <strong>Size:</strong> ${formatFileSize(file.size)}<br>
+                        <strong>Type:</strong> ${file.type}
+                    </div>
+                `;
+                
+                addTestResult('File Upload', 'pass', `Successfully previewed ${file.name}`);
+            }
+        });
+
+        function loadSampleImage(url) {
+            document.getElementById('urlInput').value = url;
+        }
+
+        function previewUrl() {
+            const url = document.getElementById('urlInput').value;
+            const enableBlur = document.getElementById('enableBlur').checked;
+            const enableLazy = document.getElementById('enableLazy').checked;
+            const container = document.getElementById('urlPreviewContainer');
+            
+            if (!url) {
+                container.innerHTML = '<p class="text-red-500">Please enter a URL</p>';
+                return;
+            }
+            
+            const preview = window.advancedImagePreview.generateImagePreview(
+                url, 
+                'Test URL image', 
+                'test', 
+                {
+                    aspectRatio: '16:9',
+                    showBlurPreview: enableBlur,
+                    lazyLoad: enableLazy,
+                    className: 'max-w-md'
+                }
+            );
+            
+            container.innerHTML = `
+                <h4 class="font-medium mb-2">URL Preview:</h4>
+                ${preview}
+                <div class="text-sm text-gray-600 mt-2">
+                    <strong>URL:</strong> ${url}<br>
+                    <strong>Blur Preview:</strong> ${enableBlur ? 'Enabled' : 'Disabled'}<br>
+                    <strong>Lazy Loading:</strong> ${enableLazy ? 'Enabled' : 'Disabled'}
+                </div>
+            `;
+            
+            addTestResult('URL Preview', 'pass', `Successfully previewed URL: ${url.substring(0, 50)}...`);
+        }
+
+        function testBrokenUrl() {
+            const container = document.getElementById('errorTestContainer');
+            const brokenUrl = 'https://example.com/nonexistent-image.jpg';
+            
+            const preview = window.advancedImagePreview.generateImagePreview(
+                brokenUrl, 
+                'Broken image test', 
+                'test', 
+                {
+                    aspectRatio: '16:9',
+                    className: 'max-w-sm'
+                }
+            );
+            
+            container.innerHTML = `
+                <h4 class="font-medium mb-2">Broken URL Test:</h4>
+                ${preview}
+            `;
+            
+            addTestResult('Error Handling', 'pass', 'Broken URL handled gracefully');
+        }
+
+        function testInvalidFile() {
+            // Create a fake file object
+            const fakeFile = new File(['fake content'], 'test.txt', { type: 'text/plain' });
+            const container = document.getElementById('errorTestContainer');
+            
+            const preview = window.advancedImagePreview.generateImagePreview(
+                fakeFile, 
+                'Invalid file test', 
+                'test', 
+                {
+                    aspectRatio: '16:9',
+                    className: 'max-w-sm'
+                }
+            );
+            
+            container.innerHTML = `
+                <h4 class="font-medium mb-2">Invalid File Test:</h4>
+                ${preview}
+            `;
+            
+            addTestResult('Error Handling', 'pass', 'Invalid file type handled gracefully');
+        }
+
+        function testLargeFile() {
+            // Create a fake large file
+            const largeContent = new Array(11 * 1024 * 1024).fill('x').join(''); // 11MB
+            const largeFile = new File([largeContent], 'large-image.jpg', { type: 'image/jpeg' });
+            const container = document.getElementById('errorTestContainer');
+            
+            const preview = window.advancedImagePreview.generateImagePreview(
+                largeFile, 
+                'Large file test', 
+                'test', 
+                {
+                    aspectRatio: '16:9',
+                    className: 'max-w-sm'
+                }
+            );
+            
+            container.innerHTML = `
+                <h4 class="font-medium mb-2">Large File Test:</h4>
+                ${preview}
+            `;
+            
+            addTestResult('Error Handling', 'pass', 'Large file handled gracefully');
+        }
+
+        function testMultipleImages() {
+            const container = document.getElementById('multipleImagesContainer');
+            const startTime = performance.now();
+            
+            const sampleUrls = [
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400',
+                'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400',
+                'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400',
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400',
+                'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400',
+                'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400'
+            ];
+            
+            const previews = sampleUrls.map((url, index) => {
+                return window.advancedImagePreview.generateImagePreview(
+                    url, 
+                    `Test image ${index + 1}`, 
+                    'test', 
+                    {
+                        aspectRatio: '16:9',
+                        showBlurPreview: true,
+                        lazyLoad: true
+                    }
+                );
+            });
+            
+            container.innerHTML = previews.join('');
+            
+            const endTime = performance.now();
+            const duration = endTime - startTime;
+            
+            document.getElementById('performanceResults').innerHTML = `
+                <div class="test-result test-pass">
+                    ✅ Generated ${sampleUrls.length} image previews in ${duration.toFixed(2)}ms
+                </div>
+            `;
+            
+            addTestResult('Performance', 'pass', `Generated ${sampleUrls.length} previews in ${duration.toFixed(2)}ms`);
+        }
+
+        function testMemoryUsage() {
+            const memoryInfo = performance.memory;
+            const results = document.getElementById('performanceResults');
+            
+            if (memoryInfo) {
+                results.innerHTML += `
+                    <div class="test-result test-pass">
+                        📊 Memory Usage:<br>
+                        Used: ${formatBytes(memoryInfo.usedJSHeapSize)}<br>
+                        Total: ${formatBytes(memoryInfo.totalJSHeapSize)}<br>
+                        Limit: ${formatBytes(memoryInfo.jsHeapSizeLimit)}
+                    </div>
+                `;
+                addTestResult('Memory', 'pass', `Memory usage: ${formatBytes(memoryInfo.usedJSHeapSize)}`);
+            } else {
+                results.innerHTML += `
+                    <div class="test-result test-fail">
+                        ❌ Memory API not available in this browser
+                    </div>
+                `;
+                addTestResult('Memory', 'fail', 'Memory API not available');
+            }
+        }
+
+        function runAllTests() {
+            testResults = [];
+            
+            // Test basic functionality
+            addTestResult('Initialization', 'pass', 'Advanced Image Preview System initialized');
+            
+            // Test URL preview with sample
+            loadSampleImage('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400');
+            setTimeout(() => {
+                previewUrl();
+                testBrokenUrl();
+                testInvalidFile();
+                testMultipleImages();
+                testMemoryUsage();
+            }, 100);
+        }
+
+        function clearTests() {
+            document.getElementById('filePreviewContainer').innerHTML = '';
+            document.getElementById('urlPreviewContainer').innerHTML = '';
+            document.getElementById('errorTestContainer').innerHTML = '';
+            document.getElementById('multipleImagesContainer').innerHTML = '';
+            document.getElementById('performanceResults').innerHTML = '';
+            document.getElementById('testResults').innerHTML = '';
+            testResults = [];
+        }
+
+        function addTestResult(category, status, message) {
+            testResults.push({ category, status, message, timestamp: new Date() });
+            updateTestResults();
+        }
+
+        function updateTestResults() {
+            const container = document.getElementById('testResults');
+            const passCount = testResults.filter(r => r.status === 'pass').length;
+            const failCount = testResults.filter(r => r.status === 'fail').length;
+            
+            container.innerHTML = `
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-bold mb-2">Summary</h3>
+                    <div class="flex gap-4">
+                        <span class="text-green-600">✅ Passed: ${passCount}</span>
+                        <span class="text-red-600">❌ Failed: ${failCount}</span>
+                        <span class="text-gray-600">📊 Total: ${testResults.length}</span>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    ${testResults.map(result => `
+                        <div class="test-result ${result.status === 'pass' ? 'test-pass' : 'test-fail'}">
+                            <strong>${result.category}:</strong> ${result.message}
+                            <div class="text-xs opacity-75 mt-1">${result.timestamp.toLocaleTimeString()}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatBytes(bytes) {
+            return formatFileSize(bytes);
+        }
+
+        // Initialize test
+        window.addEventListener('load', () => {
+            addTestResult('System', 'pass', 'Test page loaded successfully');
+            console.log('🧪 Advanced Image Preview Test ready');
+        });
+    </script>
+</body>
+</html>

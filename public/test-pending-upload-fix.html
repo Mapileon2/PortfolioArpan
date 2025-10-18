@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Pending Upload Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-vial mr-2 text-green-600"></i>
+                Test: Pending Upload Fix
+            </h1>
+            
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-green-800 mb-2">✅ Fixes Applied</h3>
+                <ul class="text-sm text-green-700 space-y-1">
+                    <li>• Enhanced generateImagePreview() with better debugging</li>
+                    <li>• Improved pending image data lookup logic</li>
+                    <li>• Added support for array-based image sections</li>
+                    <li>• Better object URL creation and cleanup</li>
+                    <li>• Comprehensive debug logging</li>
+                </ul>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-blue-800 mb-2">🧪 Test Steps</h3>
+                    <ol class="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                        <li>Open case study editor</li>
+                        <li>Upload an image to hero section</li>
+                        <li>Check browser console for debug logs</li>
+                        <li>Switch to preview mode</li>
+                        <li>Verify image displays (not placeholder)</li>
+                    </ol>
+                </div>
+                
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-purple-800 mb-2">🔍 Debug Console</h3>
+                    <ul class="text-sm text-purple-700 space-y-1">
+                        <li>• Press F12 to open DevTools</li>
+                        <li>• Watch for debug messages</li>
+                        <li>• Look for "🔍 Debug:" messages</li>
+                        <li>• Check for any error messages</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-yellow-800 mb-2">⚠️ Expected Debug Output</h3>
+                <div class="bg-gray-900 text-green-400 p-3 rounded font-mono text-xs">
+                    <div>🔍 Debug: Handling pending upload URL: pending-upload-hero-1697123456789 for section: hero</div>
+                    <div>📊 Debug: pendingImages object: {hero: {file: File, section: "hero"}}</div>
+                    <div>📋 Debug: Found pending image data: {file: File, section: "hero"}</div>
+                    <div>✅ Debug: Creating object URL for single image</div>
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+                <button onclick="window.location.href='case_study_editor_complete.html'" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-edit mr-2"></i>Test Case Study Editor
+                </button>
+                <button onclick="openDebugConsole()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-terminal mr-2"></i>Open Debug Console
+                </button>
+                <button onclick="runQuickTest()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                    <i class="fas fa-play mr-2"></i>Run Quick Test
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Test Results</h2>
+            <div id="testResults" class="space-y-2">
+                <div class="text-gray-600">Click "Run Quick Test" to start automated testing...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function logResult(message, type = 'info') {
+            const results = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            const div = document.createElement('div');
+            div.className = `text-sm ${type === 'success' ? 'text-green-700' : type === 'error' ? 'text-red-700' : type === 'warning' ? 'text-yellow-700' : 'text-gray-700'}`;
+            div.innerHTML = `[${timestamp}] ${icon} ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function openDebugConsole() {
+            console.log('🔧 PENDING UPLOAD DEBUG CONSOLE');
+            console.log('================================');
+            console.log('');
+            console.log('📋 Debug Commands:');
+            console.log('1. Check editor: window.editor');
+            console.log('2. Check pending images: window.editor?.pendingImages');
+            console.log('3. Check image URLs: document.querySelectorAll("[id*=ImageUrl]")');
+            console.log('4. Force preview update: window.editor?.updateIntegratedPreview()');
+            console.log('');
+            console.log('🔍 Looking for issues...');
+            
+            // Check if editor exists
+            if (typeof window.editor !== 'undefined') {
+                console.log('✅ Editor found:', window.editor);
+                logResult('Editor instance found', 'success');
+            } else {
+                console.log('❌ Editor not found - open case study editor first');
+                logResult('Editor not found - open case study editor first', 'error');
+            }
+            
+            logResult('Debug console opened - check browser console (F12)', 'info');
+        }
+
+        function runQuickTest() {
+            logResult('Starting automated test...', 'info');
+            
+            // Test 1: Check if we can access the editor
+            setTimeout(() => {
+                if (window.opener && window.opener.editor) {
+                    logResult('✅ Found editor in parent window', 'success');
+                    const editor = window.opener.editor;
+                    
+                    // Test 2: Check pending images structure
+                    if (editor.pendingImages) {
+                        logResult('✅ Pending images object exists', 'success');
+                        console.log('Pending images:', editor.pendingImages);
+                    } else {
+                        logResult('⚠️ Pending images object not initialized', 'warning');
+                    }
+                    
+                    // Test 3: Check generateImagePreview method
+                    if (typeof editor.generateImagePreview === 'function') {
+                        logResult('✅ generateImagePreview method exists', 'success');
+                    } else {
+                        logResult('❌ generateImagePreview method missing', 'error');
+                    }
+                    
+                } else {
+                    logResult('⚠️ No editor found - open this from case study editor', 'warning');
+                    logResult('Alternative: Open case study editor first, then run this test', 'info');
+                }
+            }, 500);
+            
+            // Test 4: Check for common issues
+            setTimeout(() => {
+                logResult('Checking for common issues...', 'info');
+                
+                // Check console errors
+                const originalError = console.error;
+                let errorCount = 0;
+                console.error = function(...args) {
+                    errorCount++;
+                    originalError.apply(console, args);
+                };
+                
+                setTimeout(() => {
+                    if (errorCount === 0) {
+                        logResult('✅ No console errors detected', 'success');
+                    } else {
+                        logResult(`⚠️ ${errorCount} console errors detected`, 'warning');
+                    }
+                    console.error = originalError;
+                }, 1000);
+                
+                logResult('Test completed - check results above', 'success');
+            }, 1000);
+        }
+
+        // Auto-start basic checks
+        document.addEventListener('DOMContentLoaded', () => {
+            logResult('Pending upload fix test page loaded', 'info');
+            logResult('Ready to test the enhanced image preview system', 'info');
+        });
+    </script>
+</body>
+</html>

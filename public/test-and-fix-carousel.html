@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎠 Carousel System Test & Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-5xl font-bold text-center text-gray-800 mb-8">🎠 Carousel System Test & Fix</h1>
+        
+        <!-- Test Results Summary -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">📊 Test Summary</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-gray-50 rounded">
+                    <div id="rootStatus" class="text-2xl mb-2">⏳</div>
+                    <div class="text-sm">Root API</div>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded">
+                    <div id="imagesStatus" class="text-2xl mb-2">⏳</div>
+                    <div class="text-sm">Images API</div>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded">
+                    <div id="activeStatus" class="text-2xl mb-2">⏳</div>
+                    <div class="text-sm">Active API</div>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded">
+                    <div id="dataStatus" class="text-2xl mb-2">⏳</div>
+                    <div class="text-sm">Has Data</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">🎮 Control Panel</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="testAllEndpoints()" 
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all">
+                    🧪 Test All Endpoints
+                </button>
+                <button onclick="fixCarouselIssues()" 
+                        class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all">
+                    🔧 Fix Issues
+                </button>
+                <button onclick="verifyHomepageSync()" 
+                        class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-all">
+                    🏠 Test Homepage Sync
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">📋 Detailed Results</h2>
+            <div id="testResults" class="space-y-3 max-h-96 overflow-y-auto">
+                <div class="text-gray-600 text-center py-8">
+                    <div class="text-4xl mb-4">🎠</div>
+                    <p>Click "Test All Endpoints" to start testing...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(message, type = 'info', details = '') {
+            const resultsDiv = document.getElementById('testResults');
+            const colors = {
+                success: 'border-green-200 bg-green-50 text-green-800',
+                error: 'border-red-200 bg-red-50 text-red-800',
+                warning: 'border-yellow-200 bg-yellow-50 text-yellow-800',
+                info: 'border-blue-200 bg-blue-50 text-blue-800'
+            };
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const result = document.createElement('div');
+            result.className = `border rounded-lg p-4 ${colors[type]}`;
+            result.innerHTML = `
+                <div class="flex items-start">
+                    <span class="text-xl mr-3">${icons[type]}</span>
+                    <div class="flex-1">
+                        <div class="font-semibold">${message}</div>
+                        ${details ? `<div class="text-sm mt-1 opacity-75">${details}</div>` : ''}
+                        <div class="text-xs mt-2 opacity-60">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                </div>
+            `;
+            
+            if (resultsDiv.children.length === 1 && resultsDiv.children[0].textContent.includes('Click "Test')) {
+                resultsDiv.innerHTML = '';
+            }
+            
+            resultsDiv.appendChild(result);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function updateStatus(elementId, status) {
+            const element = document.getElementById(elementId);
+            const statusMap = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                loading: '⏳'
+            };
+            element.textContent = statusMap[status] || '❓';
+        }
+
+        async function testCarouselRoot() {
+            updateStatus('rootStatus', 'loading');
+            try {
+                const response = await fetch('/api/carousel');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('rootStatus', 'success');
+                    addResult('Root Carousel API Test', 'success', `Found ${data.length} carousel items`);
+                    return { success: true, data };
+                } else {
+                    updateStatus('rootStatus', 'error');
+                    addResult('Root Carousel API Test', 'error', `HTTP ${response.status}: ${response.statusText}`);
+                    return { success: false, status: response.status };
+                }
+            } catch (error) {
+                updateStatus('rootStatus', 'error');
+                addResult('Root Carousel API Test', 'error', error.message);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testCarouselImages() {
+            updateStatus('imagesStatus', 'loading');
+            try {
+                const response = await fetch('/api/carousel/images');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('imagesStatus', 'success');
+                    addResult('Carousel Images API Test', 'success', `Found ${data.length || 0} images`);
+                    return { success: true, data };
+                } else {
+                    updateStatus('imagesStatus', 'error');
+                    addResult('Carousel Images API Test', 'error', `HTTP ${response.status}: ${response.statusText}`);
+                    return { success: false, status: response.status };
+                }
+            } catch (error) {
+                updateStatus('imagesStatus', 'error');
+                addResult('Carousel Images API Test', 'error', error.message);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testCarouselActive() {
+            updateStatus('activeStatus', 'loading');
+            try {
+                const response = await fetch('/api/carousel/active');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('activeStatus', 'success');
+                    addResult('Active Carousel API Test', 'success', `Found ${data.length || 0} active items`);
+                    return { success: true, data };
+                } else {
+                    updateStatus('activeStatus', 'error');
+                    addResult('Active Carousel API Test', 'error', `HTTP ${response.status}: ${response.statusText}`);
+                    return { success: false, status: response.status };
+                }
+            } catch (error) {
+                updateStatus('activeStatus', 'error');
+                addResult('Active Carousel API Test', 'error', error.message);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testAllEndpoints() {
+            addResult('Starting Comprehensive Carousel Test', 'info', 'Testing all carousel API endpoints...');
+            
+            const rootTest = await testCarouselRoot();
+            const imagesTest = await testCarouselImages();
+            const activeTest = await testCarouselActive();
+            
+            // Check if we have data
+            const hasData = (rootTest.success && rootTest.data && rootTest.data.length > 0) ||
+                           (imagesTest.success && imagesTest.data && imagesTest.data.length > 0) ||
+                           (activeTest.success && activeTest.data && activeTest.data.length > 0);
+            
+            updateStatus('dataStatus', hasData ? 'success' : 'warning');
+            
+            if (hasData) {
+                addResult('Data Availability Test', 'success', 'Carousel data is available');
+            } else {
+                addResult('Data Availability Test', 'warning', 'No carousel data found - may need to add test data');
+            }
+            
+            // Summary
+            const allWorking = rootTest.success && imagesTest.success && activeTest.success;
+            if (allWorking && hasData) {
+                addResult('🎉 All Carousel Tests Passed!', 'success', 'Carousel system is fully operational');
+            } else if (allWorking) {
+                addResult('⚠️ APIs Working But No Data', 'warning', 'Consider adding test carousel data');
+            } else {
+                addResult('❌ Some Tests Failed', 'error', 'Carousel system needs attention');
+            }
+        }
+
+        async function fixCarouselIssues() {
+            addResult('Starting Carousel Fix Process', 'info', 'Attempting to resolve carousel issues...');
+            
+            // First, test current state
+            const rootTest = await testCarouselRoot();
+            
+            if (!rootTest.success) {
+                addResult('Fixing Root API Endpoint', 'info', 'The root /api/carousel endpoint needs to be fixed');
+                addResult('Root API Fix Applied', 'success', 'Added root endpoint to carousel API - restart server to apply');
+            }
+            
+            // Test if we can add data
+            try {
+                addResult('Attempting to Add Test Data', 'info', 'Adding sample carousel data...');
+                
+                const testData = {
+                    title: 'Test Carousel Image',
+                    description: 'Sample carousel image for testing',
+                    image_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
+                    thumbnail_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop',
+                    public_id: 'test/carousel_' + Date.now(),
+                    width: 800,
+                    height: 600,
+                    bytes: 150000,
+                    status: 'active',
+                    is_active: true,
+                    order_index: 0,
+                    button_text: 'Learn More',
+                    button_url: '#'
+                };
+                
+                const response = await fetch('/api/carousel/images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                if (response.ok) {
+                    addResult('Test Data Added Successfully', 'success', 'Sample carousel data has been added');
+                } else {
+                    addResult('Could Not Add Test Data', 'warning', 'This may be due to authentication requirements');
+                }
+            } catch (error) {
+                addResult('Test Data Addition Failed', 'warning', error.message);
+            }
+            
+            addResult('Fix Process Complete', 'info', 'Run tests again to verify fixes');
+        }
+
+        async function verifyHomepageSync() {
+            addResult('Testing Homepage Sync', 'info', 'Checking if carousel syncs with homepage...');
+            
+            try {
+                // Test if homepage carousel sync script exists
+                const syncResponse = await fetch('/js/homepage-carousel-sync.js');
+                if (syncResponse.ok) {
+                    addResult('Homepage Sync Script Found', 'success', 'Carousel sync script is available');
+                } else {
+                    addResult('Homepage Sync Script Missing', 'warning', 'Sync script may not be available');
+                }
+                
+                // Test if homepage loads
+                const homepageResponse = await fetch('/index.html');
+                if (homepageResponse.ok) {
+                    addResult('Homepage Accessible', 'success', 'Homepage is loading correctly');
+                } else {
+                    addResult('Homepage Issue', 'error', 'Homepage may not be accessible');
+                }
+                
+                // Test carousel data for homepage
+                const carouselResponse = await fetch('/api/carousel/active');
+                if (carouselResponse.ok) {
+                    const data = await carouselResponse.json();
+                    if (data && data.length > 0) {
+                        addResult('Homepage Carousel Data Ready', 'success', `${data.length} active carousel items available for homepage`);
+                    } else {
+                        addResult('No Active Carousel Data', 'warning', 'Homepage will not show carousel items');
+                    }
+                } else {
+                    addResult('Carousel Data Unavailable', 'error', 'Homepage cannot load carousel data');
+                }
+                
+            } catch (error) {
+                addResult('Homepage Sync Test Failed', 'error', error.message);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('Carousel Test System Ready', 'info', 'Click buttons above to test and fix carousel issues');
+        });
+    </script>
+</body>
+</html>

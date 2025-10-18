@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel Upload Debug Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">🔧 Carousel Upload Debug Test</h1>
+            
+            <!-- Status Indicators -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">Server Status</h3>
+                    <p id="serverStatus" class="text-sm text-gray-600">Checking...</p>
+                </div>
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">Cloudinary SDK</h3>
+                    <p id="cloudinaryStatus" class="text-sm text-gray-600">Checking...</p>
+                </div>
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    <h3 class="font-semibold text-gray-900">API Endpoints</h3>
+                    <p id="apiStatus" class="text-sm text-gray-600">Checking...</p>
+                </div>
+            </div>
+
+            <!-- Test Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button onclick="testCloudinaryWidget()" class="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-cloud-upload-alt mr-2"></i>Test Cloudinary Widget
+                </button>
+                <button onclick="testDirectUpload()" class="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-upload mr-2"></i>Test Direct Upload
+                </button>
+                <button onclick="testCarouselAPI()" class="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition">
+                    <i class="fas fa-images mr-2"></i>Test Carousel API
+                </button>
+                <button onclick="clearLogs()" class="bg-gray-600 text-white p-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-trash mr-2"></i>Clear Logs
+                </button>
+            </div>
+
+            <!-- File Input for Direct Upload -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Image for Direct Upload Test</label>
+                <input type="file" id="fileInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+            </div>
+
+            <!-- Debug Console -->
+            <div class="bg-black text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-y-auto">
+                <div id="debugConsole">
+                    <div class="text-yellow-400">🔧 Debug Console Ready</div>
+                    <div class="text-gray-400">Run tests to see debug information...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug console
+        function log(message, type = 'info') {
+            const console = document.getElementById('debugConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400',
+                success: 'text-blue-400'
+            };
+            
+            const div = document.createElement('div');
+            div.className = colors[type] || 'text-green-400';
+            div.innerHTML = `[${timestamp}] ${message}`;
+            console.appendChild(div);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('debugConsole').innerHTML = `
+                <div class="text-yellow-400">🔧 Debug Console Cleared</div>
+            `;
+        }
+
+        // Status checks
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/api/carousel/images');
+                if (response.ok) {
+                    document.getElementById('serverStatus').innerHTML = '<span class="text-green-600">✅ Online</span>';
+                    log('Server is online and responding', 'success');
+                } else {
+                    document.getElementById('serverStatus').innerHTML = '<span class="text-red-600">❌ Error</span>';
+                    log(`Server error: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                document.getElementById('serverStatus').innerHTML = '<span class="text-red-600">❌ Offline</span>';
+                log(`Server connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        function checkCloudinarySDK() {
+            if (window.cloudinary) {
+                document.getElementById('cloudinaryStatus').innerHTML = '<span class="text-green-600">✅ Loaded</span>';
+                log('Cloudinary SDK loaded successfully', 'success');
+                return true;
+            } else {
+                document.getElementById('cloudinaryStatus').innerHTML = '<span class="text-red-600">❌ Not Loaded</span>';
+                log('Cloudinary SDK not loaded', 'error');
+                return false;
+            }
+        }
+
+        async function checkAPIEndpoints() {
+            const endpoints = [
+                '/api/carousel/images',
+                '/api/cloudinary/upload'
+            ];
+
+            let allGood = true;
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint);
+                    if (response.ok || response.status === 400) { // 400 is OK for POST endpoints without data
+                        log(`✅ ${endpoint} - Available`, 'success');
+                    } else {
+                        log(`❌ ${endpoint} - Error ${response.status}`, 'error');
+                        allGood = false;
+                    }
+                } catch (error) {
+                    log(`❌ ${endpoint} - Failed: ${error.message}`, 'error');
+                    allGood = false;
+                }
+            }
+
+            document.getElementById('apiStatus').innerHTML = allGood ? 
+                '<span class="text-green-600">✅ Available</span>' : 
+                '<span class="text-red-600">❌ Issues</span>';
+        }
+
+        // Test functions
+        function testCloudinaryWidget() {
+            log('Testing Cloudinary Upload Widget...', 'info');
+            
+            if (!checkCloudinarySDK()) {
+                log('Cannot test widget - SDK not loaded', 'error');
+                return;
+            }
+
+            try {
+                const widget = window.cloudinary.createUploadWidget({
+                    cloudName: 'dgymjtqil',
+                    uploadPreset: 'ml_default',
+                    sources: ['local'],
+                    multiple: false,
+                    folder: 'portfolio/carousel/test',
+                    tags: ['test', 'carousel'],
+                    clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp']
+                }, (error, result) => {
+                    if (error) {
+                        log(`Widget error: ${error.message}`, 'error');
+                        return;
+                    }
+
+                    if (result && result.event === 'success') {
+                        log(`✅ Widget upload successful!`, 'success');
+                        log(`Public ID: ${result.info.public_id}`, 'info');
+                        log(`URL: ${result.info.secure_url}`, 'info');
+                        log(`Size: ${(result.info.bytes / 1024 / 1024).toFixed(2)} MB`, 'info');
+                    }
+
+                    if (result && result.event === 'close') {
+                        log('Widget closed', 'warning');
+                    }
+                });
+
+                widget.open();
+                log('Widget opened successfully', 'success');
+            } catch (error) {
+                log(`Widget creation failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDirectUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                log('Please select a file first', 'warning');
+                return;
+            }
+
+            log(`Testing direct upload for: ${file.name}`, 'info');
+            log(`File size: ${(file.size / 1024 / 1024).toFixed(2)} MB`, 'info');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'ml_default');
+                formData.append('folder', 'portfolio/carousel/test');
+                formData.append('tags', 'test,carousel,direct');
+
+                log('Uploading to Cloudinary...', 'info');
+
+                const response = await fetch('https://api.cloudinary.com/v1_1/dgymjtqil/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    log(`❌ Upload failed: ${result.error.message}`, 'error');
+                } else {
+                    log(`✅ Direct upload successful!`, 'success');
+                    log(`Public ID: ${result.public_id}`, 'info');
+                    log(`URL: ${result.secure_url}`, 'info');
+                    log(`Dimensions: ${result.width}x${result.height}`, 'info');
+                    
+                    // Test saving to database
+                    await testSaveToDatabase(result);
+                }
+            } catch (error) {
+                log(`Direct upload failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSaveToDatabase(cloudinaryResult) {
+            log('Testing database save...', 'info');
+
+            try {
+                const imageData = {
+                    publicId: cloudinaryResult.public_id,
+                    url: cloudinaryResult.secure_url,
+                    thumbnail: `https://res.cloudinary.com/dgymjtqil/image/upload/w_300,h_200,c_fill,q_auto/${cloudinaryResult.public_id}`,
+                    title: 'Test Image',
+                    description: 'Test upload from debug page',
+                    width: cloudinaryResult.width,
+                    height: cloudinaryResult.height,
+                    size: cloudinaryResult.bytes,
+                    isActive: true,
+                    order: 0
+                };
+
+                const response = await fetch('/api/carousel/images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(imageData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    log(`✅ Database save successful!`, 'success');
+                    log(`Database ID: ${result.data?.id || 'Unknown'}`, 'info');
+                } else {
+                    const error = await response.text();
+                    log(`❌ Database save failed: ${response.status}`, 'error');
+                    log(`Error: ${error}`, 'error');
+                }
+            } catch (error) {
+                log(`Database save error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCarouselAPI() {
+            log('Testing Carousel API endpoints...', 'info');
+
+            // Test GET
+            try {
+                const response = await fetch('/api/carousel/images');
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ GET /api/carousel/images - Success`, 'success');
+                    log(`Found ${data.data?.length || data.length || 0} images`, 'info');
+                } else {
+                    log(`❌ GET /api/carousel/images - Error ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`GET request failed: ${error.message}`, 'error');
+            }
+
+            // Test POST with mock data
+            try {
+                const mockData = {
+                    publicId: 'test_image_' + Date.now(),
+                    url: 'https://via.placeholder.com/800x400',
+                    thumbnail: 'https://via.placeholder.com/300x200',
+                    title: 'Test API Image',
+                    description: 'Test image from API test',
+                    width: 800,
+                    height: 400,
+                    size: 50000,
+                    isActive: true,
+                    order: 0
+                };
+
+                const response = await fetch('/api/carousel/images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(mockData)
+                });
+
+                if (response.ok) {
+                    log(`✅ POST /api/carousel/images - Success`, 'success');
+                } else {
+                    const error = await response.text();
+                    log(`❌ POST /api/carousel/images - Error ${response.status}`, 'error');
+                    log(`Error details: ${error}`, 'error');
+                }
+            } catch (error) {
+                log(`POST request failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('🚀 Initializing debug tests...', 'info');
+            
+            // Wait a bit for Cloudinary SDK to load
+            setTimeout(() => {
+                checkCloudinarySDK();
+            }, 1000);
+            
+            await checkServerStatus();
+            await checkAPIEndpoints();
+            
+            log('✅ Debug initialization complete', 'success');
+        });
+    </script>
+</body>
+</html>

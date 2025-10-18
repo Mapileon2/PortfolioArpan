@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Standardized Hooks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Standardized API Hooks -->
+    <script src="js/api-consolidator.js"></script>
+    <script src="js/standardized-hooks.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Standardized Hooks Test</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Test Case Studies Fetch -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Test Case Studies Fetch</h2>
+                <button id="testFetchCaseStudies" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Fetch Case Studies
+                </button>
+                <div id="fetchResult" class="mt-4 p-3 bg-gray-50 rounded text-sm"></div>
+            </div>
+            
+            <!-- Test Case Study Create -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Test Case Study Create</h2>
+                <button id="testCreateCaseStudy" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Create Test Case Study
+                </button>
+                <div id="createResult" class="mt-4 p-3 bg-gray-50 rounded text-sm"></div>
+            </div>
+            
+            <!-- Test Case Study Update -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Test Case Study Update</h2>
+                <input type="text" id="updateId" placeholder="Case Study ID" class="w-full p-2 border rounded mb-2">
+                <button id="testUpdateCaseStudy" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                    Update Case Study
+                </button>
+                <div id="updateResult" class="mt-4 p-3 bg-gray-50 rounded text-sm"></div>
+            </div>
+            
+            <!-- Test Case Study Delete -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Test Case Study Delete</h2>
+                <input type="text" id="deleteId" placeholder="Case Study ID" class="w-full p-2 border rounded mb-2">
+                <button id="testDeleteCaseStudy" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Delete Case Study
+                </button>
+                <div id="deleteResult" class="mt-4 p-3 bg-gray-50 rounded text-sm"></div>
+            </div>
+        </div>
+        
+        <!-- Hook Statistics -->
+        <div class="bg-white p-6 rounded-lg shadow mt-6">
+            <h2 class="text-xl font-semibold mb-4">Hook Statistics</h2>
+            <button id="getStats" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                Get Statistics
+            </button>
+            <div id="statsResult" class="mt-4 p-3 bg-gray-50 rounded text-sm"></div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for hooks to be initialized
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                initializeTests();
+            }, 1000);
+        });
+
+        function initializeTests() {
+            console.log('🧪 Initializing standardized hooks tests...');
+            
+            // Check if hooks are available
+            if (!window.standardizedHooks) {
+                console.error('❌ Standardized hooks not available');
+                document.body.innerHTML = '<div class="text-red-500 text-center p-8">❌ Standardized hooks not loaded</div>';
+                return;
+            }
+            
+            if (!window.apiConsolidator) {
+                console.error('❌ API consolidator not available');
+                document.body.innerHTML = '<div class="text-red-500 text-center p-8">❌ API consolidator not loaded</div>';
+                return;
+            }
+            
+            console.log('✅ Hooks initialized successfully');
+            
+            // Test fetch case studies
+            document.getElementById('testFetchCaseStudies').addEventListener('click', async () => {
+                const resultDiv = document.getElementById('fetchResult');
+                resultDiv.innerHTML = 'Loading...';
+                
+                try {
+                    const fetchHook = window.standardizedHooks.useFetchCaseStudies();
+                    const result = await fetchHook.execute();
+                    
+                    resultDiv.innerHTML = `
+                        <strong>Success:</strong> ${result.success}<br>
+                        <strong>Data Count:</strong> ${result.data ? result.data.length : 0}<br>
+                        <strong>Response:</strong> <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Test create case study
+            document.getElementById('testCreateCaseStudy').addEventListener('click', async () => {
+                const resultDiv = document.getElementById('createResult');
+                resultDiv.innerHTML = 'Creating...';
+                
+                try {
+                    const createHook = window.standardizedHooks.useCreateCaseStudy();
+                    const testData = {
+                        project_title: 'Test Case Study ' + Date.now(),
+                        project_description: 'This is a test case study created via standardized hooks',
+                        project_category: 'Test',
+                        status: 'draft'
+                    };
+                    
+                    const result = await createHook.execute(testData);
+                    
+                    resultDiv.innerHTML = `
+                        <strong>Success:</strong> ${result.success}<br>
+                        <strong>Created ID:</strong> ${result.data ? result.data.id : 'N/A'}<br>
+                        <strong>Response:</strong> <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Test update case study
+            document.getElementById('testUpdateCaseStudy').addEventListener('click', async () => {
+                const resultDiv = document.getElementById('updateResult');
+                const id = document.getElementById('updateId').value;
+                
+                if (!id) {
+                    resultDiv.innerHTML = '<span class="text-red-500">Please enter a case study ID</span>';
+                    return;
+                }
+                
+                resultDiv.innerHTML = 'Updating...';
+                
+                try {
+                    const updateHook = window.standardizedHooks.useUpdateCaseStudy();
+                    const updateData = {
+                        project_title: 'Updated Test Case Study ' + Date.now(),
+                        updated_at: new Date().toISOString()
+                    };
+                    
+                    const result = await updateHook.execute(id, updateData);
+                    
+                    resultDiv.innerHTML = `
+                        <strong>Success:</strong> ${result.success}<br>
+                        <strong>Updated ID:</strong> ${id}<br>
+                        <strong>Response:</strong> <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Test delete case study
+            document.getElementById('testDeleteCaseStudy').addEventListener('click', async () => {
+                const resultDiv = document.getElementById('deleteResult');
+                const id = document.getElementById('deleteId').value;
+                
+                if (!id) {
+                    resultDiv.innerHTML = '<span class="text-red-500">Please enter a case study ID</span>';
+                    return;
+                }
+                
+                if (!confirm('Are you sure you want to delete this case study?')) {
+                    return;
+                }
+                
+                resultDiv.innerHTML = 'Deleting...';
+                
+                try {
+                    const deleteHook = window.standardizedHooks.useDeleteCaseStudy();
+                    const result = await deleteHook.execute(id, true); // true for confirmation
+                    
+                    resultDiv.innerHTML = `
+                        <strong>Success:</strong> ${result.success}<br>
+                        <strong>Deleted ID:</strong> ${id}<br>
+                        <strong>Response:</strong> <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Test get statistics
+            document.getElementById('getStats').addEventListener('click', () => {
+                const resultDiv = document.getElementById('statsResult');
+                
+                try {
+                    const hooksStats = window.standardizedHooks.getStats();
+                    const consolidatorStats = window.apiConsolidator.getStats();
+                    
+                    resultDiv.innerHTML = `
+                        <strong>Hooks Statistics:</strong><br>
+                        <pre>${JSON.stringify(hooksStats, null, 2)}</pre>
+                        <br>
+                        <strong>API Consolidator Statistics:</strong><br>
+                        <pre>${JSON.stringify(consolidatorStats, null, 2)}</pre>
+                    `;
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

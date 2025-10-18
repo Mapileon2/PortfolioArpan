@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug SaaS Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8 text-blue-600">
+            <i class="fas fa-magic mr-2"></i>SaaS Ultimate Editor - Debug Version
+        </h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">System Status</h2>
+            <div id="status" class="space-y-2">
+                <div class="text-green-600">✅ HTML loaded successfully</div>
+                <div class="text-green-600">✅ CSS styles applied</div>
+                <div id="js-status" class="text-yellow-600">⏳ JavaScript loading...</div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">Dependencies Check</h2>
+            <div id="dependencies" class="space-y-2">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">Quick Editor Test</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Project Title</label>
+                    <input type="text" id="projectTitle" class="w-full px-4 py-2 border rounded-lg" placeholder="Enter project title">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Description</label>
+                    <textarea id="projectDesc" rows="4" class="w-full px-4 py-2 border rounded-lg" placeholder="Enter project description"></textarea>
+                </div>
+                <button onclick="testSave()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
+                    <i class="fas fa-save mr-2"></i>Test Save
+                </button>
+                <div id="saveResult" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🚀 Debug script starting...');
+        
+        // Update JavaScript status
+        document.getElementById('js-status').innerHTML = '<span class="text-green-600">✅ JavaScript loaded successfully</span>';
+        
+        // Check dependencies
+        const dependencies = [
+            { name: 'Tailwind CSS', check: () => document.querySelector('.bg-gradient-to-br') !== null },
+            { name: 'Font Awesome', check: () => document.querySelector('.fas') !== null },
+            { name: 'Google Fonts', check: () => getComputedStyle(document.body).fontFamily.includes('Nunito') },
+            { name: 'Supabase', check: () => typeof supabase !== 'undefined' },
+            { name: 'Cloudinary', check: () => typeof cloudinary !== 'undefined' },
+            { name: 'CKEditor', check: () => typeof ClassicEditor !== 'undefined' }
+        ];
+        
+        const depContainer = document.getElementById('dependencies');
+        dependencies.forEach(dep => {
+            const status = dep.check() ? '✅' : '❌';
+            const color = dep.check() ? 'text-green-600' : 'text-red-600';
+            depContainer.innerHTML += `<div class="${color}">${status} ${dep.name}</div>`;
+        });
+        
+        // Test save function
+        function testSave() {
+            const title = document.getElementById('projectTitle').value;
+            const desc = document.getElementById('projectDesc').value;
+            
+            const result = document.getElementById('saveResult');
+            
+            if (title && desc) {
+                result.innerHTML = `
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                        <strong>Success!</strong> Project "${title}" would be saved.
+                        <br><small>Description: ${desc.substring(0, 50)}...</small>
+                    </div>
+                `;
+            } else {
+                result.innerHTML = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <strong>Error!</strong> Please fill in both title and description.
+                    </div>
+                `;
+            }
+        }
+        
+        console.log('✅ Debug script completed successfully');
+    </script>
+</body>
+</html>

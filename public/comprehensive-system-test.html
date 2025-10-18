@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-header {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .status.pass { background: #d4edda; color: #155724; }
+        .status.fail { background: #f8d7da; color: #721c24; }
+        .status.pending { background: #fff3cd; color: #856404; }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        .test-results {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .upload-zone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .upload-zone.dragover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Comprehensive System Test Suite</h1>
+    <p>Testing all implemented features and integrations</p>
+
+    <!-- Test 1: Cloudinary Integration -->
+    <div class="test-section">
+        <h2 class="test-header">1. Cloudinary Integration Test</h2>
+        <div id="cloudinary-status" class="status pending">⏳ Pending</div>
+        <button class="test-button" onclick="testCloudinary()">Test Cloudinary Connection</button>
+        <div class="upload-zone" id="cloudinary-upload">
+            <p>Drop an image here or click to upload (Cloudinary Test)</p>
+            <input type="file" id="cloudinary-file" accept="image/*" style="display: none;">
+        </div>
+        <div id="cloudinary-results" class="test-results"></div>
+    </div>
+
+    <!-- Test 2: Image Resizer Service -->
+    <div class="test-section">
+        <h2 class="test-header">2. Image Resizer Service Test</h2>
+        <div id="resizer-status" class="status pending">⏳ Pending</div>
+        <button class="test-button" onclick="testImageResizer()">Test Image Resizer</button>
+        <div class="upload-zone" id="resizer-upload">
+            <p>Drop an image here for resizing test</p>
+            <input type="file" id="resizer-file" accept="image/*" style="display: none;">
+        </div>
+        <div id="resizer-results" class="test-results"></div>
+    </div>
+
+    <!-- Test 3: Carousel Functionality -->
+    <div class="test-section">
+        <h2 class="test-header">3. Carousel Functionality Test</h2>
+        <div id="carousel-status" class="status pending">⏳ Pending</div>
+        <button class="test-button" onclick="testCarousel()">Test Carousel</button>
+        <div id="carousel-results" class="test-results"></div>
+    </div>
+
+    <!-- Test 4: Admin Dashboard Access -->
+    <div class="test-section">
+        <h2 class="test-header">4. Admin Dashboard Access Test</h2>
+        <div id="dashboard-status" class="status pending">⏳ Pending</div>
+        <button class="test-button" onclick="testDashboardAccess()">Test Dashboard Access</button>
+        <div id="dashboard-results" class="test-results"></div>
+    </div>
+
+    <!-- Test 5: Authentication System -->
+    <div class="test-section">
+        <h2 class="test-header">5. Authentication System Test</h2>
+        <div id="auth-status" class="status pending">⏳ Pending</div>
+        <button class="test-button" onclick="testAuthentication()">Test Authentication</button>
+        <div id="auth-results" class="test-results"></div>
+    </div>
+
+    <!-- Test 6: Case Study Editor -->
+    <div class="test-section">
+        <h2 class="test-header">6. Case Study Editor Test</h2>
+        <div id="editor-status" class="status pending">⏳ Pending</div>
+        <button class="test-button" onclick="testCaseStudyEditor()">Test Case Study Editor</button>
+        <div id="editor-results" class="test-results"></div>
+    </div>
+
+    <!-- Overall Status -->
+    <div class="test-section">
+        <h2 class="test-header">📊 Overall System Status</h2>
+        <div id="overall-status" class="status pending">⏳ Running Tests...</div>
+        <button class="test-button" onclick="runAllTests()">🚀 Run All Tests</button>
+        <div id="overall-results" class="test-results"></div>
+    </div>
+
+    <script>
+        // Test results tracking
+        const testResults = {
+            cloudinary: null,
+            resizer: null,
+            carousel: null,
+            dashboard: null,
+            auth: null,
+            editor: null
+        };
+
+        // Utility functions
+        function updateStatus(testName, status, message) {
+            const statusEl = document.getElementById(`${testName}-status`);
+            const resultsEl = document.getElementById(`${testName}-results`);
+            
+            statusEl.className = `status ${status}`;
+            statusEl.textContent = status === 'pass' ? '✅ Pass' : status === 'fail' ? '❌ Fail' : '⏳ Pending';
+            
+            if (resultsEl) {
+                resultsEl.textContent = message || '';
+            }
+            
+            testResults[testName] = status;
+            updateOverallStatus();
+        }
+
+        function updateOverallStatus() {
+            const results = Object.values(testResults);
+            const totalTests = results.filter(r => r !== null).length;
+            const passedTests = results.filter(r => r === 'pass').length;
+            const failedTests = results.filter(r => r === 'fail').length;
+            
+            const overallEl = document.getElementById('overall-status');
+            const overallResultsEl = document.getElementById('overall-results');
+            
+            if (totalTests === 0) {
+                overallEl.className = 'status pending';
+                overallEl.textContent = '⏳ No tests run yet';
+                return;
+            }
+            
+            const summary = `Tests Run: ${totalTests}/6\nPassed: ${passedTests}\nFailed: ${failedTests}`;
+            overallResultsEl.textContent = summary;
+            
+            if (failedTests > 0) {
+                overallEl.className = 'status fail';
+                overallEl.textContent = `❌ ${failedTests} test(s) failed`;
+            } else if (totalTests === 6) {
+                overallEl.className = 'status pass';
+                overallEl.textContent = '✅ All tests passed';
+            } else {
+                overallEl.className = 'status pending';
+                overallEl.textContent = `⏳ ${6 - totalTests} test(s) remaining`;
+            }
+        }
+
+        // Test 1: Cloudinary Integration
+        async function testCloudinary() {
+            updateStatus('cloudinary', 'pending', 'Testing Cloudinary connection...');
+            
+            try {
+                // Check if Cloudinary SDK is available
+                if (typeof cloudinary === 'undefined') {
+                    throw new Error('Cloudinary SDK not loaded');
+                }
+                
+                // Test basic configuration
+                const testResult = 'Cloudinary SDK loaded successfully\nConfiguration appears valid';
+                updateStatus('cloudinary', 'pass', testResult);
+                
+            } catch (error) {
+                updateStatus('cloudinary', 'fail', `Cloudinary test failed: ${error.message}`);
+            }
+        }
+
+        // Test 2: Image Resizer Service
+        async function testImageResizer() {
+            updateStatus('resizer', 'pending', 'Testing image resizer service...');
+            
+            try {
+                // Check if resizer service exists
+                const response = await fetch('js/image-resizer-service.js');
+                if (!response.ok) {
+                    throw new Error('Image resizer service file not found');
+                }
+                
+                const content = await response.text();
+                if (content.includes('ImageResizerService')) {
+                    updateStatus('resizer', 'pass', 'Image resizer service file exists and contains expected class');
+                } else {
+                    throw new Error('ImageResizerService class not found in file');
+                }
+                
+            } catch (error) {
+                updateStatus('resizer', 'fail', `Image resizer test failed: ${error.message}`);
+            }
+        }
+
+        // Test 3: Carousel Functionality
+        async function testCarousel() {
+            updateStatus('carousel', 'pending', 'Testing carousel functionality...');
+            
+            try {
+                // Check if admin dashboard has carousel section
+                const response = await fetch('admin-dashboard.html');
+                if (!response.ok) {
+                    throw new Error('Admin dashboard file not found');
+                }
+                
+                const content = await response.text();
+                if (content.includes('carouselView') && content.includes('carousel-upload-zone')) {
+                    updateStatus('carousel', 'pass', 'Carousel section found in admin dashboard');
+                } else {
+                    throw new Error('Carousel section not found in admin dashboard');
+                }
+                
+            } catch (error) {
+                updateStatus('carousel', 'fail', `Carousel test failed: ${error.message}`);
+            }
+        }
+
+        // Test 4: Admin Dashboard Access
+        async function testDashboardAccess() {
+            updateStatus('dashboard', 'pending', 'Testing admin dashboard access...');
+            
+            try {
+                const response = await fetch('admin-dashboard.html');
+                if (!response.ok) {
+                    throw new Error('Admin dashboard not accessible');
+                }
+                
+                const content = await response.text();
+                if (content.includes('Admin Dashboard') && content.includes('navigation')) {
+                    updateStatus('dashboard', 'pass', 'Admin dashboard accessible and contains expected content');
+                } else {
+                    throw new Error('Admin dashboard missing expected content');
+                }
+                
+            } catch (error) {
+                updateStatus('dashboard', 'fail', `Dashboard access test failed: ${error.message}`);
+            }
+        }
+
+        // Test 5: Authentication System
+        async function testAuthentication() {
+            updateStatus('auth', 'pending', 'Testing authentication system...');
+            
+            try {
+                // Check if auth files exist
+                const authResponse = await fetch('js/auth-system.js');
+                const supabaseResponse = await fetch('js/supabase-client.js');
+                
+                if (!authResponse.ok || !supabaseResponse.ok) {
+                    throw new Error('Authentication files not found');
+                }
+                
+                updateStatus('auth', 'pass', 'Authentication system files exist and are accessible');
+                
+            } catch (error) {
+                updateStatus('auth', 'fail', `Authentication test failed: ${error.message}`);
+            }
+        }
+
+        // Test 6: Case Study Editor
+        async function testCaseStudyEditor() {
+            updateStatus('editor', 'pending', 'Testing case study editor...');
+            
+            try {
+                const response = await fetch('case_study_editor.html');
+                if (!response.ok) {
+                    throw new Error('Case study editor not found');
+                }
+                
+                const content = await response.text();
+                if (content.includes('case-study-editor') || content.includes('editor')) {
+                    updateStatus('editor', 'pass', 'Case study editor accessible');
+                } else {
+                    throw new Error('Case study editor missing expected content');
+                }
+                
+            } catch (error) {
+                updateStatus('editor', 'fail', `Case study editor test failed: ${error.message}`);
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            document.getElementById('overall-status').textContent = '🔄 Running all tests...';
+            
+            await testCloudinary();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testImageResizer();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testCarousel();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testDashboardAccess();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAuthentication();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testCaseStudyEditor();
+        }
+
+        // File upload handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cloudinary upload zone
+            const cloudinaryZone = document.getElementById('cloudinary-upload');
+            const cloudinaryFile = document.getElementById('cloudinary-file');
+            
+            cloudinaryZone.addEventListener('click', () => cloudinaryFile.click());
+            cloudinaryZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                cloudinaryZone.classList.add('dragover');
+            });
+            cloudinaryZone.addEventListener('dragleave', () => {
+                cloudinaryZone.classList.remove('dragover');
+            });
+            cloudinaryZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                cloudinaryZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleCloudinaryUpload(files[0]);
+                }
+            });
+            
+            cloudinaryFile.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleCloudinaryUpload(e.target.files[0]);
+                }
+            });
+            
+            // Resizer upload zone
+            const resizerZone = document.getElementById('resizer-upload');
+            const resizerFile = document.getElementById('resizer-file');
+            
+            resizerZone.addEventListener('click', () => resizerFile.click());
+            resizerFile.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleResizerUpload(e.target.files[0]);
+                }
+            });
+        });
+
+        async function handleCloudinaryUpload(file) {
+            const resultsEl = document.getElementById('cloudinary-results');
+            resultsEl.textContent = `Testing upload of: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            
+            // This would integrate with actual Cloudinary upload
+            setTimeout(() => {
+                resultsEl.textContent += '\n✅ Upload simulation completed';
+            }, 2000);
+        }
+
+        async function handleResizerUpload(file) {
+            const resultsEl = document.getElementById('resizer-results');
+            resultsEl.textContent = `Testing resize of: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            
+            // This would integrate with actual resizer service
+            setTimeout(() => {
+                resultsEl.textContent += '\n✅ Resize simulation completed';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

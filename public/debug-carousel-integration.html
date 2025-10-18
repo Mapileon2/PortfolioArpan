@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Carousel Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center text-red-600">🔍 Carousel Integration Debug</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">🚨 Issue Analysis</h2>
+            <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
+                <p class="text-red-800"><strong>Problem:</strong> Homepage showing default images instead of carousel manager uploads</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onclick="runDiagnostics()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700">
+                    🔍 Run Full Diagnostics
+                </button>
+                <button onclick="forceSync()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                    🔄 Force Sync Now
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">📊 Diagnostic Results</h2>
+            <div id="diagnosticResults" class="space-y-3">
+                <div class="text-gray-600">Click "Run Full Diagnostics" to analyze the issue...</div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">🔧 Quick Fixes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="createTestData()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    📝 Create Test Data
+                </button>
+                <button onclick="clearAllData()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                    🗑️ Clear All Data
+                </button>
+                <button onclick="testHomepageSync()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                    🧪 Test Homepage Sync
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">🔗 Navigation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="index.html" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 text-center block">
+                    🏠 Homepage
+                </a>
+                <a href="carousel-management-saas.html" class="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 text-center block">
+                    🎠 Carousel Manager
+                </a>
+                <a href="fix-carousel-homepage-integration.html" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 text-center block">
+                    🔧 Integration Fix
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('diagnosticResults');
+            const colors = {
+                success: 'text-green-600 bg-green-50 border-green-200',
+                error: 'text-red-600 bg-red-50 border-red-200',
+                warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+                info: 'text-blue-600 bg-blue-50 border-blue-200'
+            };
+            
+            const result = document.createElement('div');
+            result.className = `p-3 border rounded ${colors[type]}`;
+            result.innerHTML = `
+                <div class="flex items-start">
+                    <span class="font-semibold mr-2">[${new Date().toLocaleTimeString()}]</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            resultsDiv.appendChild(result);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        async function runDiagnostics() {
+            document.getElementById('diagnosticResults').innerHTML = '';
+            addResult('🔍 Starting comprehensive diagnostics...', 'info');
+
+            // 1. Check localStorage
+            addResult('📦 Checking localStorage data...', 'info');
+            const carouselData = localStorage.getItem('homepageCarouselData');
+            const lastSync = localStorage.getItem('carouselLastSync');
+            
+            if (carouselData) {
+                try {
+                    const data = JSON.parse(carouselData);
+                    addResult(`✅ Found ${data.length} items in localStorage`, 'success');
+                    addResult(`🕒 Last sync: ${lastSync ? new Date(lastSync).toLocaleString() : 'Unknown'}`, 'info');
+                    
+                    // Show data details
+                    data.forEach((item, index) => {
+                        addResult(`📷 Item ${index + 1}: "${item.title}" - ${item.url.substring(0, 50)}...`, 'info');
+                    });
+                } catch (error) {
+                    addResult(`❌ Error parsing localStorage data: ${error.message}`, 'error');
+                }
+            } else {
+                addResult('❌ No carousel data found in localStorage', 'error');
+                addResult('💡 This is likely why default images are showing', 'warning');
+            }
+
+            // 2. Check if homepage sync script is loaded
+            addResult('🔍 Checking homepage sync script...', 'info');
+            if (typeof HomepageCarouselSync !== 'undefined') {
+                addResult('✅ HomepageCarouselSync class is available', 'success');
+            } else {
+                addResult('❌ HomepageCarouselSync class not found', 'error');
+                addResult('💡 Homepage sync script may not be loaded', 'warning');
+            }
+
+            // 3. Check if carousel manager is available
+            addResult('🔍 Checking carousel manager...', 'info');
+            if (typeof window.carouselSaaS !== 'undefined') {
+                addResult('✅ Carousel manager is available', 'success');
+                
+                // Check if it has sync methods
+                if (typeof window.carouselSaaS.syncToHomepage === 'function') {
+                    addResult('✅ syncToHomepage method is available', 'success');
+                } else {
+                    addResult('❌ syncToHomepage method not found', 'error');
+                }
+            } else {
+                addResult('❌ Carousel manager not available', 'error');
+                addResult('💡 Carousel manager script may not be loaded', 'warning');
+            }
+
+            // 4. Check homepage structure
+            addResult('🔍 Checking homepage carousel structure...', 'info');
+            try {
+                const response = await fetch('index.html');
+                const html = await response.text();
+                
+                if (html.includes('swiper-magical')) {
+                    addResult('✅ Homepage has swiper-magical container', 'success');
+                } else {
+                    addResult('❌ Homepage missing swiper-magical container', 'error');
+                }
+                
+                if (html.includes('js/homepage-carousel-sync.js')) {
+                    addResult('✅ Homepage includes sync script', 'success');
+                } else {
+                    addResult('❌ Homepage missing sync script include', 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error checking homepage: ${error.message}`, 'error');
+            }
+
+            // 5. Test event system
+            addResult('🔍 Testing event system...', 'info');
+            let eventReceived = false;
+            const testListener = () => { eventReceived = true; };
+            
+            window.addEventListener('carouselDataUpdated', testListener);
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { items: [], test: true }
+            }));
+            
+            setTimeout(() => {
+                window.removeEventListener('carouselDataUpdated', testListener);
+                if (eventReceived) {
+                    addResult('✅ Event system is working', 'success');
+                } else {
+                    addResult('❌ Event system not working', 'error');
+                }
+                
+                // Final diagnosis
+                addResult('🎯 DIAGNOSIS COMPLETE', 'info');
+                provideSolution();
+            }, 100);
+        }
+
+        function provideSolution() {
+            addResult('💡 RECOMMENDED SOLUTION:', 'warning');
+            
+            const carouselData = localStorage.getItem('homepageCarouselData');
+            if (!carouselData) {
+                addResult('1. No carousel data found - need to upload images in carousel manager', 'warning');
+                addResult('2. Or create test data using the button below', 'warning');
+            }
+            
+            addResult('3. Force sync to ensure homepage gets updated', 'warning');
+            addResult('4. Check homepage after sync', 'warning');
+        }
+
+        function createTestData() {
+            addResult('📝 Creating test carousel data...', 'info');
+            
+            const testData = [
+                {
+                    id: 'debug-test-1',
+                    url: 'https://picsum.photos/800/400?random=301',
+                    title: 'Debug Test Image 1',
+                    description: 'This is a test image created by the debug tool',
+                    alt: 'Debug test image 1',
+                    order: 1,
+                    isActive: true
+                },
+                {
+                    id: 'debug-test-2',
+                    url: 'https://picsum.photos/800/400?random=302',
+                    title: 'Debug Test Image 2',
+                    description: 'Second test image to verify carousel sync',
+                    alt: 'Debug test image 2',
+                    order: 2,
+                    isActive: true
+                },
+                {
+                    id: 'debug-test-3',
+                    url: 'https://picsum.photos/800/400?random=303',
+                    title: 'Debug Test Image 3',
+                    description: 'Third test image for comprehensive testing',
+                    alt: 'Debug test image 3',
+                    order: 3,
+                    isActive: true
+                }
+            ];
+
+            localStorage.setItem('homepageCarouselData', JSON.stringify(testData));
+            localStorage.setItem('carouselLastSync', new Date().toISOString());
+            
+            addResult(`✅ Created ${testData.length} test images in localStorage`, 'success');
+            addResult('🔄 Now triggering homepage sync...', 'info');
+            
+            // Trigger sync
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { items: testData, timestamp: new Date().toISOString() }
+            }));
+            
+            addResult('✅ Test data created and sync triggered!', 'success');
+            addResult('🏠 Check the homepage now - it should show the test images', 'success');
+        }
+
+        function forceSync() {
+            addResult('🔄 Forcing carousel sync...', 'info');
+            
+            const carouselData = localStorage.getItem('homepageCarouselData');
+            if (carouselData) {
+                try {
+                    const data = JSON.parse(carouselData);
+                    
+                    // Dispatch sync event
+                    window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                        detail: { items: data, timestamp: new Date().toISOString() }
+                    }));
+                    
+                    addResult(`✅ Forced sync with ${data.length} items`, 'success');
+                    addResult('🏠 Check homepage to see if images updated', 'success');
+                } catch (error) {
+                    addResult(`❌ Error during force sync: ${error.message}`, 'error');
+                }
+            } else {
+                addResult('❌ No data to sync - create test data first', 'error');
+            }
+        }
+
+        function clearAllData() {
+            addResult('🗑️ Clearing all carousel data...', 'info');
+            
+            localStorage.removeItem('homepageCarouselData');
+            localStorage.removeItem('carouselLastSync');
+            
+            // Trigger empty sync
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { items: [], timestamp: new Date().toISOString() }
+            }));
+            
+            addResult('✅ All data cleared', 'success');
+            addResult('🏠 Homepage should now show default slides', 'info');
+        }
+
+        function testHomepageSync() {
+            addResult('🧪 Testing homepage sync functionality...', 'info');
+            
+            // Create a simple test
+            const testItem = {
+                id: 'sync-test',
+                url: 'https://picsum.photos/800/400?random=999',
+                title: 'Sync Test Image',
+                description: 'Testing homepage sync functionality',
+                alt: 'Sync test',
+                order: 1
+            };
+            
+            // Save and trigger
+            localStorage.setItem('homepageCarouselData', JSON.stringify([testItem]));
+            localStorage.setItem('carouselLastSync', new Date().toISOString());
+            
+            window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                detail: { items: [testItem], timestamp: new Date().toISOString() }
+            }));
+            
+            addResult('✅ Sync test completed', 'success');
+            addResult('🏠 Check homepage for the sync test image', 'success');
+        }
+
+        // Auto-run diagnostics on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(runDiagnostics, 1000);
+        });
+    </script>
+</body>
+</html>

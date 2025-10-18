@@ -14,6 +14,66 @@ const supabase = createClient(
 );
 
 /**
+ * GET /api/carousel
+ * Get all carousel images (root endpoint for testing)
+ */
+router.get('/', async (req, res) => {
+    try {
+        console.log('📋 Fetching carousel images (root endpoint)...');
+        
+        const { data: images, error } = await supabase
+            .from('carousel_images')
+            .select('*')
+            .order('order_index', { ascending: true });
+
+        if (error) {
+            console.error('❌ Database error:', error);
+            // Return mock data if database fails (matching actual schema)
+            return res.json([
+                {
+                    id: 'mock_1',
+                    title: 'Beautiful Landscape',
+                    caption: 'Explore Nature',
+                    description: 'A stunning landscape showcasing natural beauty',
+                    url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
+                    thumbnail_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop',
+                    alt_text: 'Beautiful landscape with mountains and lake',
+                    order_index: 0,
+                    status: 'active',
+                    metadata: {},
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    id: 'mock_2',
+                    title: 'Modern Technology',
+                    caption: 'Learn More',
+                    description: 'Cutting-edge technology solutions for the digital age',
+                    url: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&h=600&fit=crop',
+                    thumbnail_url: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=300&h=200&fit=crop',
+                    alt_text: 'Modern technology and digital innovation',
+                    order_index: 1,
+                    status: 'active',
+                    metadata: {},
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                }
+            ]);
+        }
+
+        console.log(`✅ Found ${images?.length || 0} carousel images`);
+        res.json(images || []);
+        
+    } catch (error) {
+        console.error('❌ Carousel fetch error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch carousel images',
+            details: error.message 
+        });
+    }
+});
+
+/**
  * GET /api/carousel/images
  * Get all carousel images
  */

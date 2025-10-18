@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Working Carousel Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .carousel-slide {
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .drag-over {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-6xl mx-auto p-6">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">🎠 Working Carousel Demo</h1>
+            
+            <!-- Upload Section -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-900">Upload Images</h2>
+                    <button onclick="uploadImages()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-plus mr-2"></i>Add Images
+                    </button>
+                </div>
+                
+                <!-- Drop Zone -->
+                <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors hover:border-blue-500">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Drop Images Here</h3>
+                    <p class="text-gray-600">Or click "Add Images" to select files</p>
+                </div>
+            </div>
+
+            <!-- Carousel Preview -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Carousel Preview</h2>
+                <div id="carouselContainer" class="bg-gray-100 rounded-lg overflow-hidden">
+                    <!-- Carousel will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Image Management -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Manage Images</h2>
+                <div id="imageGrid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Images will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple working carousel implementation
+        class WorkingCarousel {
+            constructor() {
+                this.images = [];
+                this.currentIndex = 0;
+                this.init();
+            }
+
+            init() {
+                this.setupDragAndDrop();
+                this.loadSampleImages(); // Load some sample images to show it works
+                this.render();
+            }
+
+            loadSampleImages() {
+                // Add some sample images so carousel isn't empty
+                this.images = [
+                    {
+                        id: 'sample1',
+                        url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=400&fit=crop',
+                        title: 'Sample Image 1',
+                        description: 'Beautiful landscape'
+                    },
+                    {
+                        id: 'sample2', 
+                        url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
+                        title: 'Sample Image 2',
+                        description: 'Modern technology'
+                    },
+                    {
+                        id: 'sample3',
+                        url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=400&fit=crop',
+                        title: 'Sample Image 3', 
+                        description: 'Creative workspace'
+                    }
+                ];
+            }
+
+            setupDragAndDrop() {
+                const dropZone = document.getElementById('dropZone');
+                
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('drag-over');
+                });
+
+                dropZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('drag-over');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('drag-over');
+                    
+                    const files = Array.from(e.dataTransfer.files).filter(file => 
+                        file.type.startsWith('image/')
+                    );
+                    
+                    this.handleFiles(files);
+                });
+            }
+
+            async handleFiles(files) {
+                for (const file of files) {
+                    const imageData = await this.processFile(file);
+                    this.images.push(imageData);
+                }
+                this.render();
+            }
+
+            async processFile(file) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        resolve({
+                            id: Date.now() + Math.random(),
+                            url: e.target.result,
+                            title: file.name.replace(/\.[^/.]+$/, ""),
+                            description: 'Uploaded image',
+                            file: file
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            render() {
+                this.renderCarousel();
+                this.renderImageGrid();
+            }
+
+            renderCarousel() {
+                const container = document.getElementById('carouselContainer');
+                
+                if (this.images.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-64 flex items-center justify-center text-gray-500">
+                            <div class="text-center">
+                                <i class="fas fa-images text-4xl mb-4"></i>
+                                <p>No images in carousel yet</p>
+                                <p class="text-sm">Upload some images to get started!</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="relative h-64">
+                        <!-- Slides -->
+                        ${this.images.map((image, index) => `
+                            <div class="carousel-slide absolute inset-0 ${index === this.currentIndex ? 'opacity-100' : 'opacity-0'}" 
+                                 style="transition: opacity 0.5s ease-in-out;">
+                                <img src="${image.url}" alt="${image.title}" class="w-full h-full object-cover">
+                                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                                    <h3 class="text-white text-lg font-semibold">${image.title}</h3>
+                                    <p class="text-white text-sm opacity-90">${image.description}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                        
+                        <!-- Navigation -->
+                        ${this.images.length > 1 ? `
+                            <button onclick="carousel.previousSlide()" 
+                                    class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75 transition">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button onclick="carousel.nextSlide()" 
+                                    class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75 transition">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            
+                            <!-- Dots -->
+                            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                                ${this.images.map((_, index) => `
+                                    <button onclick="carousel.goToSlide(${index})" 
+                                            class="w-3 h-3 rounded-full transition ${index === this.currentIndex ? 'bg-white' : 'bg-white bg-opacity-50'}"></button>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            renderImageGrid() {
+                const grid = document.getElementById('imageGrid');
+                
+                if (this.images.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12 text-gray-500">
+                            <i class="fas fa-images text-4xl mb-4"></i>
+                            <p>No images uploaded yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = this.images.map((image, index) => `
+                    <div class="relative group bg-white rounded-lg shadow-md overflow-hidden">
+                        <img src="${image.url}" alt="${image.title}" class="w-full h-32 object-cover">
+                        
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex space-x-2">
+                                <button onclick="carousel.editImage(${index})" 
+                                        class="bg-white text-gray-900 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </button>
+                                <button onclick="carousel.removeImage(${index})" 
+                                        class="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-3">
+                            <h4 class="font-medium text-gray-900 text-sm truncate">${image.title}</h4>
+                            <p class="text-xs text-gray-500 mt-1">${image.description}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            nextSlide() {
+                this.currentIndex = (this.currentIndex + 1) % this.images.length;
+                this.renderCarousel();
+            }
+
+            previousSlide() {
+                this.currentIndex = this.currentIndex === 0 ? this.images.length - 1 : this.currentIndex - 1;
+                this.renderCarousel();
+            }
+
+            goToSlide(index) {
+                this.currentIndex = index;
+                this.renderCarousel();
+            }
+
+            removeImage(index) {
+                if (confirm('Remove this image?')) {
+                    this.images.splice(index, 1);
+                    if (this.currentIndex >= this.images.length) {
+                        this.currentIndex = Math.max(0, this.images.length - 1);
+                    }
+                    this.render();
+                }
+            }
+
+            editImage(index) {
+                const image = this.images[index];
+                const newTitle = prompt('Enter new title:', image.title);
+                if (newTitle) {
+                    image.title = newTitle;
+                    this.render();
+                }
+            }
+        }
+
+        // Initialize carousel
+        const carousel = new WorkingCarousel();
+
+        // Global upload function
+        function uploadImages() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.multiple = true;
+            input.onchange = (e) => {
+                const files = Array.from(e.target.files);
+                carousel.handleFiles(files);
+            };
+            input.click();
+        }
+    </script>
+</body>
+</html>

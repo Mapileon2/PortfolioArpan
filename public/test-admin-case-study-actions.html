@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Case Study Actions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-6xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-blue-600">Admin Dashboard - Edit/View/Delete Actions Test</h1>
+        
+        <!-- Test Status -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 text-green-600">
+                <i class="fas fa-check-circle mr-2"></i>Functionality Fixes Applied
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <h3 class="font-semibold text-gray-900">✅ Fixed Issues:</h3>
+                    <ul class="text-sm text-gray-700 space-y-1">
+                        <li>• Fixed button onclick handlers (this context issue)</li>
+                        <li>• Made AdminDashboard globally available</li>
+                        <li>• Added DELETE endpoint to server.js</li>
+                        <li>• Verified case_study_display.html exists</li>
+                        <li>• Enhanced error handling and notifications</li>
+                    </ul>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="font-semibold text-gray-900">🔧 Technical Changes:</h3>
+                    <ul class="text-sm text-gray-700 space-y-1">
+                        <li>• onclick="window.adminDashboard.editCaseStudy(id)"</li>
+                        <li>• onclick="window.adminDashboard.viewCaseStudy(id)"</li>
+                        <li>• onclick="window.adminDashboard.deleteCaseStudy(id)"</li>
+                        <li>• app.delete('/api/case-studies/:id') endpoint</li>
+                        <li>• Global window.adminDashboard instance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Create Test Data -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 text-purple-600">
+                <i class="fas fa-database mr-2"></i>Create Test Case Studies
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="createTestCaseStudy('Test Case Study 1', 'web-design')" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg">
+                    <i class="fas fa-plus mr-2"></i>Create Web Design
+                </button>
+                <button onclick="createTestCaseStudy('Test Mobile App', 'mobile-app')" 
+                        class="bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg">
+                    <i class="fas fa-plus mr-2"></i>Create Mobile App
+                </button>
+                <button onclick="createTestCaseStudy('Test Product Design', 'product-design')" 
+                        class="bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg">
+                    <i class="fas fa-plus mr-2"></i>Create Product Design
+                </button>
+            </div>
+            <div id="createResults" class="mt-4"></div>
+        </div>
+        
+        <!-- Test Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Edit Test -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 text-blue-600">
+                    <i class="fas fa-edit mr-2"></i>Edit Function Test
+                </h2>
+                <div class="space-y-3">
+                    <p class="text-gray-600 text-sm">Tests the Edit button functionality</p>
+                    <div class="bg-gray-50 p-3 rounded text-sm">
+                        <strong>Expected Behavior:</strong><br>
+                        • Click Edit button on case study<br>
+                        • Should open case_study_editor_complete.html<br>
+                        • URL should include ?id=case_study_id<br>
+                        • Editor should load the specific case study
+                    </div>
+                    <button onclick="testEditFunction()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded">
+                        Test Edit Function
+                    </button>
+                    <div id="editResult" class="text-sm"></div>
+                </div>
+            </div>
+            
+            <!-- View Test -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 text-green-600">
+                    <i class="fas fa-eye mr-2"></i>View Function Test
+                </h2>
+                <div class="space-y-3">
+                    <p class="text-gray-600 text-sm">Tests the View button functionality</p>
+                    <div class="bg-gray-50 p-3 rounded text-sm">
+                        <strong>Expected Behavior:</strong><br>
+                        • Click View button on case study<br>
+                        • Should open case_study_display.html in new tab<br>
+                        • URL should include ?id=case_study_id<br>
+                        • Display should show the case study
+                    </div>
+                    <button onclick="testViewFunction()" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded">
+                        Test View Function
+                    </button>
+                    <div id="viewResult" class="text-sm"></div>
+                </div>
+            </div>
+            
+            <!-- Delete Test -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 text-red-600">
+                    <i class="fas fa-trash mr-2"></i>Delete Function Test
+                </h2>
+                <div class="space-y-3">
+                    <p class="text-gray-600 text-sm">Tests the Delete button functionality</p>
+                    <div class="bg-gray-50 p-3 rounded text-sm">
+                        <strong>Expected Behavior:</strong><br>
+                        • Click Delete button on case study<br>
+                        • Should show confirmation dialog<br>
+                        • Should call DELETE /api/case-studies/:id<br>
+                        • Should remove case study and refresh list
+                    </div>
+                    <button onclick="testDeleteEndpoint()" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded">
+                        Test Delete Endpoint
+                    </button>
+                    <div id="deleteResult" class="text-sm"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Dashboard Access -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4 text-indigo-600">
+                <i class="fas fa-external-link-alt mr-2"></i>Admin Dashboard Access
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="/admin-dashboard.html#case-studies" target="_blank" 
+                   class="bg-indigo-500 hover:bg-indigo-600 text-white py-3 px-6 rounded-lg text-center font-semibold">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Open Admin Dashboard
+                </a>
+                <button onclick="checkCaseStudies()" 
+                        class="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-semibold">
+                    <i class="fas fa-list mr-2"></i>List Current Case Studies
+                </button>
+            </div>
+            <div id="listResult" class="mt-4"></div>
+        </div>
+        
+        <!-- Manual Testing Instructions -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4 text-yellow-600">
+                <i class="fas fa-clipboard-check mr-2"></i>Manual Testing Steps
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-3">Step-by-Step Test:</h3>
+                    <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2">
+                        <li>Create test case studies using buttons above</li>
+                        <li>Open Admin Dashboard using the link</li>
+                        <li>Navigate to Case Studies tab</li>
+                        <li>Verify case studies are displayed</li>
+                        <li>Test Edit button - should open editor with ID</li>
+                        <li>Test View button - should open display in new tab</li>
+                        <li>Test Delete button - should show confirmation and delete</li>
+                        <li>Verify list refreshes after delete</li>
+                    </ol>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-3">What to Look For:</h3>
+                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-2">
+                        <li>No JavaScript errors in console</li>
+                        <li>Buttons respond to clicks</li>
+                        <li>Edit opens editor with correct URL</li>
+                        <li>View opens display in new tab</li>
+                        <li>Delete shows confirmation dialog</li>
+                        <li>Delete removes item from list</li>
+                        <li>Success/error notifications appear</li>
+                        <li>List updates automatically</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testCaseStudyIds = [];
+        
+        async function createTestCaseStudy(title, category) {
+            const resultDiv = document.getElementById('createResults');
+            
+            const testData = {
+                project_title: `${title} - ${Date.now()}`,
+                project_description: `This is a test case study for ${category} created to test the admin dashboard Edit/View/Delete functionality.`,
+                project_category: category,
+                project_rating: 5,
+                project_achievement: 'Successfully tested admin dashboard actions',
+                status: 'published',
+                sections: {
+                    hero: {
+                        enabled: true,
+                        title: title,
+                        subtitle: `Testing ${category} functionality`,
+                        description: `This case study was created to test the admin dashboard actions.`
+                    }
+                }
+            };
+            
+            try {
+                const response = await fetch('/api/case-studies', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    testCaseStudyIds.push(result.id);
+                    resultDiv.innerHTML += `
+                        <div class="text-green-600 text-sm mb-2">
+                            ✅ Created: ${result.project_title} (ID: ${result.id.substring(0, 8)}...)
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML += `
+                        <div class="text-red-600 text-sm mb-2">
+                            ❌ Failed to create ${title}: ${result.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <div class="text-red-600 text-sm mb-2">
+                        ❌ Network error creating ${title}: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function testEditFunction() {
+            const resultDiv = document.getElementById('editResult');
+            if (testCaseStudyIds.length === 0) {
+                resultDiv.innerHTML = '<div class="text-yellow-600">⚠️ Create test case studies first</div>';
+                return;
+            }
+            
+            const testId = testCaseStudyIds[0];
+            const editUrl = `case_study_editor_complete.html?id=${testId}`;
+            
+            resultDiv.innerHTML = `
+                <div class="text-blue-600">
+                    🔗 Edit URL: <a href="${editUrl}" target="_blank" class="underline">${editUrl}</a><br>
+                    <button onclick="window.open('${editUrl}', '_blank')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-xs">
+                        Test Edit Link
+                    </button>
+                </div>
+            `;
+        }
+        
+        function testViewFunction() {
+            const resultDiv = document.getElementById('viewResult');
+            if (testCaseStudyIds.length === 0) {
+                resultDiv.innerHTML = '<div class="text-yellow-600">⚠️ Create test case studies first</div>';
+                return;
+            }
+            
+            const testId = testCaseStudyIds[0];
+            const viewUrl = `case_study_display.html?id=${testId}`;
+            
+            resultDiv.innerHTML = `
+                <div class="text-green-600">
+                    🔗 View URL: <a href="${viewUrl}" target="_blank" class="underline">${viewUrl}</a><br>
+                    <button onclick="window.open('${viewUrl}', '_blank')" class="mt-2 bg-green-500 text-white px-3 py-1 rounded text-xs">
+                        Test View Link
+                    </button>
+                </div>
+            `;
+        }
+        
+        async function testDeleteEndpoint() {
+            const resultDiv = document.getElementById('deleteResult');
+            if (testCaseStudyIds.length === 0) {
+                resultDiv.innerHTML = '<div class="text-yellow-600">⚠️ Create test case studies first</div>';
+                return;
+            }
+            
+            const testId = testCaseStudyIds[testCaseStudyIds.length - 1]; // Use last created
+            
+            try {
+                const response = await fetch(`/api/case-studies/${testId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    testCaseStudyIds = testCaseStudyIds.filter(id => id !== testId);
+                    resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            ✅ DELETE endpoint works!<br>
+                            Deleted case study: ${testId.substring(0, 8)}...<br>
+                            Response: ${result.message}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="text-red-600">
+                            ❌ DELETE failed: ${result.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        ❌ DELETE error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        async function checkCaseStudies() {
+            const resultDiv = document.getElementById('listResult');
+            resultDiv.innerHTML = '<div class="text-blue-600">Loading case studies...</div>';
+            
+            try {
+                const response = await fetch('/api/case-studies');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <strong>Found ${data.length} case studies:</strong><br>
+                            ${data.map(cs => `
+                                <div class="text-sm mt-1">
+                                    • ${cs.project_title} (${cs.id.substring(0, 8)}...) - ${cs.status}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="text-red-600">❌ Failed to load: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="text-red-600">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Auto-load case studies on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkCaseStudies();
+        });
+    </script>
+</body>
+</html>

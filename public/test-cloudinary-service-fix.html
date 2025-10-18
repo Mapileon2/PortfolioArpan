@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cloudinary Service Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Cloudinary SDK -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    
+    <!-- Our Cloudinary Service -->
+    <script src="js/cloudinary-service.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">Cloudinary Service Test</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Test Image Upload</label>
+                <input type="file" id="testFile" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            </div>
+            
+            <button id="testUpload" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Test Upload
+            </button>
+            
+            <div id="results" class="mt-4 p-4 bg-gray-50 rounded hidden">
+                <h3 class="font-semibold mb-2">Results:</h3>
+                <pre id="resultText" class="text-sm"></pre>
+            </div>
+            
+            <div id="preview" class="mt-4 hidden">
+                <h3 class="font-semibold mb-2">Preview:</h3>
+                <img id="previewImg" class="max-w-full h-auto rounded" alt="Preview">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function waitForCloudinaryService() {
+            console.log('⏳ Waiting for Cloudinary service...');
+            
+            return new Promise((resolve) => {
+                const checkService = () => {
+                    if (window.cloudinaryService && typeof window.cloudinaryService.uploadImage === 'function') {
+                        console.log('✅ Cloudinary service is ready');
+                        resolve();
+                    } else {
+                        console.log('⏳ Cloudinary service not ready yet, retrying...');
+                        setTimeout(checkService, 100);
+                    }
+                };
+                checkService();
+            });
+        }
+
+        async function testUpload() {
+            const fileInput = document.getElementById('testFile');
+            const resultsDiv = document.getElementById('results');
+            const resultText = document.getElementById('resultText');
+            const previewDiv = document.getElementById('preview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a file first');
+                return;
+            }
+            
+            try {
+                console.log('🧪 Testing Cloudinary service...');
+                
+                // Wait for service to be ready
+                await waitForCloudinaryService();
+                
+                const file = fileInput.files[0];
+                console.log('📤 Uploading file:', file.name);
+                
+                // Test the upload
+                const result = await window.cloudinaryService.uploadImage(file, {
+                    folder: 'portfolio/test',
+                    tags: ['test'],
+                    publicId: `test_${Date.now()}`
+                });
+                
+                console.log('✅ Upload successful:', result);
+                
+                // Show results
+                resultsDiv.classList.remove('hidden');
+                resultText.textContent = JSON.stringify(result, null, 2);
+                
+                // Show preview
+                if (result.secure_url) {
+                    previewDiv.classList.remove('hidden');
+                    previewImg.src = result.secure_url;
+                }
+                
+            } catch (error) {
+                console.error('❌ Upload failed:', error);
+                resultsDiv.classList.remove('hidden');
+                resultText.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Initializing test page...');
+            
+            // Wait for Cloudinary service
+            await waitForCloudinaryService();
+            
+            // Setup event listener
+            document.getElementById('testUpload').addEventListener('click', testUpload);
+            
+            console.log('✅ Test page ready!');
+        });
+    </script>
+</body>
+</html>

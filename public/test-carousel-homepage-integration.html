@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel Homepage Integration Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">🎠 Carousel Homepage Integration Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Current Carousel Data</h2>
+            <div id="carouselStatus" class="mb-4"></div>
+            <div id="carouselData" class="bg-gray-50 p-4 rounded"></div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Homepage Carousel Preview</h2>
+            <div id="carouselPreview" class="border-2 border-dashed border-gray-300 p-8 text-center">
+                Loading carousel data...
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Integration Actions</h2>
+            <div class="space-x-4">
+                <button onclick="loadCarouselData()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Reload Data
+                </button>
+                <button onclick="clearCarouselData()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    Clear Data
+                </button>
+                <a href="carousel-management-saas.html" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 inline-block">
+                    Open Carousel Manager
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadCarouselData() {
+            const carouselData = localStorage.getItem('homepageCarouselData');
+            const lastSync = localStorage.getItem('carouselLastSync');
+            
+            const statusDiv = document.getElementById('carouselStatus');
+            const dataDiv = document.getElementById('carouselData');
+            const previewDiv = document.getElementById('carouselPreview');
+            
+            if (carouselData) {
+                const data = JSON.parse(carouselData);
+                statusDiv.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                            ✅ ${data.length} items loaded
+                        </span>
+                        <span class="text-gray-600 text-sm">
+                            Last sync: ${lastSync ? new Date(lastSync).toLocaleString() : 'Unknown'}
+                        </span>
+                    </div>
+                `;
+                
+                dataDiv.innerHTML = `<pre class="text-sm overflow-auto">${JSON.stringify(data, null, 2)}</pre>`;
+                
+                if (data.length > 0) {
+                    previewDiv.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            ${data.map(item => `
+                                <div class="bg-white p-4 rounded-lg shadow">
+                                    <img src="${item.thumbnail || item.url}" alt="${item.alt || item.title}" 
+                                         class="w-full h-32 object-cover rounded mb-2">
+                                    <h3 class="font-semibold text-sm">${item.title}</h3>
+                                    <p class="text-gray-600 text-xs">${item.description || 'No description'}</p>
+                                    <span class="text-xs text-blue-600">Order: ${item.order}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    previewDiv.innerHTML = `
+                        <div class="text-gray-500">
+                            <p class="text-lg mb-2">No active carousel items</p>
+                            <p class="text-sm">Upload images in the carousel manager to see them here</p>
+                        </div>
+                    `;
+                }
+            } else {
+                statusDiv.innerHTML = `
+                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
+                        ⚠️ No carousel data found
+                    </span>
+                `;
+                dataDiv.innerHTML = '<p class="text-gray-500">No data available</p>';
+                previewDiv.innerHTML = `
+                    <div class="text-gray-500">
+                        <p class="text-lg mb-2">No carousel data</p>
+                        <p class="text-sm">Visit the carousel manager to upload images</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function clearCarouselData() {
+            localStorage.removeItem('homepageCarouselData');
+            localStorage.removeItem('carouselLastSync');
+            loadCarouselData();
+        }
+        
+        // Listen for carousel updates
+        window.addEventListener('carouselDataUpdated', function(event) {
+            console.log('Carousel data updated:', event.detail);
+            loadCarouselData();
+        });
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadCarouselData);
+    </script>
+</body>
+</html>

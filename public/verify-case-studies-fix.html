@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Case Studies Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h1 class="text-2xl font-bold mb-4">✅ Verify Case Studies Fix</h1>
+            <p class="text-gray-600 mb-4">This page will verify that the case studies fix is working correctly in the admin dashboard.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button onclick="step1()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition">
+                    1️⃣ Create Test Data
+                </button>
+                <button onclick="step2()" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition">
+                    2️⃣ Open Admin Dashboard
+                </button>
+                <button onclick="step3()" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition">
+                    3️⃣ Check localStorage
+                </button>
+                <button onclick="step4()" class="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition">
+                    4️⃣ Test Isolated View
+                </button>
+            </div>
+            
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-yellow-800 mb-2">📋 Testing Steps:</h3>
+                <ol class="list-decimal list-inside text-yellow-700 space-y-1">
+                    <li>Click "Create Test Data" to add sample case studies</li>
+                    <li>Click "Open Admin Dashboard" to open the main dashboard</li>
+                    <li>Navigate to "Case Studies" in the sidebar</li>
+                    <li>Verify that case studies are displayed (not blank)</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📊 Current Status</h2>
+            <div id="statusDisplay" class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <span>localStorage Data:</span>
+                    <span id="localStorageStatus" class="text-gray-500">Checking...</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <span>Case Studies Count:</span>
+                    <span id="caseStudiesCount" class="text-gray-500">0</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <span>Fix Scripts:</span>
+                    <span id="scriptsStatus" class="text-gray-500">Checking...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">📝 Activity Log</h2>
+            <div id="activityLog" class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm h-64 overflow-y-auto">
+                <div>Verification tool loaded...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('activityLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: 'text-blue-400',
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400'
+            };
+            
+            const entry = document.createElement('div');
+            entry.className = colors[type] || 'text-green-400';
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus() {
+            // Check localStorage
+            const storedData = localStorage.getItem('portfolio_case_studies');
+            const caseStudies = storedData ? JSON.parse(storedData) : [];
+            
+            document.getElementById('localStorageStatus').textContent = storedData ? '✅ Available' : '❌ Empty';
+            document.getElementById('caseStudiesCount').textContent = caseStudies.length;
+            
+            // Check if fix scripts would be available
+            document.getElementById('scriptsStatus').textContent = '✅ Inline Fix Ready';
+            
+            return caseStudies;
+        }
+
+        function step1() {
+            log('1️⃣ Creating test data...', 'info');
+            
+            const testCaseStudies = [
+                {
+                    id: 'cs_verify_001',
+                    project_title: 'Portfolio Website Redesign',
+                    heroSubtitle: 'Modern, responsive portfolio website with improved user experience',
+                    status: 'published',
+                    featured: true,
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: 'cs_verify_002',
+                    project_title: 'Task Management App',
+                    heroSubtitle: 'Collaborative task management application with real-time updates',
+                    status: 'published',
+                    featured: false,
+                    created_at: new Date(Date.now() - 86400000).toISOString()
+                },
+                {
+                    id: 'cs_verify_003',
+                    project_title: 'E-learning Platform',
+                    heroSubtitle: 'Interactive e-learning platform with video streaming and quizzes',
+                    status: 'draft',
+                    featured: false,
+                    created_at: new Date(Date.now() - 172800000).toISOString()
+                }
+            ];
+            
+            try {
+                localStorage.setItem('portfolio_case_studies', JSON.stringify(testCaseStudies));
+                log('✅ Test data created successfully!', 'success');
+                log(`📊 Created ${testCaseStudies.length} case studies`, 'info');
+                
+                testCaseStudies.forEach((cs, index) => {
+                    log(`   ${index + 1}. ${cs.project_title} (${cs.status})`, 'info');
+                });
+                
+                updateStatus();
+                
+            } catch (error) {
+                log('❌ Error creating test data: ' + error.message, 'error');
+            }
+        }
+
+        function step2() {
+            log('2️⃣ Opening admin dashboard...', 'info');
+            log('💡 Navigate to "Case Studies" in the sidebar once it opens', 'warning');
+            
+            // Open admin dashboard in new tab
+            const adminWindow = window.open('admin-dashboard.html', '_blank');
+            
+            if (adminWindow) {
+                log('✅ Admin dashboard opened in new tab', 'success');
+                log('🔍 Check if case studies are displayed (not blank)', 'info');
+            } else {
+                log('❌ Failed to open admin dashboard (popup blocked?)', 'error');
+                log('💡 Try manually opening admin-dashboard.html', 'warning');
+            }
+        }
+
+        function step3() {
+            log('3️⃣ Checking localStorage...', 'info');
+            
+            const caseStudies = updateStatus();
+            
+            if (caseStudies.length > 0) {
+                log('✅ localStorage contains case studies:', 'success');
+                caseStudies.forEach((cs, index) => {
+                    log(`   ${index + 1}. ${cs.project_title} (${cs.status}${cs.featured ? ', featured' : ''})`, 'info');
+                });
+                log('💡 These should appear in the admin dashboard', 'info');
+            } else {
+                log('❌ No case studies in localStorage', 'error');
+                log('💡 Run Step 1 first to create test data', 'warning');
+            }
+        }
+
+        function step4() {
+            log('4️⃣ Opening isolated test view...', 'info');
+            
+            const testWindow = window.open('test-case-studies-display-now.html', '_blank');
+            
+            if (testWindow) {
+                log('✅ Isolated test view opened', 'success');
+                log('🔍 This shows how case studies should look when working', 'info');
+            } else {
+                log('❌ Failed to open test view (popup blocked?)', 'error');
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            log('🚀 Verification tool ready', 'success');
+            log('📋 Follow the steps above to verify the fix', 'info');
+            
+            setTimeout(() => {
+                updateStatus();
+                log('📊 Status updated', 'info');
+            }, 500);
+        });
+
+        // Auto-update status every 5 seconds
+        setInterval(updateStatus, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel System Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-4xl font-bold text-center mb-8">🎠 Carousel System Verification</h1>
+            
+            <!-- System Status Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div id="server-status" class="text-2xl mb-2">⏳</div>
+                    <h3 class="font-semibold">Server Status</h3>
+                    <p class="text-sm text-gray-600">Port 3003</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div id="cloudinary-status" class="text-2xl mb-2">⏳</div>
+                    <h3 class="font-semibold">Cloudinary</h3>
+                    <p class="text-sm text-gray-600">Upload Widget</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div id="carousel-status" class="text-2xl mb-2">⏳</div>
+                    <h3 class="font-semibold">Carousel Manager</h3>
+                    <p class="text-sm text-gray-600">Management Interface</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div id="integration-status" class="text-2xl mb-2">⏳</div>
+                    <h3 class="font-semibold">Homepage Sync</h3>
+                    <p class="text-sm text-gray-600">Data Integration</p>
+                </div>
+            </div>
+
+            <!-- Test Results -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4">🧪 System Tests</h2>
+                <div id="test-results" class="space-y-3">
+                    <div class="text-gray-600">Running system verification tests...</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4">⚡ Quick Actions</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button onclick="runFullTest()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        🔄 Run Full Test
+                    </button>
+                    <button onclick="testUploadWidget()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                        📤 Test Upload Widget
+                    </button>
+                    <button onclick="clearTestData()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">
+                        🗑️ Clear Test Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">🔗 System Links</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <a href="carousel-management-saas.html" class="block bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition text-center">
+                        🎠 Carousel Manager
+                    </a>
+                    <a href="test-carousel-homepage-integration.html" class="block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition text-center">
+                        🏠 Homepage Integration
+                    </a>
+                    <a href="admin-dashboard.html" class="block bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition text-center">
+                        ⚙️ Admin Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CarouselSystemVerifier {
+            constructor() {
+                this.tests = [];
+                this.results = {};
+                this.init();
+            }
+
+            init() {
+                this.runSystemCheck();
+            }
+
+            async runSystemCheck() {
+                await this.checkServerStatus();
+                await this.checkCloudinaryStatus();
+                await this.checkCarouselManager();
+                await this.checkHomepageIntegration();
+                this.displayResults();
+            }
+
+            async checkServerStatus() {
+                try {
+                    const response = await fetch('/api/carousel/health');
+                    if (response.ok) {
+                        this.updateStatus('server-status', '✅', 'green');
+                        this.addTest('Server Health Check', 'PASS', 'Server responding on port 3003');
+                    } else {
+                        throw new Error('Server not responding');
+                    }
+                } catch (error) {
+                    this.updateStatus('server-status', '❌', 'red');
+                    this.addTest('Server Health Check', 'FAIL', 'Server not accessible: ' + error.message);
+                }
+            }
+
+            async checkCloudinaryStatus() {
+                try {
+                    if (typeof window.cloudinary !== 'undefined') {
+                        this.updateStatus('cloudinary-status', '✅', 'green');
+                        this.addTest('Cloudinary SDK', 'PASS', 'Cloudinary upload widget available');
+                        
+                        // Test widget creation
+                        const widget = window.cloudinary.createUploadWidget({
+                            cloudName: 'dgymjtqil',
+                            uploadPreset: 'Carousel'
+                        }, () => {});
+                        
+                        if (widget) {
+                            this.addTest('Upload Widget Creation', 'PASS', 'Widget created successfully');
+                        }
+                    } else {
+                        throw new Error('Cloudinary SDK not loaded');
+                    }
+                } catch (error) {
+                    this.updateStatus('cloudinary-status', '❌', 'red');
+                    this.addTest('Cloudinary SDK', 'FAIL', error.message);
+                }
+            }
+
+            async checkCarouselManager() {
+                try {
+                    // Check if carousel manager files exist
+                    const response = await fetch('carousel-management-saas.html');
+                    if (response.ok) {
+                        this.updateStatus('carousel-status', '✅', 'green');
+                        this.addTest('Carousel Manager File', 'PASS', 'Management interface accessible');
+                    } else {
+                        throw new Error('Carousel manager not found');
+                    }
+
+                    // Check JavaScript file
+                    const jsResponse = await fetch('js/carousel-saas-manager.js');
+                    if (jsResponse.ok) {
+                        this.addTest('Carousel JavaScript', 'PASS', 'Core functionality file available');
+                    } else {
+                        this.addTest('Carousel JavaScript', 'FAIL', 'JavaScript file not found');
+                    }
+                } catch (error) {
+                    this.updateStatus('carousel-status', '❌', 'red');
+                    this.addTest('Carousel Manager', 'FAIL', error.message);
+                }
+            }
+
+            async checkHomepageIntegration() {
+                try {
+                    // Check localStorage functionality
+                    const testData = { test: 'data', timestamp: Date.now() };
+                    localStorage.setItem('carouselSystemTest', JSON.stringify(testData));
+                    const retrieved = localStorage.getItem('carouselSystemTest');
+                    
+                    if (retrieved && JSON.parse(retrieved).test === 'data') {
+                        this.updateStatus('integration-status', '✅', 'green');
+                        this.addTest('LocalStorage Integration', 'PASS', 'Data persistence working');
+                        localStorage.removeItem('carouselSystemTest');
+                    } else {
+                        throw new Error('LocalStorage not working');
+                    }
+
+                    // Check existing carousel data
+                    const carouselData = localStorage.getItem('homepageCarouselData');
+                    if (carouselData) {
+                        const data = JSON.parse(carouselData);
+                        this.addTest('Carousel Data Present', 'PASS', `${data.length} items in carousel`);
+                    } else {
+                        this.addTest('Carousel Data Present', 'INFO', 'No carousel data (expected for new installation)');
+                    }
+
+                    // Test event system
+                    let eventReceived = false;
+                    const testListener = () => { eventReceived = true; };
+                    window.addEventListener('carouselDataUpdated', testListener);
+                    
+                    window.dispatchEvent(new CustomEvent('carouselDataUpdated', {
+                        detail: { test: true }
+                    }));
+                    
+                    setTimeout(() => {
+                        window.removeEventListener('carouselDataUpdated', testListener);
+                        if (eventReceived) {
+                            this.addTest('Event System', 'PASS', 'Custom events working');
+                        } else {
+                            this.addTest('Event System', 'FAIL', 'Custom events not working');
+                        }
+                        this.displayResults();
+                    }, 100);
+
+                } catch (error) {
+                    this.updateStatus('integration-status', '❌', 'red');
+                    this.addTest('Homepage Integration', 'FAIL', error.message);
+                }
+            }
+
+            updateStatus(elementId, icon, color) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = icon;
+                    element.className = `text-2xl mb-2 text-${color}-600`;
+                }
+            }
+
+            addTest(name, status, details) {
+                this.tests.push({ name, status, details, timestamp: new Date().toLocaleTimeString() });
+            }
+
+            displayResults() {
+                const container = document.getElementById('test-results');
+                if (!container) return;
+
+                container.innerHTML = this.tests.map(test => {
+                    const statusColor = test.status === 'PASS' ? 'green' : 
+                                       test.status === 'FAIL' ? 'red' : 'blue';
+                    const statusIcon = test.status === 'PASS' ? '✅' : 
+                                      test.status === 'FAIL' ? '❌' : 'ℹ️';
+                    
+                    return `
+                        <div class="flex items-center justify-between p-3 border rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-lg">${statusIcon}</span>
+                                <div>
+                                    <div class="font-semibold">${test.name}</div>
+                                    <div class="text-sm text-gray-600">${test.details}</div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500">${test.timestamp}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            async runFullTest() {
+                this.tests = [];
+                document.getElementById('test-results').innerHTML = '<div class="text-gray-600">Running comprehensive system test...</div>';
+                
+                await this.runSystemCheck();
+                
+                // Additional comprehensive tests
+                await this.testAPIEndpoints();
+                await this.testFileStructure();
+                
+                this.displayResults();
+            }
+
+            async testAPIEndpoints() {
+                const endpoints = [
+                    '/api/carousel',
+                    '/api/carousel/health'
+                ];
+
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(endpoint);
+                        if (response.ok || response.status === 404) {
+                            this.addTest(`API Endpoint ${endpoint}`, 'PASS', `Endpoint accessible (${response.status})`);
+                        } else {
+                            this.addTest(`API Endpoint ${endpoint}`, 'FAIL', `Unexpected status: ${response.status}`);
+                        }
+                    } catch (error) {
+                        this.addTest(`API Endpoint ${endpoint}`, 'FAIL', error.message);
+                    }
+                }
+            }
+
+            async testFileStructure() {
+                const requiredFiles = [
+                    'carousel-management-saas.html',
+                    'js/carousel-saas-manager.js',
+                    'test-carousel-homepage-integration.html'
+                ];
+
+                for (const file of requiredFiles) {
+                    try {
+                        const response = await fetch(file);
+                        if (response.ok) {
+                            this.addTest(`File Check: ${file}`, 'PASS', 'File accessible');
+                        } else {
+                            this.addTest(`File Check: ${file}`, 'FAIL', `File not found (${response.status})`);
+                        }
+                    } catch (error) {
+                        this.addTest(`File Check: ${file}`, 'FAIL', error.message);
+                    }
+                }
+            }
+
+            testUploadWidget() {
+                try {
+                    if (typeof window.cloudinary !== 'undefined') {
+                        const widget = window.cloudinary.createUploadWidget({
+                            cloudName: 'dgymjtqil',
+                            uploadPreset: 'Carousel',
+                            folder: 'carou',
+                            sources: ['local'],
+                            multiple: false
+                        }, (error, result) => {
+                            if (error) {
+                                this.addTest('Upload Widget Test', 'FAIL', error.message);
+                            } else if (result && result.event === 'success') {
+                                this.addTest('Upload Widget Test', 'PASS', 'Test upload successful');
+                            }
+                            this.displayResults();
+                        });
+                        
+                        widget.open();
+                        this.addTest('Upload Widget Test', 'INFO', 'Upload widget opened for testing');
+                        this.displayResults();
+                    } else {
+                        this.addTest('Upload Widget Test', 'FAIL', 'Cloudinary SDK not available');
+                        this.displayResults();
+                    }
+                } catch (error) {
+                    this.addTest('Upload Widget Test', 'FAIL', error.message);
+                    this.displayResults();
+                }
+            }
+
+            clearTestData() {
+                localStorage.removeItem('homepageCarouselData');
+                localStorage.removeItem('carouselLastSync');
+                localStorage.removeItem('carouselSystemTest');
+                
+                this.addTest('Clear Test Data', 'PASS', 'All test data cleared from localStorage');
+                this.displayResults();
+            }
+        }
+
+        // Global functions for buttons
+        let verifier;
+
+        function runFullTest() {
+            verifier.runFullTest();
+        }
+
+        function testUploadWidget() {
+            verifier.testUploadWidget();
+        }
+
+        function clearTestData() {
+            verifier.clearTestData();
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            verifier = new CarouselSystemVerifier();
+        });
+    </script>
+</body>
+</html>

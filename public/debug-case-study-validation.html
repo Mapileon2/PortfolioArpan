@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Case Study Validation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <h1 class="text-2xl font-bold text-red-800 mb-4">🐛 Case Study Validation Debug</h1>
+            <p class="text-red-700">This page helps debug the "Validation Failed" error in the case study editor.</p>
+        </div>
+
+        <!-- Test Form -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🧪 Test Validation</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Case Study Title *</label>
+                    <input type="text" id="caseStudyTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Enter case study title" required>
+                    <div id="caseStudyTitle-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Hero Title *</label>
+                    <input type="text" id="heroTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Enter compelling title" required>
+                    <div id="heroTitle-error" class="text-red-600 text-sm mt-1 hidden"></div>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button onclick="testValidation()" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+                        🧪 Test Validation
+                    </button>
+                    <button onclick="fillSampleData()" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+                        📝 Fill Sample Data
+                    </button>
+                    <button onclick="clearFields()" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+                        🗑️ Clear Fields
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">📊 Validation Results</h2>
+            <div id="results" class="space-y-4">
+                <p class="text-gray-500">Click "Test Validation" to see results...</p>
+            </div>
+        </div>
+
+        <!-- Fix Instructions -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mt-6">
+            <h3 class="text-lg font-semibold text-yellow-800 mb-2">🔧 How to Fix Validation Issues</h3>
+            <div class="text-yellow-700 space-y-2">
+                <p><strong>Required Fields:</strong></p>
+                <ul class="list-disc list-inside ml-4 space-y-1">
+                    <li><strong>Case Study Title:</strong> Must be at least 3 characters long</li>
+                    <li><strong>Hero Title:</strong> Must be at least 3 characters long</li>
+                </ul>
+                <p class="mt-4"><strong>Quick Fix:</strong> Make sure both title fields have meaningful content before saving.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Validation rules (same as case study editor)
+        const validationRules = {
+            caseStudyTitle: { required: true, minLength: 3 },
+            heroTitle: { required: true, minLength: 3 }
+        };
+
+        function log(message, type = 'info') {
+            const div = document.getElementById('results');
+            const colors = {
+                info: 'text-blue-600',
+                success: 'text-green-600', 
+                error: 'text-red-600',
+                warning: 'text-yellow-600'
+            };
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'border-l-4 border-' + (type === 'error' ? 'red' : type === 'success' ? 'green' : type === 'warning' ? 'yellow' : 'blue') + '-500 pl-4 py-2';
+            entry.innerHTML = `
+                <span class="text-gray-500 text-xs">[${timestamp}]</span>
+                <span class="${colors[type]}">${message}</span>
+            `;
+            
+            div.appendChild(entry);
+            div.scrollTop = div.scrollHeight;
+        }
+
+        function showFieldError(field, message) {
+            const errorDiv = document.getElementById(field.id + '-error');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+            }
+            field.classList.add('border-red-500');
+        }
+
+        function clearFieldError(field) {
+            const errorDiv = document.getElementById(field.id + '-error');
+            if (errorDiv) {
+                errorDiv.classList.add('hidden');
+            }
+            field.classList.remove('border-red-500');
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const errors = [];
+            
+            log('🔍 Starting validation check...', 'info');
+            
+            // Clear previous errors
+            Object.keys(validationRules).forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    clearFieldError(field);
+                }
+            });
+            
+            // Validate required fields
+            Object.keys(validationRules).forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const rules = validationRules[fieldId];
+                
+                log(`📋 Checking field: ${fieldId}`, 'info');
+                
+                if (!field) {
+                    log(`❌ Field not found: ${fieldId}`, 'error');
+                    errors.push(`Field ${fieldId} not found in DOM`);
+                    isValid = false;
+                    return;
+                }
+                
+                const value = field.value.trim();
+                log(`   Value: "${value}" (length: ${value.length})`, 'info');
+                
+                if (rules.required && !value) {
+                    const message = 'This field is required';
+                    showFieldError(field, message);
+                    errors.push(`${fieldId}: ${message}`);
+                    log(`❌ ${fieldId}: Required field is empty`, 'error');
+                    isValid = false;
+                } else if (rules.minLength && value.length < rules.minLength) {
+                    const message = `Minimum ${rules.minLength} characters required`;
+                    showFieldError(field, message);
+                    errors.push(`${fieldId}: ${message}`);
+                    log(`❌ ${fieldId}: Too short (${value.length} < ${rules.minLength})`, 'error');
+                    isValid = false;
+                } else {
+                    log(`✅ ${fieldId}: Valid`, 'success');
+                }
+            });
+            
+            return { isValid, errors };
+        }
+
+        function testValidation() {
+            log('🧪 Testing validation...', 'info');
+            
+            const result = validateForm();
+            
+            if (result.isValid) {
+                log('✅ Validation passed! All fields are valid.', 'success');
+                log('🎉 The case study editor should allow saving now.', 'success');
+            } else {
+                log('❌ Validation failed! Found errors:', 'error');
+                result.errors.forEach(error => {
+                    log(`   • ${error}`, 'error');
+                });
+                log('💡 Fix the errors above to resolve the validation issue.', 'warning');
+            }
+        }
+
+        function fillSampleData() {
+            document.getElementById('caseStudyTitle').value = 'My Awesome Project';
+            document.getElementById('heroTitle').value = 'Revolutionary Design Solution';
+            log('📝 Sample data filled in both required fields', 'success');
+        }
+
+        function clearFields() {
+            document.getElementById('caseStudyTitle').value = '';
+            document.getElementById('heroTitle').value = '';
+            
+            // Clear errors
+            Object.keys(validationRules).forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    clearFieldError(field);
+                }
+            });
+            
+            log('🗑️ All fields cleared', 'info');
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            log('🚀 Validation debug tool loaded', 'info');
+            log('📋 Validation rules configured:', 'info');
+            Object.keys(validationRules).forEach(fieldId => {
+                const rules = validationRules[fieldId];
+                log(`   • ${fieldId}: required=${rules.required}, minLength=${rules.minLength}`, 'info');
+            });
+        });
+    </script>
+</body>
+</html>

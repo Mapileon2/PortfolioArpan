@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Connection Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-blue-600">
+            <i class="fas fa-database mr-2"></i>Database Connection Test
+        </h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">API Endpoints Test</h2>
+            <div class="space-y-4">
+                <button onclick="testCaseStudiesAPI()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    Test /api/case-studies
+                </button>
+                <button onclick="testCarouselAPI()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    Test /api/carousel/images
+                </button>
+                <button onclick="testProjectsAPI()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+                    Test /api/projects
+                </button>
+                <button onclick="createTestCaseStudy()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded">
+                    Create Test Case Study
+                </button>
+            </div>
+            <div id="apiResults" class="mt-6 space-y-4"></div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Homepage Integration Test</h2>
+            <button onclick="testHomepageIntegration()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                Test Homepage Data Loading
+            </button>
+            <div id="homepageResults" class="mt-6"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testCaseStudiesAPI() {
+            const resultDiv = document.getElementById('apiResults');
+            
+            try {
+                const response = await fetch('/api/case-studies');
+                const data = await response.json();
+                
+                resultDiv.innerHTML += `
+                    <div class="p-4 border rounded ${response.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+                        <h3 class="font-bold">Case Studies API Test</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Data:</strong> ${JSON.stringify(data, null, 2)}</p>
+                        <p><strong>Count:</strong> ${Array.isArray(data) ? data.length : 'Not an array'}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <div class="p-4 border rounded bg-red-50 border-red-200">
+                        <h3 class="font-bold">Case Studies API Test - ERROR</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testCarouselAPI() {
+            const resultDiv = document.getElementById('apiResults');
+            
+            try {
+                const response = await fetch('/api/carousel/images');
+                const data = await response.json();
+                
+                resultDiv.innerHTML += `
+                    <div class="p-4 border rounded ${response.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+                        <h3 class="font-bold">Carousel API Test</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Data:</strong> ${JSON.stringify(data, null, 2)}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <div class="p-4 border rounded bg-red-50 border-red-200">
+                        <h3 class="font-bold">Carousel API Test - ERROR</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testProjectsAPI() {
+            const resultDiv = document.getElementById('apiResults');
+            
+            try {
+                const response = await fetch('/api/projects');
+                const data = await response.json();
+                
+                resultDiv.innerHTML += `
+                    <div class="p-4 border rounded ${response.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+                        <h3 class="font-bold">Projects API Test</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Data:</strong> ${JSON.stringify(data, null, 2)}</p>
+                        <p><strong>Count:</strong> ${Array.isArray(data) ? data.length : 'Not an array'}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <div class="p-4 border rounded bg-red-50 border-red-200">
+                        <h3 class="font-bold">Projects API Test - ERROR</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function createTestCaseStudy() {
+            const resultDiv = document.getElementById('apiResults');
+            
+            const testData = {
+                projectTitle: 'Test Case Study',
+                projectDescription: 'This is a test case study created from the database test page',
+                sections: {
+                    hero: {
+                        title: 'Test Hero Title',
+                        subtitle: 'Test Hero Subtitle'
+                    },
+                    overview: {
+                        title: 'Test Overview',
+                        content: 'This is test overview content'
+                    }
+                },
+                status: 'published'
+            };
+            
+            try {
+                const response = await fetch('/api/case-studies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML += `
+                    <div class="p-4 border rounded ${response.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+                        <h3 class="font-bold">Create Test Case Study</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Response:</strong> ${JSON.stringify(data, null, 2)}</p>
+                    </div>
+                `;
+                
+                // If successful, test the GET endpoint again
+                if (response.ok) {
+                    setTimeout(() => testCaseStudiesAPI(), 1000);
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <div class="p-4 border rounded bg-red-50 border-red-200">
+                        <h3 class="font-bold">Create Test Case Study - ERROR</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testHomepageIntegration() {
+            const resultDiv = document.getElementById('homepageResults');
+            
+            try {
+                // Test the same call that the homepage makes
+                const response = await fetch('/api/case-studies');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="p-4 border rounded ${response.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+                        <h3 class="font-bold">Homepage Integration Test</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>Data Count:</strong> ${Array.isArray(data) ? data.length : 'Not an array'}</p>
+                        
+                        ${Array.isArray(data) && data.length > 0 ? `
+                            <div class="mt-4">
+                                <h4 class="font-semibold">Case Studies Found:</h4>
+                                ${data.map(cs => `
+                                    <div class="mt-2 p-2 bg-white border rounded">
+                                        <p><strong>Title:</strong> ${cs.projectTitle || cs.project_title || 'No title'}</p>
+                                        <p><strong>Status:</strong> ${cs.status || 'No status'}</p>
+                                        <p><strong>ID:</strong> ${cs.id || 'No ID'}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                                <p><strong>Issue:</strong> No case studies found in database</p>
+                                <p><strong>Possible causes:</strong></p>
+                                <ul class="list-disc list-inside mt-2">
+                                    <li>Case study wasn't saved to database</li>
+                                    <li>Database connection issues</li>
+                                    <li>Table doesn't exist</li>
+                                    <li>Data saved to different table</li>
+                                </ul>
+                            </div>
+                        `}
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="p-4 border rounded bg-red-50 border-red-200">
+                        <h3 class="font-bold">Homepage Integration Test - ERROR</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-run basic test on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            testCaseStudiesAPI();
+        });
+    </script>
+</body>
+</html>

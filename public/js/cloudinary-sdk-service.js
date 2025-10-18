@@ -183,9 +183,12 @@ class CloudinarySDKService {
         formData.append('folder', folder);
         formData.append('tags', tags.join(','));
         
-        // Add transformation if specified
+        // Add transformation if specified (as string, not JSON)
         if (options.transformation) {
-            formData.append('transformation', JSON.stringify(options.transformation));
+            const transformationString = this.buildTransformationString(options.transformation);
+            if (transformationString) {
+                formData.append('transformation', transformationString);
+            }
         }
 
         // Upload with progress tracking
@@ -293,6 +296,45 @@ class CloudinarySDKService {
             reader.onerror = () => reject(new Error('Failed to read file'));
             reader.readAsDataURL(file);
         });
+    }
+
+    /**
+     * Build Cloudinary transformation string from object or array
+     */
+    buildTransformationString(transformation) {
+        if (typeof transformation === 'string') {
+            return transformation;
+        }
+        
+        if (Array.isArray(transformation)) {
+            return transformation.map(t => this.buildSingleTransformation(t)).join('/');
+        }
+        
+        if (typeof transformation === 'object') {
+            return this.buildSingleTransformation(transformation);
+        }
+        
+        return null;
+    }
+
+    buildSingleTransformation(transform) {
+        const parts = [];
+        
+        // Handle common transformations
+        if (transform.width) parts.push(`w_${transform.width}`);
+        if (transform.height) parts.push(`h_${transform.height}`);
+        if (transform.crop) parts.push(`c_${transform.crop}`);
+        if (transform.quality) parts.push(`q_${transform.quality}`);
+        if (transform.format) parts.push(`f_${transform.format}`);
+        if (transform.gravity) parts.push(`g_${transform.gravity}`);
+        
+        // Handle effects
+        if (transform.blur) parts.push(`e_blur:${transform.blur}`);
+        if (transform.brightness) parts.push(`e_brightness:${transform.brightness}`);
+        if (transform.contrast) parts.push(`e_contrast:${transform.contrast}`);
+        if (transform.saturation) parts.push(`e_saturation:${transform.saturation}`);
+        
+        return parts.join(',');
     }
 
     /**

@@ -5,7 +5,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- ==================== USER PROFILES ====================
+-- USER PROFILES TABLE
 CREATE TABLE IF NOT EXISTS user_profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== PROJECTS ====================
+-- PROJECTS TABLE
 CREATE TABLE IF NOT EXISTS projects (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     title TEXT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS projects (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== CASE STUDIES ====================
+-- CASE STUDIES TABLE
 CREATE TABLE IF NOT EXISTS case_studies (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     project_title TEXT NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS case_studies (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== CAROUSEL IMAGES ====================
+-- CAROUSEL IMAGES TABLE
 CREATE TABLE IF NOT EXISTS carousel_images (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     title TEXT,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS carousel_images (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== SKILLS ====================
+-- SKILLS TABLE
 CREATE TABLE IF NOT EXISTS skills (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name TEXT NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS skills (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== TESTIMONIALS ====================
+-- TESTIMONIALS TABLE
 CREATE TABLE IF NOT EXISTS testimonials (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     author TEXT NOT NULL,
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS testimonials (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== TIMELINE ====================
+-- TIMELINE TABLE
 CREATE TABLE IF NOT EXISTS timeline (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     title TEXT NOT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS timeline (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== CONTACT INFO ====================
+-- CONTACT INFO TABLE
 CREATE TABLE IF NOT EXISTS contact_info (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     email TEXT,
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS contact_info (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== SITE SETTINGS ====================
+-- SITE SETTINGS TABLE
 CREATE TABLE IF NOT EXISTS site_settings (
     id INTEGER DEFAULT 1 PRIMARY KEY CHECK (id = 1), -- Single row table
     site_title TEXT DEFAULT 'My Portfolio',
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== API KEYS ====================
+-- API KEYS TABLE
 CREATE TABLE IF NOT EXISTS api_keys (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== ANALYTICS EVENTS ====================
+-- ANALYTICS EVENTS TABLE
 CREATE TABLE IF NOT EXISTS analytics_events (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     event_type TEXT NOT NULL,
@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS analytics_events (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== SECURITY LOGS ====================
+-- SECURITY LOGS TABLE
 CREATE TABLE IF NOT EXISTS security_logs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS security_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== USER SESSIONS ====================
+-- USER SESSIONS TABLE
 CREATE TABLE IF NOT EXISTS user_sessions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== BACKUPS ====================
+-- BACKUPS TABLE
 CREATE TABLE IF NOT EXISTS backups (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name TEXT NOT NULL,
@@ -228,7 +228,7 @@ CREATE TABLE IF NOT EXISTS backups (
     completed_at TIMESTAMPTZ
 );
 
--- ==================== INTEGRATIONS ====================
+-- INTEGRATIONS TABLE
 CREATE TABLE IF NOT EXISTS integrations (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name TEXT NOT NULL,
@@ -243,7 +243,7 @@ CREATE TABLE IF NOT EXISTS integrations (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== SUPPORT TICKETS ====================
+-- SUPPORT TICKETS TABLE
 CREATE TABLE IF NOT EXISTS support_tickets (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS support_tickets (
     resolved_at TIMESTAMPTZ
 );
 
--- ==================== SUBSCRIPTION INFO ====================
+-- SUBSCRIPTION INFO TABLE
 CREATE TABLE IF NOT EXISTS subscriptions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==================== INDEXES ====================
+-- DATABASE INDEXES
 
 -- User profiles indexes
 CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON user_profiles(email);
@@ -320,7 +320,7 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_active ON user_sessions(is_active);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at);
 
--- ==================== ROW LEVEL SECURITY (RLS) ====================
+-- ROW LEVEL SECURITY (RLS) SETUP
 
 -- Enable RLS on all tables
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -341,7 +341,7 @@ ALTER TABLE integrations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE support_tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 
--- ==================== RLS POLICIES ====================
+-- RLS POLICIES CONFIGURATION
 
 -- User profiles policies
 CREATE POLICY "Users can view their own profile" ON user_profiles
@@ -461,7 +461,7 @@ CREATE POLICY "Admins can view security logs" ON security_logs
 CREATE POLICY "System can insert security logs" ON security_logs
     FOR INSERT WITH CHECK (true);
 
--- ==================== FUNCTIONS ====================
+-- DATABASE FUNCTIONS
 
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -508,7 +508,7 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- ==================== INITIAL DATA ====================
+-- INITIAL DATA SETUP
 
 -- Insert default site settings
 INSERT INTO site_settings (id, site_title, site_description) 
@@ -520,7 +520,7 @@ INSERT INTO contact_info (id, email)
 VALUES (uuid_generate_v4(), 'contact@example.com')
 ON CONFLICT DO NOTHING;
 
--- ==================== VIEWS ====================
+-- DATABASE VIEWS
 
 -- View for public portfolio data
 CREATE OR REPLACE VIEW public_portfolio AS
@@ -569,7 +569,7 @@ FROM carousel_images ci
 WHERE ci.status = 'active'
 ORDER BY ci.order_index;
 
--- ==================== COMPLETION MESSAGE ====================
+-- COMPLETION MESSAGE
 DO $$
 BEGIN
     RAISE NOTICE 'Portfolio SaaS database schema has been successfully created!';

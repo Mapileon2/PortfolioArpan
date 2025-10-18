@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Integration Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">🔍 Supabase Integration Verification</h1>
+            
+            <!-- Status Overview -->
+            <div id="status-overview" class="mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-blue-800">Connection</h3>
+                        <div id="connection-status" class="text-sm text-gray-600">Testing...</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-green-800">Authentication</h3>
+                        <div id="auth-status" class="text-sm text-gray-600">Testing...</div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-purple-800">CRUD Operations</h3>
+                        <div id="crud-status" class="text-sm text-gray-600">Testing...</div>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-orange-800">RLS Policies</h3>
+                        <div id="rls-status" class="text-sm text-gray-600">Testing...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="mb-6">
+                <button id="run-verification" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 mr-4">
+                    🚀 Run Supabase Verification
+                </button>
+                <button id="clear-results" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">
+                    🗑️ Clear Results
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="results-container" class="space-y-4">
+                <!-- Results will be populated here -->
+            </div>
+
+            <!-- Detailed Test Results -->
+            <div id="detailed-results" class="mt-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">📋 Detailed Test Results</h2>
+                <div id="test-details" class="space-y-4">
+                    <!-- Detailed results will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Dependencies -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/api-error-handler.js"></script>
+    <script src="js/notification-system.js"></script>
+    <script src="js/integration-verifier.js"></script>
+
+    <script>
+        class SupabaseIntegrationTest {
+            constructor() {
+                this.verifier = null;
+                this.results = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🔍 Initializing Supabase Integration Test...');
+                
+                // Wait for dependencies to load
+                await this.waitForDependencies();
+                
+                // Initialize verifier
+                this.verifier = new IntegrationVerifier();
+                
+                // Setup event listeners
+                this.setupEventListeners();
+                
+                console.log('✅ Supabase Integration Test ready');
+            }
+
+            async waitForDependencies() {
+                return new Promise((resolve) => {
+                    const checkDependencies = () => {
+                        if (typeof IntegrationVerifier !== 'undefined' && 
+                            typeof window.supabase !== 'undefined') {
+                            resolve();
+                        } else {
+                            setTimeout(checkDependencies, 100);
+                        }
+                    };
+                    checkDependencies();
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-verification').addEventListener('click', () => {
+                    this.runSupabaseVerification();
+                });
+
+                document.getElementById('clear-results').addEventListener('click', () => {
+                    this.clearResults();
+                });
+            }
+
+            async runSupabaseVerification() {
+                console.log('🚀 Starting Supabase verification...');
+                
+                // Update UI
+                this.updateStatus('running');
+                
+                try {
+                    // Run Supabase-specific verification
+                    const results = await this.verifier.verifySupabaseIntegration();
+                    this.results = results;
+                    
+                    console.log('📊 Supabase verification results:', results);
+                    
+                    // Update UI with results
+                    this.displayResults(results);
+                    this.updateStatusCards(results);
+                    
+                } catch (error) {
+                    console.error('❌ Supabase verification failed:', error);
+                    this.displayError(error);
+                    this.updateStatus('error');
+                }
+            }
+
+            updateStatus(status) {
+                const statusElements = [
+                    'connection-status',
+                    'auth-status', 
+                    'crud-status',
+                    'rls-status'
+                ];
+
+                statusElements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        switch (status) {
+                            case 'running':
+                                element.textContent = 'Testing...';
+                                element.className = 'text-sm text-blue-600';
+                                break;
+                            case 'error':
+                                element.textContent = 'Error';
+                                element.className = 'text-sm text-red-600';
+                                break;
+                            default:
+                                element.textContent = 'Ready';
+                                element.className = 'text-sm text-gray-600';
+                        }
+                    }
+                });
+            }
+
+            updateStatusCards(results) {
+                if (!results.tests) return;
+
+                const statusMap = {
+                    'Supabase Connection': 'connection-status',
+                    'Supabase Authentication': 'auth-status',
+                    'Supabase CRUD Operations': 'crud-status',
+                    'Supabase RLS Policies': 'rls-status'
+                };
+
+                results.tests.forEach(test => {
+                    const elementId = statusMap[test.name];
+                    if (elementId) {
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            const status = test.status === 'pass' ? '✅ Pass' : '❌ Fail';
+                            const className = test.status === 'pass' ? 
+                                'text-sm text-green-600' : 'text-sm text-red-600';
+                            
+                            element.textContent = status;
+                            element.className = className;
+                        }
+                    }
+                });
+            }
+
+            displayResults(results) {
+                const container = document.getElementById('results-container');
+                
+                // Overall status
+                const overallStatus = results.status === 'pass' ? 
+                    '✅ All Supabase tests passed' : 
+                    '❌ Some Supabase tests failed';
+                
+                const statusColor = results.status === 'pass' ? 
+                    'text-green-600' : 'text-red-600';
+
+                container.innerHTML = `
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-lg mb-2">Overall Status</h3>
+                        <p class="text-lg font-medium ${statusColor}">${overallStatus}</p>
+                        <p class="text-sm text-gray-600 mt-1">${results.summary}</p>
+                    </div>
+                `;
+
+                // Test details
+                if (results.tests && results.tests.length > 0) {
+                    const detailsContainer = document.getElementById('test-details');
+                    detailsContainer.innerHTML = '';
+
+                    results.tests.forEach(test => {
+                        const testCard = this.createTestCard(test);
+                        detailsContainer.appendChild(testCard);
+                    });
+
+                    document.getElementById('detailed-results').classList.remove('hidden');
+                }
+            }
+
+            createTestCard(test) {
+                const card = document.createElement('div');
+                card.className = 'bg-white border rounded-lg p-4';
+                
+                const statusIcon = test.status === 'pass' ? '✅' : '❌';
+                const statusColor = test.status === 'pass' ? 'text-green-600' : 'text-red-600';
+                const bgColor = test.status === 'pass' ? 'bg-green-50' : 'bg-red-50';
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h4 class="font-semibold text-lg">${statusIcon} ${test.name}</h4>
+                            <p class="text-sm text-gray-600">${test.description}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${bgColor} ${statusColor}">
+                            ${test.status.toUpperCase()}
+                        </span>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="text-sm">
+                            <strong>Duration:</strong> ${test.duration || 0}ms
+                        </div>
+                        
+                        ${test.details ? `
+                            <div class="text-sm">
+                                <strong>Details:</strong>
+                                <div class="mt-1 p-2 bg-gray-50 rounded text-xs">
+                                    ${this.formatTestDetails(test.details)}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                return card;
+            }
+
+            formatTestDetails(details) {
+                if (typeof details === 'string') {
+                    return details;
+                }
+
+                return Object.entries(details)
+                    .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+                    .join('<br>');
+            }
+
+            displayError(error) {
+                const container = document.getElementById('results-container');
+                container.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                        <h3 class="font-semibold text-red-800 mb-2">❌ Verification Failed</h3>
+                        <p class="text-red-700">${error.message}</p>
+                        <div class="mt-2 text-sm text-red-600">
+                            Please check the console for more details.
+                        </div>
+                    </div>
+                `;
+            }
+
+            clearResults() {
+                document.getElementById('results-container').innerHTML = '';
+                document.getElementById('detailed-results').classList.add('hidden');
+                this.updateStatus('ready');
+                this.results = null;
+                console.log('🗑️ Results cleared');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SupabaseIntegrationTest();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Custom Cloudinary Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <h1 class="text-2xl font-bold text-blue-800 mb-4">🎯 Custom Cloudinary Settings Test</h1>
+            <p class="text-blue-700">Testing upload with your specific settings:</p>
+            <div class="mt-4 bg-white p-4 rounded border">
+                <ul class="text-sm space-y-1">
+                    <li><strong>overwrite:</strong> false</li>
+                    <li><strong>use_filename:</strong> false</li>
+                    <li><strong>unique_filename:</strong> false</li>
+                    <li><strong>use_filename_as_display_name:</strong> true</li>
+                    <li><strong>use_asset_folder_as_public_id_prefix:</strong> false</li>
+                    <li><strong>type:</strong> upload</li>
+                    <li><strong>asset_folder:</strong> portfolio</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Upload Test -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📁 Upload Test</h2>
+            <div class="space-y-4">
+                <input type="file" id="testFile" accept="image/*" 
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                
+                <div class="flex space-x-4">
+                    <button onclick="testCustomUpload()" 
+                            class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+                        🚀 Test Upload (Custom Settings)
+                    </button>
+                    <button onclick="createCustomPreset()" 
+                            class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+                        🔧 Create Preset with Settings
+                    </button>
+                    <button onclick="testDirectUpload()" 
+                            class="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600">
+                        ⚡ Direct Upload Test
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">📊 Results</h2>
+            <div id="results" class="space-y-4 max-h-96 overflow-y-auto">
+                <p class="text-gray-500">Select a file and click a test button...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the custom settings script -->
+    <script src="js/cloudinary-upload-with-settings.js"></script>
+
+    <script>
+        function log(message, type = 'info') {
+            const div = document.getElementById('results');
+            const colors = {
+                info: 'text-blue-600',
+                success: 'text-green-600', 
+                error: 'text-red-600',
+                warning: 'text-yellow-600'
+            };
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'border-l-4 border-' + (type === 'error' ? 'red' : type === 'success' ? 'green' : type === 'warning' ? 'yellow' : 'blue') + '-500 pl-4 py-2';
+            entry.innerHTML = `
+                <span class="text-gray-500 text-xs">[${timestamp}]</span>
+                <span class="${colors[type]}">${message}</span>
+            `;
+            
+            div.appendChild(entry);
+            div.scrollTop = div.scrollHeight;
+        }
+
+        async function testCustomUpload() {
+            const file = document.getElementById('testFile').files[0];
+            if (!file) {
+                log('❌ Please select a file first', 'error');
+                return;
+            }
+
+            log(`🔄 Testing custom settings upload for: ${file.name}`, 'info');
+            log('📋 Using your specified settings...', 'info');
+
+            try {
+                const result = await window.cloudinaryUploadWithSettings.uploadImage(file, {
+                    folder: 'portfolio/test',
+                    tags: 'custom-settings-test'
+                });
+
+                log('✅ Upload successful with custom settings!', 'success');
+                log(`🔗 URL: ${result.secure_url}`, 'success');
+                log(`📋 Public ID: ${result.public_id}`, 'success');
+                log(`📏 Dimensions: ${result.width}x${result.height}`, 'success');
+                log(`💾 Size: ${Math.round(result.bytes / 1024)}KB`, 'success');
+
+                // Show the uploaded image
+                showUploadedImage(result);
+
+            } catch (error) {
+                log(`❌ Upload failed: ${error.message}`, 'error');
+                log('💡 Try creating the preset first or check your Cloudinary dashboard', 'warning');
+            }
+        }
+
+        async function createCustomPreset() {
+            log('🔧 Creating preset with your custom settings...', 'info');
+            
+            try {
+                const result = await window.cloudinaryUploadWithSettings.createCustomPreset('ml_default');
+                
+                if (result) {
+                    log('✅ Successfully created preset with your settings!', 'success');
+                    log(`📋 Preset name: ${result.name}`, 'success');
+                    log('🎉 You can now use unsigned uploads', 'success');
+                } else {
+                    log('❌ Failed to create preset automatically', 'error');
+                    log('📋 Please create it manually in Cloudinary dashboard', 'warning');
+                }
+            } catch (error) {
+                log(`❌ Error creating preset: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDirectUpload() {
+            const file = document.getElementById('testFile').files[0];
+            if (!file) {
+                log('❌ Please select a file first', 'error');
+                return;
+            }
+
+            log(`⚡ Testing direct upload with your settings for: ${file.name}`, 'info');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'ml_default');
+                
+                // Your custom settings
+                formData.append('overwrite', 'false');
+                formData.append('use_filename', 'false');
+                formData.append('unique_filename', 'false');
+                formData.append('use_filename_as_display_name', 'true');
+                formData.append('use_asset_folder_as_public_id_prefix', 'false');
+                formData.append('type', 'upload');
+                formData.append('asset_folder', 'portfolio');
+                formData.append('folder', 'portfolio/direct-test');
+
+                const response = await fetch('https://api.cloudinary.com/v1_1/dgymjtqil/image/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    log('✅ Direct upload successful!', 'success');
+                    log(`🔗 URL: ${result.secure_url}`, 'success');
+                    log(`📋 Public ID: ${result.public_id}`, 'success');
+                    showUploadedImage(result);
+                } else {
+                    const error = await response.json();
+                    log(`❌ Direct upload failed: ${error.error?.message}`, 'error');
+                    
+                    if (error.error?.message?.includes('Upload preset must be whitelisted')) {
+                        log('🔧 The ml_default preset needs to be created as unsigned', 'warning');
+                        log('💡 Click "Create Preset with Settings" button', 'info');
+                    }
+                }
+            } catch (error) {
+                log(`❌ Direct upload error: ${error.message}`, 'error');
+            }
+        }
+
+        function showUploadedImage(result) {
+            const div = document.getElementById('results');
+            const imageDiv = document.createElement('div');
+            imageDiv.className = 'mt-4 p-4 bg-green-50 rounded border border-green-200';
+            imageDiv.innerHTML = `
+                <p class="text-green-700 font-semibold mb-2">✅ Uploaded Image:</p>
+                <img src="${result.secure_url}" alt="Uploaded" class="max-w-xs rounded shadow mb-2">
+                <div class="text-sm text-green-600 space-y-1">
+                    <p><strong>URL:</strong> <a href="${result.secure_url}" target="_blank" class="underline">View full size</a></p>
+                    <p><strong>Public ID:</strong> ${result.public_id}</p>
+                    <p><strong>Format:</strong> ${result.format}</p>
+                    <p><strong>Size:</strong> ${Math.round(result.bytes / 1024)}KB</p>
+                </div>
+            `;
+            div.appendChild(imageDiv);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            log('🚀 Custom Settings Upload Test loaded', 'info');
+            log('📋 Cloud Name: dgymjtqil', 'info');
+            log('🔑 API Key: 951533987774134', 'info');
+            log('⚙️ Custom settings configured', 'success');
+        });
+    </script>
+</body>
+</html>

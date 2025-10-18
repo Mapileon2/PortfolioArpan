@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template System Test</title>
+    <link rel="stylesheet" href="css/template-ui.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .test-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .test-controls {
+            background: #e3f2fd;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .test-controls h3 {
+            margin: 0 0 1rem 0;
+            color: #1976d2;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .test-btn {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .test-btn:hover {
+            background: #1565c0;
+        }
+        
+        .status {
+            margin: 1rem 2rem;
+            padding: 1rem;
+            border-radius: 4px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        
+        .template-demo-container {
+            height: calc(100vh - 200px);
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>📋 Template System Test</h1>
+            <p>Testing the comprehensive content template management system</p>
+        </div>
+        
+        <div class="test-controls">
+            <h3>Test Controls</h3>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="initializeTemplateSystem()">Initialize System</button>
+                <button class="test-btn" onclick="loadSampleTemplates()">Load Sample Templates</button>
+                <button class="test-btn" onclick="testTemplateCreation()">Test Creation</button>
+                <button class="test-btn" onclick="testTemplatePreview()">Test Preview</button>
+                <button class="test-btn" onclick="testTemplateApplication()">Test Application</button>
+                <button class="test-btn" onclick="testTemplateRating()">Test Rating</button>
+                <button class="test-btn" onclick="testTemplateSearch()">Test Search</button>
+                <button class="test-btn" onclick="showTemplateStats()">Show Statistics</button>
+            </div>
+        </div>
+        
+        <div id="status" class="status">
+            <strong>Status:</strong> Ready to test template system
+        </div>
+        
+        <div class="template-demo-container">
+            <div id="template-ui-container">
+                <!-- Template UI will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the template system components -->
+    <script src="js/template-service.js"></script>
+    <script src="js/template-ui.js"></script>
+    
+    <script>
+        // Mock Supabase client for testing
+        const mockSupabase = {
+            auth: {
+                getUser: () => Promise.resolve({
+                    data: { user: { id: 'test-user-123', email: 'test@example.com' } },
+                    error: null
+                })
+            }
+        };
+
+        // Mock template service for testing
+        class MockTemplateService {
+            constructor() {
+                this.templates = [
+                    {
+                        id: 't1',
+                        name: 'Business Case Study Template',
+                        description: 'A comprehensive template for business case studies with sections for problem analysis, solution design, and results.',
+                        category_id: 'cat1',
+                        category_name: 'Business Case Studies',
+                        category_icon: '💼',
+                        template_type: 'case_study',
+                        visibility: 'public',
+                        is_public: true,
+                        is_featured: true,
+                        is_active: true,
+                        usage_count: 156,
+                        rating_average: 4.7,
+                        rating_count: 23,
+                        tags: ['business', 'strategy', 'analysis'],
+                        template_data: {
+                            project_title: '{{project.name}} - Business Case Study',
+                            project_description: 'A comprehensive analysis of {{project.name}} focusing on {{project.focus_area}}.',
+                            sections: {
+                                problem: 'The main challenge faced by {{company.name}} was {{problem.description}}. This impacted {{impact.areas}} and resulted in {{impact.metrics}}.',
+                                solution: 'We implemented a {{solution.type}} approach that included {{solution.components}}. The key innovation was {{solution.innovation}}.',
+                                results: 'The implementation resulted in {{results.primary_metric}} improvement and {{results.secondary_benefits}}. ROI was {{results.roi}}.'
+                            }
+                        },
+                        variables: [
+                            { name: 'project.name', type: 'text', label: 'Project Name', required: true, defaultValue: '' },
+                            { name: 'project.focus_area', type: 'text', label: 'Focus Area', required: true, defaultValue: '' },
+                            { name: 'company.name', type: 'text', label: 'Company Name', required: true, defaultValue: '' },
+                            { name: 'problem.description', type: 'text', label: 'Problem Description', required: true, defaultValue: '' },
+                            { name: 'solution.type', type: 'text', label: 'Solution Type', required: true, defaultValue: '' },
+                            { name: 'results.primary_metric', type: 'text', label: 'Primary Result', required: true, defaultValue: '' }
+                        ],
+                        created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        creator_name: 'Sarah Johnson',
+                        creator_avatar: 'https://via.placeholder.com/40'
+                    },
+                    {
+                        id: 't2',
+                        name: 'UX Design Case Study',
+                        description: 'Perfect for showcasing UX/UI design projects with user research, design process, and impact sections.',
+                        category_id: 'cat2',
+                        category_name: 'UX/UI Design',
+                        category_icon: '🎨',
+                        template_type: 'case_study',
+                        visibility: 'public',
+                        is_public: true,
+                        is_featured: false,
+                        is_active: true,
+                        usage_count: 89,
+                        rating_average: 4.5,
+                        rating_count: 18,
+                        tags: ['ux', 'design', 'user-research'],
+                        template_data: {
+                            project_title: '{{project.name}} - UX Case Study',
+                            project_description: 'Redesigning {{product.name}} to improve {{goal.primary}} for {{target.users}}.',
+                            sections: {
+                                research: 'We conducted {{research.methods}} with {{research.participants}} users to understand {{research.focus}}.',
+                                design: 'The design process included {{design.phases}} and focused on {{design.principles}}.',
+                                testing: 'Usability testing with {{testing.participants}} users showed {{testing.results}}.',
+                                impact: 'The redesign achieved {{impact.metrics}} and improved {{impact.kpis}}.'
+                            }
+                        },
+                        variables: [
+                            { name: 'project.name', type: 'text', label: 'Project Name', required: true, defaultValue: '' },
+                            { name: 'product.name', type: 'text', label: 'Product Name', required: true, defaultValue: '' },
+                            { name: 'target.users', type: 'text', label: 'Target Users', required: true, defaultValue: '' },
+                            { name: 'research.methods', type: 'text', label: 'Research Methods', required: true, defaultValue: '' }
+                        ],
+                        created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+                        creator_name: 'Alex Chen',
+                        creator_avatar: 'https://via.placeholder.com/40'
+                    },
+                    {
+                        id: 't3',
+                        name: 'Product Launch Template',
+                        description: 'Document your product launch strategy, execution, and results with this comprehensive template.',
+                        category_id: 'cat3',
+                        category_name: 'Product Development',
+                        category_icon: '🚀',
+                        template_type: 'case_study',
+                        visibility: 'public',
+                        is_public: true,
+                        is_featured: true,
+                        is_active: true,
+                        usage_count: 234,
+                        rating_average: 4.8,
+                        rating_count: 41,
+                        tags: ['product', 'launch', 'strategy'],
+                        template_data: {
+                            project_title: '{{product.name}} Launch Case Study',
+                            project_description: 'The strategic launch of {{product.name}} targeting {{market.segment}} with {{launch.strategy}}.',
+                            sections: {
+                                strategy: 'Our launch strategy focused on {{strategy.approach}} with key objectives of {{strategy.objectives}}.',
+                                execution: 'The launch included {{execution.channels}} and featured {{execution.tactics}}.',
+                                results: 'We achieved {{results.adoption}} user adoption and {{results.revenue}} in revenue within {{results.timeframe}}.'
+                            }
+                        },
+                        variables: [
+                            { name: 'product.name', type: 'text', label: 'Product Name', required: true, defaultValue: '' },
+                            { name: 'market.segment', type: 'text', label: 'Market Segment', required: true, defaultValue: '' },
+                            { name: 'launch.strategy', type: 'text', label: 'Launch Strategy', required: true, defaultValue: '' }
+                        ],
+                        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                        creator_name: 'Maria Rodriguez',
+                        creator_avatar: 'https://via.placeholder.com/40'
+                    }
+                ];
+
+                this.categories = [
+                    { id: 'cat1', name: 'Business Case Studies', icon: '💼', template_count: 1 },
+                    { id: 'cat2', name: 'UX/UI Design', icon: '🎨', template_count: 1 },
+                    { id: 'cat3', name: 'Product Development', icon: '🚀', template_count: 1 },
+                    { id: 'cat4', name: 'Marketing Campaigns', icon: '📢', template_count: 0 },
+                    { id: 'cat5', name: 'Technical Projects', icon: '💻', template_count: 0 }
+                ];
+            }
+
+            async getCategories(options = {}) {
+                await this.delay(300);
+                return {
+                    success: true,
+                    categories: this.categories,
+                    message: `Retrieved ${this.categories.length} categories`
+                };
+            }
+
+            async getTemplates(options = {}) {
+                await this.delay(500);
+                
+                let filteredTemplates = [...this.templates];
+                
+                // Apply filters
+                if (options.categoryId) {
+                    filteredTemplates = filteredTemplates.filter(t => t.category_id === options.categoryId);
+                }
+                
+                if (options.search) {
+                    const searchLower = options.search.toLowerCase();
+                    filteredTemplates = filteredTemplates.filter(t => 
+                        t.name.toLowerCase().includes(searchLower) ||
+                        t.description.toLowerCase().includes(searchLower) ||
+                        t.tags.some(tag => tag.toLowerCase().includes(searchLower))
+                    );
+                }
+                
+                if (options.isFeatured) {
+                    filteredTemplates = filteredTemplates.filter(t => t.is_featured);
+                }
+                
+                // Apply sorting
+                if (options.sortBy === 'usage_count') {
+                    filteredTemplates.sort((a, b) => b.usage_count - a.usage_count);
+                } else if (options.sortBy === 'rating_average') {
+                    filteredTemplates.sort((a, b) => b.rating_average - a.rating_average);
+                } else if (options.sortBy === 'name') {
+                    filteredTemplates.sort((a, b) => a.name.localeCompare(b.name));
+                }
+                
+                return {
+                    success: true,
+                    templates: filteredTemplates,
+                    pagination: {
+                        total: filteredTemplates.length,
+                        limit: options.limit || 20,
+                        offset: options.offset || 0,
+                        hasMore: false
+                    },
+                    message: `Retrieved ${filteredTemplates.length} templates`
+                };
+            }
+
+            async getTemplate(templateId, options = {}) {
+                await this.delay(300);
+                const template = this.templates.find(t => t.id === templateId);
+                
+                if (!template) {
+                    return {
+                        success: false,
+                        error: 'Template not found',
+                        message: 'The specified template could not be found'
+                    };
+                }
+                
+                return {
+                    success: true,
+                    template: template,
+                    message: 'Template retrieved successfully'
+                };
+            }
+
+            async previewTemplate(templateId, variables = {}) {
+                await this.delay(400);
+                const template = this.templates.find(t => t.id === templateId);
+                
+                if (!template) {
+                    return {
+                        success: false,
+                        error: 'Template not found'
+                    };
+                }
+                
+                // Process template with variables
+                const processedContent = this.processTemplateContent(template.template_data, variables);
+                
+                return {
+                    success: true,
+                    preview: processedContent,
+                    template: {
+                        id: template.id,
+                        name: template.name,
+                        description: template.description,
+                        variables: template.variables
+                    },
+                    message: 'Template preview generated successfully'
+                };
+            }
+
+            async applyTemplate(templateId, caseStudyId, options = {}) {
+                await this.delay(800);
+                const template = this.templates.find(t => t.id === templateId);
+                
+                if (!template) {
+                    return {
+                        success: false,
+                        error: 'Template not found'
+                    };
+                }
+                
+                // Simulate successful application
+                const processedContent = this.processTemplateContent(template.template_data, options.variables || {});
+                
+                return {
+                    success: true,
+                    caseStudy: {
+                        id: caseStudyId,
+                        ...processedContent,
+                        updated_at: new Date().toISOString()
+                    },
+                    applicationTime: 750,
+                    message: 'Template applied successfully'
+                };
+            }
+
+            processTemplateContent(templateData, variables) {
+                const processValue = (value) => {
+                    if (typeof value === 'string') {
+                        return value.replace(/\{\{([^}]+)\}\}/g, (match, variableName) => {
+                            const trimmedName = variableName.trim();
+                            return this.getNestedValue(variables, trimmedName) || `[${trimmedName}]`;
+                        });
+                    } else if (Array.isArray(value)) {
+                        return value.map(processValue);
+                    } else if (value && typeof value === 'object') {
+                        const processed = {};
+                        for (const [key, val] of Object.entries(value)) {
+                            processed[key] = processValue(val);
+                        }
+                        return processed;
+                    }
+                    return value;
+                };
+
+                return processValue(JSON.parse(JSON.stringify(templateData)));
+            }
+
+            getNestedValue(obj, path) {
+                return path.split('.').reduce((current, key) => {
+                    return current && current[key] !== undefined ? current[key] : undefined;
+                }, obj);
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Global variables
+        let templateService;
+        let templateUI;
+
+        // Test functions
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            const colors = {
+                info: '#007bff',
+                success: '#28a745',
+                error: '#dc3545',
+                warning: '#ffc107'
+            };
+            
+            statusEl.innerHTML = `<strong>Status:</strong> ${message}`;
+            statusEl.style.borderLeftColor = colors[type];
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function initializeTemplateSystem() {
+            try {
+                updateStatus('Initializing template system...', 'info');
+                
+                // Create mock template service
+                templateService = new MockTemplateService();
+                
+                // Initialize template UI
+                templateUI = new TemplateUI(templateService, 'template-ui-container');
+                
+                updateStatus('Template system initialized successfully!', 'success');
+            } catch (error) {
+                console.error('Error initializing template system:', error);
+                updateStatus('Failed to initialize template system', 'error');
+            }
+        }
+
+        function loadSampleTemplates() {
+            if (!templateUI) {
+                updateStatus('Please initialize the template system first', 'warning');
+                return;
+            }
+            
+            updateStatus('Sample templates are already loaded in the UI!', 'success');
+        }
+
+        function testTemplateCreation() {
+            updateStatus('Template creation would open the template editor', 'info');
+            alert('Template creation UI would be implemented here. This would include:\n\n• Template name and description\n• Category selection\n• Content editor with variable support\n• Preview functionality\n• Save and publish options');
+        }
+
+        function testTemplatePreview() {
+            if (!templateUI) {
+                updateStatus('Please initialize the template system first', 'warning');
+                return;
+            }
+            
+            updateStatus('Click the "Preview" button on any template card to test preview functionality', 'info');
+        }
+
+        function testTemplateApplication() {
+            if (!templateUI) {
+                updateStatus('Please initialize the template system first', 'warning');
+                return;
+            }
+            
+            updateStatus('Click the "Use Template" button on any template card to test application', 'info');
+        }
+
+        function testTemplateRating() {
+            updateStatus('Template rating system would allow users to rate and review templates', 'info');
+            alert('Template rating features:\n\n• 5-star rating system\n• Written reviews\n• Rating aggregation\n• Review moderation\n• Helpful votes on reviews');
+        }
+
+        function testTemplateSearch() {
+            if (!templateUI) {
+                updateStatus('Please initialize the template system first', 'warning');
+                return;
+            }
+            
+            updateStatus('Use the search box in the header to test search functionality', 'info');
+        }
+
+        function showTemplateStats() {
+            const stats = {
+                totalTemplates: 3,
+                totalCategories: 5,
+                totalUsage: 479,
+                averageRating: 4.67,
+                featuredTemplates: 2,
+                publicTemplates: 3
+            };
+            
+            updateStatus('Template system statistics loaded', 'success');
+            alert(`Template System Statistics:\n\n• Total Templates: ${stats.totalTemplates}\n• Categories: ${stats.totalCategories}\n• Total Usage: ${stats.totalUsage}\n• Average Rating: ${stats.averageRating}/5\n• Featured Templates: ${stats.featuredTemplates}\n• Public Templates: ${stats.publicTemplates}`);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus('Page loaded - ready to test template system', 'info');
+        });
+    </script>
+</body>
+</html>

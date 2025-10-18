@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - CMS Enhancement</title>
+    <link rel="stylesheet" href="css/analytics-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>📊 Analytics Dashboard</h1>
+                    <p class="header-subtitle">CMS Enhancement Analytics & Insights</p>
+                </div>
+                <div class="header-right">
+                    <div class="date-range-selector">
+                        <select id="dateRange" class="date-select">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="365">Last year</option>
+                            <option value="custom">Custom range</option>
+                        </select>
+                    </div>
+                    <div class="refresh-controls">
+                        <button id="refreshBtn" class="btn btn-primary">
+                            <span class="refresh-icon">🔄</span> Refresh
+                        </button>
+                        <div class="auto-refresh">
+                            <input type="checkbox" id="autoRefresh" />
+                            <label for="autoRefresh">Auto-refresh</label>
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <span id="userInfo">Loading...</span>
+                        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="dashboard-nav">
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="overview">📈 Overview</button>
+                <button class="nav-tab" data-tab="content">📄 Content Analytics</button>
+                <button class="nav-tab" data-tab="users">👥 User Behavior</button>
+                <button class="nav-tab" data-tab="performance">⚡ Performance</button>
+                <button class="nav-tab" data-tab="insights">🧠 Insights</button>
+                <button class="nav-tab" data-tab="reports">📋 Reports</button>
+                <button class="nav-tab" data-tab="funnels">🎯 Funnels</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <!-- Key Metrics Cards -->
+                <section class="metrics-section">
+                    <h2>Key Metrics</h2>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">📊</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="totalEvents">-</div>
+                                <div class="metric-label">Total Events</div>
+                                <div class="metric-change" id="eventsChange">-</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">👥</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="uniqueUsers">-</div>
+                                <div class="metric-label">Unique Users</div>
+                                <div class="metric-change" id="usersChange">-</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">⏱️</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="avgSessionTime">-</div>
+                                <div class="metric-label">Avg Session Time</div>
+                                <div class="metric-change" id="sessionChange">-</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">🎯</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="conversionRate">-</div>
+                                <div class="metric-label">Conversion Rate</div>
+                                <div class="metric-change" id="conversionChange">-</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">🏥</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="systemHealth">-</div>
+                                <div class="metric-label">System Health</div>
+                                <div class="metric-status" id="healthStatus">-</div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">📱</div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="mobileTraffic">-</div>
+                                <div class="metric-label">Mobile Traffic</div>
+                                <div class="metric-change" id="mobileChange">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="charts-section">
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3>Events Over Time</h3>
+                                <div class="chart-controls">
+                                    <select id="eventsChartType">
+                                        <option value="line">Line Chart</option>
+                                        <option value="bar">Bar Chart</option>
+                                        <option value="area">Area Chart</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <canvas id="eventsChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3>User Engagement</h3>
+                                <div class="chart-controls">
+                                    <select id="engagementMetric">
+                                        <option value="sessions">Sessions</option>
+                                        <option value="pageviews">Page Views</option>
+                                        <option value="duration">Session Duration</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <canvas id="engagementChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3>Device Breakdown</h3>
+                            </div>
+                            <canvas id="deviceChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3>Traffic Sources</h3>
+                            </div>
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Top Content Section -->
+                <section class="top-content-section">
+                    <h2>Top Performing Content</h2>
+                    <div class="content-table-container">
+                        <table class="content-table" id="topContentTable">
+                            <thead>
+                                <tr>
+                                    <th>Content</th>
+                                    <th>Type</th>
+                                    <th>Views</th>
+                                    <th>Unique Views</th>
+                                    <th>Conversion Rate</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Content will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Content Analytics Tab -->
+            <div id="content" class="tab-content">
+                <section class="content-analytics-section">
+                    <div class="section-header">
+                        <h2>Content Analytics</h2>
+                        <div class="content-filters">
+                            <select id="contentType">
+                                <option value="all">All Content</option>
+                                <option value="case_study">Case Studies</option>
+                                <option value="template">Templates</option>
+                                <option value="page">Pages</option>
+                            </select>
+                            <select id="contentSort">
+                                <option value="views">Sort by Views</option>
+                                <option value="engagement">Sort by Engagement</option>
+                                <option value="conversion">Sort by Conversion</option>
+                                <option value="recent">Most Recent</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="content-analytics-grid">
+                        <div class="content-overview-cards">
+                            <div class="overview-card">
+                                <h3>Content Performance</h3>
+                                <canvas id="contentPerformanceChart"></canvas>
+                            </div>
+                            <div class="overview-card">
+                                <h3>Content Engagement Trends</h3>
+                                <canvas id="contentEngagementChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="content-details-table">
+                            <table class="analytics-table" id="contentAnalyticsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Content Title</th>
+                                        <th>Type</th>
+                                        <th>Views</th>
+                                        <th>Avg Time</th>
+                                        <th>Bounce Rate</th>
+                                        <th>Conversions</th>
+                                        <th>Score</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Content will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- User Behavior Tab -->
+            <div id="users" class="tab-content">
+                <section class="user-behavior-section">
+                    <div class="section-header">
+                        <h2>User Behavior Analytics</h2>
+                        <div class="user-filters">
+                            <select id="userSegment">
+                                <option value="all">All Users</option>
+                                <option value="new">New Users</option>
+                                <option value="returning">Returning Users</option>
+                                <option value="active">Active Users</option>
+                            </select>
+                            <input type="text" id="userSearch" placeholder="Search users..." />
+                        </div>
+                    </div>
+                    
+                    <div class="user-analytics-grid">
+                        <div class="user-metrics-cards">
+                            <div class="user-metric-card">
+                                <h4>User Acquisition</h4>
+                                <canvas id="userAcquisitionChart"></canvas>
+                            </div>
+                            <div class="user-metric-card">
+                                <h4>User Retention</h4>
+                                <canvas id="userRetentionChart"></canvas>
+                            </div>
+                            <div class="user-metric-card">
+                                <h4>User Journey</h4>
+                                <div id="userJourneyFlow"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="user-behavior-details">
+                            <h3>User Behavior Patterns</h3>
+                            <div class="behavior-heatmap" id="behaviorHeatmap">
+                                <!-- Heatmap will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="performance" class="tab-content">
+                <section class="performance-section">
+                    <div class="section-header">
+                        <h2>Performance Analytics</h2>
+                        <div class="performance-filters">
+                            <select id="performanceMetric">
+                                <option value="page_load_time">Page Load Time</option>
+                                <option value="api_response_time">API Response Time</option>
+                                <option value="database_query_time">Database Query Time</option>
+                                <option value="error_rate">Error Rate</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="performance-grid">
+                        <div class="performance-overview">
+                            <div class="perf-metric-card">
+                                <h4>Average Load Time</h4>
+                                <div class="perf-value" id="avgLoadTime">-</div>
+                                <div class="perf-trend" id="loadTimeTrend">-</div>
+                            </div>
+                            <div class="perf-metric-card">
+                                <h4>95th Percentile</h4>
+                                <div class="perf-value" id="p95LoadTime">-</div>
+                                <div class="perf-trend" id="p95Trend">-</div>
+                            </div>
+                            <div class="perf-metric-card">
+                                <h4>Error Rate</h4>
+                                <div class="perf-value" id="errorRate">-</div>
+                                <div class="perf-trend" id="errorTrend">-</div>
+                            </div>
+                            <div class="perf-metric-card">
+                                <h4>Uptime</h4>
+                                <div class="perf-value" id="uptime">-</div>
+                                <div class="perf-status" id="uptimeStatus">-</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-charts">
+                            <div class="chart-container">
+                                <h3>Performance Trends</h3>
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <h3>Error Distribution</h3>
+                                <canvas id="errorChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Insights Tab -->
+            <div id="insights" class="tab-content">
+                <section class="insights-section">
+                    <div class="section-header">
+                        <h2>AI-Powered Insights & Recommendations</h2>
+                        <button id="generateInsights" class="btn btn-primary">Generate New Insights</button>
+                    </div>
+                    
+                    <div class="insights-grid">
+                        <div class="insights-overview">
+                            <div class="insight-card priority-high">
+                                <div class="insight-header">
+                                    <span class="insight-icon">🚨</span>
+                                    <span class="insight-priority">High Priority</span>
+                                </div>
+                                <div class="insight-content" id="highPriorityInsights">
+                                    Loading insights...
+                                </div>
+                            </div>
+                            
+                            <div class="insight-card priority-medium">
+                                <div class="insight-header">
+                                    <span class="insight-icon">⚠️</span>
+                                    <span class="insight-priority">Medium Priority</span>
+                                </div>
+                                <div class="insight-content" id="mediumPriorityInsights">
+                                    Loading insights...
+                                </div>
+                            </div>
+                            
+                            <div class="insight-card priority-low">
+                                <div class="insight-header">
+                                    <span class="insight-icon">💡</span>
+                                    <span class="insight-priority">Opportunities</span>
+                                </div>
+                                <div class="insight-content" id="opportunityInsights">
+                                    Loading insights...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendations-panel">
+                            <h3>Actionable Recommendations</h3>
+                            <div id="recommendationsList">
+                                <!-- Recommendations will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-content">
+                <section class="reports-section">
+                    <div class="section-header">
+                        <h2>Custom Reports</h2>
+                        <div class="report-actions">
+                            <button id="createReportBtn" class="btn btn-primary">Create New Report</button>
+                            <button id="scheduleReportBtn" class="btn btn-secondary">Schedule Report</button>
+                        </div>
+                    </div>
+                    
+                    <div class="reports-grid">
+                        <div class="saved-reports">
+                            <h3>Saved Reports</h3>
+                            <div class="reports-list" id="savedReportsList">
+                                <!-- Reports will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div class="report-builder">
+                            <h3>Quick Report Builder</h3>
+                            <div class="report-form">
+                                <div class="form-group">
+                                    <label>Report Name</label>
+                                    <input type="text" id="reportName" placeholder="Enter report name" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Date Range</label>
+                                    <select id="reportDateRange">
+                                        <option value="7">Last 7 days</option>
+                                        <option value="30">Last 30 days</option>
+                                        <option value="90">Last 90 days</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Metrics</label>
+                                    <div class="checkbox-group">
+                                        <label><input type="checkbox" value="views" checked> Views</label>
+                                        <label><input type="checkbox" value="users"> Users</label>
+                                        <label><input type="checkbox" value="sessions"> Sessions</label>
+                                        <label><input type="checkbox" value="conversions"> Conversions</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Export Format</label>
+                                    <select id="reportFormat">
+                                        <option value="json">JSON</option>
+                                        <option value="csv">CSV</option>
+                                        <option value="xlsx">Excel</option>
+                                    </select>
+                                </div>
+                                <button id="generateReportBtn" class="btn btn-primary">Generate Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Funnels Tab -->
+            <div id="funnels" class="tab-content">
+                <section class="funnels-section">
+                    <div class="section-header">
+                        <h2>Conversion Funnels</h2>
+                        <button id="createFunnelBtn" class="btn btn-primary">Create New Funnel</button>
+                    </div>
+                    
+                    <div class="funnels-grid">
+                        <div class="funnel-builder">
+                            <h3>Funnel Builder</h3>
+                            <div class="funnel-steps" id="funnelSteps">
+                                <div class="funnel-step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <input type="text" placeholder="Step name" />
+                                        <select>
+                                            <option value="page_view">Page View</option>
+                                            <option value="content_view">Content View</option>
+                                            <option value="user_action">User Action</option>
+                                            <option value="conversion">Conversion</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="addFunnelStep" class="btn btn-secondary">Add Step</button>
+                            <button id="analyzeFunnel" class="btn btn-primary">Analyze Funnel</button>
+                        </div>
+                        
+                        <div class="funnel-visualization">
+                            <h3>Funnel Analysis</h3>
+                            <div id="funnelChart">
+                                <!-- Funnel visualization will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading analytics data...</div>
+        </div>
+
+        <!-- Modals -->
+        <div id="reportModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Report Details</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body" id="reportModalBody">
+                    <!-- Report content will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <div id="insightModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Detailed Insights</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body" id="insightModalBody">
+                    <!-- Insight details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/supabase-client.js"></script>
+    <script src="js/analytics-service.js"></script>
+    <script src="js/analytics-dashboard.js"></script>
+</body>
+</html>

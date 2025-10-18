@@ -31,7 +31,7 @@ const authLimiter = rateLimit({
 });
 
 // Email configuration
-const emailTransporter = nodemailer.createTransporter({
+const emailTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
     secure: true,

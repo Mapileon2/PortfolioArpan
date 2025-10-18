@@ -8,6 +8,13 @@ const cors = require('cors');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
+// Import persistence fix module for enhanced data handling
+const PersistenceFix = require('./js/persistence-fix');
+
+// Import timestamp utilities for consistent timestamp handling
+const TimestampUtils = require('./js/timestamp-utils');
+const timestampUtils = new TimestampUtils();
+
 const app = express();
 const PORT = process.env.PORT || 3003;
 
@@ -175,7 +182,99 @@ app.get('/api/case-studies/:id', async (req, res) => {
     }
 });
 
-app.post('/api/case-studies', authenticateUser, async (req, res) => {
+// Enhanced create endpoint using PersistenceFix module - FIXED
+app.post('/api/case-studies', async (req, res) => {
+    try {
+        console.log('📝 Enhanced create for case study:', req.body);
+        
+        // Initialize PersistenceFix module
+        const persistenceFix = new PersistenceFix(supabase);
+        
+        // Standardized field mapping - handles both camelCase and snake_case
+        const caseStudyData = {
+            project_title: req.body.project_title || req.body.projectTitle || 'Untitled Project',
+            project_description: req.body.project_description || req.body.projectDescription || '',
+            project_image_url: req.body.project_image_url || req.body.projectImageUrl || null,
+            project_category: req.body.project_category || req.body.projectCategory || 'general',
+            project_rating: req.body.project_rating || req.body.projectRating || 5,
+            project_achievement: req.body.project_achievement || req.body.projectAchievement || 'Successfully completed',
+            sections: req.body.sections || {},
+            status: req.body.status || 'published',
+            featured: req.body.featured || false
+        };
+
+        // Use enhanced upsert for creation (no ID = create)
+        const result = await persistenceFix.upsertCaseStudy(null, caseStudyData, {
+            enableOptimisticLocking: false, // Not needed for creation
+            enableRefetch: true,
+            enableRetry: true
+        });
+
+        if (!result.success) {
+            // Handle validation errors
+            if (result.error === 'UPSERT_FAILED' && result.message.includes('Validation failed')) {
+                return res.status(400).json({
+                    error: 'Validation failed',
+                    code: 'VALIDATION_ERROR',
+                    message: result.message,
+                    timestamp: result.timestamp
+                });
+            }
+
+            // Handle duplicate errors
+            if (result.details && result.details.includes('duplicate key')) {
+                return res.status(409).json({
+                    error: 'Duplicate case study',
+                    code: 'DUPLICATE_ENTRY',
+                    message: 'A case study with this information already exists',
+                    timestamp: result.timestamp
+                });
+            }
+
+            // Generic error response
+            return res.status(500).json({
+                error: result.error || 'Create failed',
+                code: result.error || 'CREATE_FAILED',
+                message: result.message || 'Failed to create case study',
+                details: result.details,
+                timestamp: result.timestamp
+            });
+        }
+
+        console.log('✅ Enhanced create completed successfully:', result.data.id);
+        
+        res.status(201).json({
+            success: true,
+            data: result.data,
+            message: 'Case study created successfully',
+            operation: result.operation,
+            verified: result.verified,
+            created_at: result.data.created_at,
+            timestamp: result.timestamp,
+            // Additional metadata for debugging
+            metadata: {
+                persistenceEnhanced: true,
+                refetchVerified: result.verified
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Enhanced create error:', error);
+        res.status(500).json({ 
+            error: 'Failed to create case study',
+            code: 'INTERNAL_ERROR',
+            message: error.message || 'Internal server error',
+            timestamp: new Date().toISOString(),
+            metadata: {
+                persistenceEnhanced: true,
+                errorType: 'unexpected'
+            }
+        });
+    }
+});
+
+// Authenticated endpoint for user-specific case studies
+app.post('/api/case-studies/auth', authenticateUser, async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('case_studies')
@@ -194,6 +293,149 @@ app.post('/api/case-studies', authenticateUser, async (req, res) => {
     } catch (error) {
         console.error('Create case study error:', error);
         res.status(500).json({ error: 'Failed to create case study' });
+    }
+});
+
+// Enhanced update endpoint using PersistenceFix module - FIXED
+app.put('/api/case-studies/:id', async (req, res) => {
+    try {
+        console.log('📝 Enhanced update for case study:', req.params.id);
+        
+        // Initialize PersistenceFix module
+        const persistenceFix = new (require('./js/persistence-fix'))(supabase);
+        
+        // Standardized field mapping - handles both camelCase and snake_case
+        const updateData = {
+            project_title: req.body.project_title || req.body.projectTitle,
+            project_description: req.body.project_description || req.body.projectDescription,
+            project_image_url: req.body.project_image_url || req.body.projectImageUrl,
+            project_category: req.body.project_category || req.body.projectCategory,
+            project_achievement: req.body.project_achievement || req.body.projectAchievement,
+            project_rating: req.body.project_rating || req.body.projectRating,
+            sections: req.body.sections,
+            status: req.body.status || 'published',
+            // Include current timestamp for optimistic locking
+            updated_at: req.body.updated_at || new Date().toISOString()
+        };
+        
+        // Only remove undefined values, preserve null values for clearing fields
+        Object.keys(updateData).forEach(key => {
+            if (updateData[key] === undefined) {
+                delete updateData[key];
+            }
+        });
+
+        // Use enhanced upsert with all persistence fixes
+        const result = await persistenceFix.upsertCaseStudy(req.params.id, updateData, {
+            enableOptimisticLocking: true,
+            enableRefetch: true,
+            enableRetry: true
+        });
+
+        if (!result.success) {
+            // Handle specific error types
+            if (result.error === 'CONCURRENT_UPDATE') {
+                return res.status(409).json({
+                    error: 'Concurrent update detected',
+                    code: 'CONCURRENT_UPDATE',
+                    message: result.message,
+                    requiresRefresh: result.requiresRefresh
+                });
+            }
+
+            // Handle validation errors
+            if (result.error === 'UPSERT_FAILED' && result.message.includes('Validation failed')) {
+                return res.status(400).json({
+                    error: 'Validation failed',
+                    code: 'VALIDATION_ERROR',
+                    message: result.message,
+                    timestamp: result.timestamp
+                });
+            }
+
+            // Handle not found errors
+            if (result.message === 'RECORD_NOT_FOUND') {
+                return res.status(404).json({
+                    error: 'Case study not found',
+                    code: 'NOT_FOUND',
+                    message: 'The requested case study does not exist'
+                });
+            }
+
+            // Generic error response
+            return res.status(500).json({
+                error: result.error || 'Update failed',
+                code: result.error || 'UPDATE_FAILED',
+                message: result.message || 'Failed to update case study',
+                details: result.details,
+                timestamp: result.timestamp
+            });
+        }
+
+        console.log('✅ Enhanced update completed successfully:', result.data.id);
+        
+        // Return enhanced response with verification status
+        res.json({
+            success: true,
+            data: result.data,
+            message: 'Case study updated successfully',
+            operation: result.operation,
+            verified: result.verified,
+            updated_at: result.data.updated_at,
+            timestamp: result.timestamp,
+            // Additional metadata for debugging
+            metadata: {
+                persistenceEnhanced: true,
+                optimisticLocking: true,
+                refetchVerified: result.verified
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Enhanced update error:', error);
+        res.status(500).json({ 
+            error: 'Failed to update case study',
+            code: 'INTERNAL_ERROR',
+            message: error.message || 'Internal server error',
+            timestamp: new Date().toISOString(),
+            metadata: {
+                persistenceEnhanced: true,
+                errorType: 'unexpected'
+            }
+        });
+    }
+});
+
+// Delete case study endpoint
+app.delete('/api/case-studies/:id', async (req, res) => {
+    try {
+        console.log('🗑️ Deleting case study:', req.params.id);
+        
+        const { data, error } = await supabase
+            .from('case_studies')
+            .delete()
+            .eq('id', req.params.id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('❌ Database error:', error);
+            throw error;
+        }
+
+        console.log('✅ Case study deleted:', req.params.id);
+        res.json({ 
+            success: true, 
+            message: 'Case study deleted successfully',
+            deleted: data 
+        });
+        
+    } catch (error) {
+        console.error('❌ Delete case study error:', error);
+        res.status(500).json({ 
+            error: 'Failed to delete case study',
+            details: error.message 
+        });
     }
 });
 
@@ -375,6 +617,280 @@ app.post('/api/analytics/events', async (req, res) => {
     }
 });
 
+// ==================== IMAGE REFERENCES API ====================
+
+app.get('/api/images', async (req, res) => {
+    try {
+        const { context, reference_id } = req.query;
+        
+        let query = supabase.from('image_references').select('*');
+        
+        if (context) {
+            query = query.eq('context', context);
+        }
+        
+        if (reference_id) {
+            query = query.eq('reference_id', reference_id);
+        }
+        
+        const { data, error } = await query.order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        res.json(data || []);
+    } catch (error) {
+        console.error('Get image references error:', error);
+        res.status(500).json({ error: 'Failed to fetch image references' });
+    }
+});
+
+app.post('/api/images', async (req, res) => {
+    try {
+        console.log('📸 Creating image reference:', req.body);
+        
+        // Enhanced validation for image reference data
+        const validationResult = validateImageReferenceData(req.body);
+        if (!validationResult.isValid) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: validationResult.errors
+            });
+        }
+
+        // Ensure proper timestamps using timestamp utilities
+        const imageData = timestampUtils.ensureTimestamps({
+            ...req.body,
+            // Validate required fields
+            cloudinary_public_id: req.body.cloudinary_public_id || req.body.publicId,
+            cloudinary_secure_url: req.body.cloudinary_secure_url || req.body.url,
+            original_filename: req.body.original_filename || req.body.originalFilename || 'unknown',
+            file_size: req.body.file_size || req.body.size || 0,
+            mime_type: req.body.mime_type || req.body.mimeType || 'image/jpeg',
+            width: req.body.width || 0,
+            height: req.body.height || 0,
+            alt_text: req.body.alt_text || req.body.altText || '',
+            context: req.body.context || 'case_study',
+            reference_id: req.body.reference_id || req.body.referenceId || null
+        }, false);
+
+        // Validate Cloudinary URL format
+        if (!validateCloudinaryUrl(imageData.cloudinary_secure_url)) {
+            return res.status(400).json({
+                error: 'Invalid Cloudinary URL',
+                code: 'INVALID_URL',
+                url: imageData.cloudinary_secure_url
+            });
+        }
+
+        const { data, error } = await supabase
+            .from('image_references')
+            .insert([imageData])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('❌ Database insert error:', error);
+            
+            // Handle specific database errors
+            if (error.code === '23505') {
+                return res.status(409).json({
+                    error: 'Duplicate image reference',
+                    code: 'DUPLICATE_ENTRY',
+                    details: error.details
+                });
+            }
+            
+            throw error;
+        }
+
+        console.log('✅ Image reference created:', data.id);
+        
+        res.status(201).json({
+            success: true,
+            data: data,
+            message: 'Image reference created successfully'
+        });
+        
+    } catch (error) {
+        console.error('❌ Create image reference error:', error);
+        res.status(500).json({ 
+            error: 'Failed to create image reference',
+            code: 'INTERNAL_ERROR',
+            details: error.message
+        });
+    }
+});
+
+// Validation function for image reference data
+function validateImageReferenceData(data) {
+    const errors = [];
+    
+    if (!data.cloudinary_public_id && !data.publicId) {
+        errors.push('cloudinary_public_id is required');
+    }
+    
+    if (!data.cloudinary_secure_url && !data.url) {
+        errors.push('cloudinary_secure_url is required');
+    }
+    
+    if (data.file_size && (typeof data.file_size !== 'number' || data.file_size < 0)) {
+        errors.push('file_size must be a positive number');
+    }
+    
+    if (data.width && (typeof data.width !== 'number' || data.width < 0)) {
+        errors.push('width must be a positive number');
+    }
+    
+    if (data.height && (typeof data.height !== 'number' || data.height < 0)) {
+        errors.push('height must be a positive number');
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
+}
+
+// Validate Cloudinary URL format
+function validateCloudinaryUrl(url) {
+    if (!url || typeof url !== 'string') {
+        return false;
+    }
+    
+    const cloudinaryPattern = /^https:\/\/res\.cloudinary\.com\/[^\/]+\/image\/upload\//;
+    return cloudinaryPattern.test(url);
+}
+
+app.put('/api/images/:id', async (req, res) => {
+    try {
+        console.log('📸 Updating image reference:', req.params.id);
+        
+        // Validate update data
+        const updateData = timestampUtils.ensureTimestamps({
+            ...req.body,
+            // Ensure we don't update created_at
+            created_at: undefined
+        }, true);
+        
+        // Remove undefined values
+        Object.keys(updateData).forEach(key => {
+            if (updateData[key] === undefined) {
+                delete updateData[key];
+            }
+        });
+
+        // Validate Cloudinary URL if being updated
+        if (updateData.cloudinary_secure_url && !validateCloudinaryUrl(updateData.cloudinary_secure_url)) {
+            return res.status(400).json({
+                error: 'Invalid Cloudinary URL',
+                code: 'INVALID_URL',
+                url: updateData.cloudinary_secure_url
+            });
+        }
+
+        const { data, error } = await supabase
+            .from('image_references')
+            .update(updateData)
+            .eq('id', req.params.id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('❌ Database update error:', error);
+            
+            if (error.code === 'PGRST116') {
+                return res.status(404).json({
+                    error: 'Image reference not found',
+                    code: 'NOT_FOUND'
+                });
+            }
+            
+            throw error;
+        }
+
+        console.log('✅ Image reference updated:', data.id);
+        
+        res.json({
+            success: true,
+            data: data,
+            message: 'Image reference updated successfully'
+        });
+        
+    } catch (error) {
+        console.error('❌ Update image reference error:', error);
+        res.status(500).json({ 
+            error: 'Failed to update image reference',
+            code: 'INTERNAL_ERROR',
+            details: error.message
+        });
+    }
+});
+
+app.delete('/api/images/:id', async (req, res) => {
+    try {
+        console.log('🗑️ Deleting image reference:', req.params.id);
+        
+        // First, get the image reference to check if it exists and get Cloudinary info
+        const { data: imageRef, error: fetchError } = await supabase
+            .from('image_references')
+            .select('*')
+            .eq('id', req.params.id)
+            .single();
+
+        if (fetchError) {
+            if (fetchError.code === 'PGRST116') {
+                return res.status(404).json({
+                    error: 'Image reference not found',
+                    code: 'NOT_FOUND'
+                });
+            }
+            throw fetchError;
+        }
+
+        // Delete from database
+        const { error } = await supabase
+            .from('image_references')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) throw error;
+
+        console.log('✅ Image reference deleted from database:', req.params.id);
+        
+        // Optionally delete from Cloudinary (requires server-side implementation)
+        let cloudinaryDeleted = false;
+        if (req.query.deleteFromCloudinary === 'true' && imageRef.cloudinary_public_id) {
+            try {
+                // This would require a server-side Cloudinary deletion endpoint
+                console.log('🌤️ Would delete from Cloudinary:', imageRef.cloudinary_public_id);
+                // await deleteFromCloudinary(imageRef.cloudinary_public_id);
+                cloudinaryDeleted = false; // Set to true when implemented
+            } catch (cloudinaryError) {
+                console.warn('⚠️ Failed to delete from Cloudinary:', cloudinaryError);
+            }
+        }
+
+        res.json({ 
+            success: true,
+            message: 'Image reference deleted successfully',
+            deleted: {
+                id: req.params.id,
+                cloudinary_public_id: imageRef.cloudinary_public_id,
+                cloudinaryDeleted: cloudinaryDeleted
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Delete image reference error:', error);
+        res.status(500).json({ 
+            error: 'Failed to delete image reference',
+            code: 'INTERNAL_ERROR',
+            details: error.message
+        });
+    }
+});
+
 // ==================== SETTINGS API ====================
 
 app.get('/api/settings', async (req, res) => {
@@ -525,6 +1041,56 @@ app.get('/simple-login.html', (req, res) => {
 app.get('/direct-login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin-redirect.html'));
 });
+
+// ==================== TEST API ROUTES ====================
+
+// Mount test case studies API routes
+try {
+    const testCaseStudiesRoutes = require('./api/test-case-studies');
+    app.use('/api/test-case-studies', testCaseStudiesRoutes);
+    console.log('✅ Test Case Studies API routes mounted at /api/test-case-studies');
+} catch (error) {
+    console.warn('⚠️ Test Case Studies API routes not found:', error.message);
+}
+
+// ==================== CLOUDINARY API ROUTES ====================
+
+// Mount complete Cloudinary API routes
+try {
+    const cloudinaryRoutes = require('./api/cloudinary-complete');
+    app.use('/api/cloudinary', cloudinaryRoutes);
+    console.log('✅ Cloudinary API routes mounted at /api/cloudinary');
+} catch (error) {
+    console.warn('⚠️ Cloudinary API routes not found:', error.message);
+}
+
+// ==================== CAROUSEL API ROUTES ====================
+
+// Mount carousel API routes
+try {
+    const carouselRoutes = require('./api/carousel');
+    app.use('/api/carousel', carouselRoutes);
+    console.log('✅ Carousel API routes mounted at /api/carousel');
+} catch (error) {
+    console.warn('⚠️ Carousel API routes not found, using fallback endpoints');
+    
+    // Fallback carousel endpoints
+    app.get('/api/carousel/images', async (req, res) => {
+        try {
+            const { data, error } = await supabase
+                .from('carousel_images')
+                .select('*')
+                .eq('status', 'active')
+                .order('order_index', { ascending: true });
+
+            if (error) throw error;
+            res.json({ success: true, data: data || [] });
+        } catch (error) {
+            console.error('Fallback carousel error:', error);
+            res.status(500).json({ error: 'Failed to fetch carousel images' });
+        }
+    });
+}
 
 // ==================== ERROR HANDLING ====================
 

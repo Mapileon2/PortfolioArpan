@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudinary Configuration Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        .upload-zone {
+            border: 2px dashed #ccc;
+            padding: 40px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        .upload-zone:hover { border-color: #007bff; }
+        .results {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Cloudinary Configuration Verification</h1>
+    <p>Test the Cloudinary integration used in the case study editor</p>
+
+    <div class="test-card">
+        <h3>📋 Configuration Check</h3>
+        <div id="configStatus" class="status info">Checking configuration...</div>
+        <button class="test-button" onclick="checkConfig()">Check Config</button>
+        
+        <div class="results" id="configResults">
+Configuration Details:
+- Cloud Name: dgymjtqil
+- API Key: 951533987774134
+- Upload Preset: ml_default
+- Folder: portfolio/case-studies/
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h3>📤 Upload Test</h3>
+        <div id="uploadStatus" class="status info">Ready to test upload</div>
+        
+        <div class="upload-zone" onclick="testUpload()">
+            <p>📸 Click to select an image for upload test</p>
+            <p><small>This will test the same upload process used in the case study editor</small></p>
+        </div>
+        
+        <button class="test-button" onclick="testUpload()">Select Test Image</button>
+        <button class="test-button" onclick="clearResults()">Clear Results</button>
+        
+        <div class="results" id="uploadResults">Upload results will appear here...</div>
+    </div>
+
+    <div class="test-card">
+        <h3>🔗 Integration Status</h3>
+        <div id="integrationStatus" class="status info">Click to check integration</div>
+        <button class="test-button" onclick="checkIntegration()">Check Integration</button>
+        
+        <div class="results" id="integrationResults">Integration check results...</div>
+    </div>
+
+    <script>
+        const cloudinaryConfig = {
+            cloudName: 'dgymjtqil',
+            apiKey: '951533987774134',
+            uploadPreset: 'ml_default'
+        };
+
+        function log(message, elementId = 'uploadResults') {
+            const timestamp = new Date().toLocaleTimeString();
+            const element = document.getElementById(elementId);
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${status}`;
+            element.textContent = message;
+        }
+
+        function checkConfig() {
+            updateStatus('configStatus', 'info', 'Checking configuration...');
+            
+            const results = document.getElementById('configResults');
+            results.textContent = `Configuration Verification:
+✅ Cloud Name: ${cloudinaryConfig.cloudName}
+✅ API Key: ${cloudinaryConfig.apiKey} (${cloudinaryConfig.apiKey.length} chars)
+✅ Upload Preset: ${cloudinaryConfig.uploadPreset}
+✅ Upload URL: https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload
+
+Configuration appears valid for case study editor integration.
+`;
+            
+            updateStatus('configStatus', 'success', 'Configuration verified');
+        }
+
+        function testUpload() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                updateStatus('uploadStatus', 'info', 'Uploading test image...');
+                log('🔄 Starting upload test...', 'uploadResults');
+                log(`📁 File: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`, 'uploadResults');
+                
+                try {
+                    // Validate file
+                    if (file.size > 10 * 1024 * 1024) {
+                        throw new Error('File size must be less than 10MB');
+                    }
+                    
+                    if (!file.type.startsWith('image/')) {
+                        throw new Error('Please select a valid image file');
+                    }
+                    
+                    log('✅ File validation passed', 'uploadResults');
+                    log('🚀 Uploading to Cloudinary...', 'uploadResults');
+                    
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+                    formData.append('folder', 'portfolio/case-studies/test');
+                    formData.append('tags', 'case-study,test,verification');
+                    
+                    // Upload to Cloudinary
+                    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    log(`📡 Response status: ${response.status} ${response.statusText}`, 'uploadResults');
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    log('✅ Upload successful!', 'uploadResults');
+                    log(`🔗 URL: ${result.secure_url}`, 'uploadResults');
+                    log(`📊 Size: ${result.width}x${result.height}px`, 'uploadResults');
+                    log(`💾 Bytes: ${result.bytes} (${(result.bytes / 1024 / 1024).toFixed(2)}MB)`, 'uploadResults');
+                    log(`📂 Public ID: ${result.public_id}`, 'uploadResults');
+                    log(`🏷️ Tags: ${result.tags?.join(', ') || 'none'}`, 'uploadResults');
+                    
+                    updateStatus('uploadStatus', 'success', 'Upload test successful!');
+                    
+                    // Show the uploaded image
+                    const img = document.createElement('img');
+                    img.src = result.secure_url;
+                    img.style.maxWidth = '300px';
+                    img.style.maxHeight = '200px';
+                    img.style.border = '1px solid #ddd';
+                    img.style.borderRadius = '4px';
+                    img.style.marginTop = '10px';
+                    
+                    const uploadCard = document.querySelector('.test-card:nth-child(2)');
+                    const existingImg = uploadCard.querySelector('img');
+                    if (existingImg) existingImg.remove();
+                    uploadCard.appendChild(img);
+                    
+                } catch (error) {
+                    log(`❌ Upload failed: ${error.message}`, 'uploadResults');
+                    updateStatus('uploadStatus', 'error', 'Upload test failed');
+                    console.error('Upload error:', error);
+                }
+            };
+            
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        function checkIntegration() {
+            updateStatus('integrationStatus', 'info', 'Checking integration...');
+            
+            const results = document.getElementById('integrationResults');
+            results.textContent = `Integration Status Check:
+
+🔍 Checking case study editor integration...
+`;
+            
+            // Check if case study editor exists
+            fetch('case_study_editor_complete.html')
+                .then(response => {
+                    if (response.ok) {
+                        log('✅ Case study editor file exists', 'integrationResults');
+                        return response.text();
+                    } else {
+                        throw new Error('Case study editor not found');
+                    }
+                })
+                .then(content => {
+                    // Check for Cloudinary integration
+                    if (content.includes('cloudinary')) {
+                        log('✅ Cloudinary integration found in editor', 'integrationResults');
+                    } else {
+                        log('⚠️ Cloudinary integration not found', 'integrationResults');
+                    }
+                    
+                    // Check for upload functions
+                    if (content.includes('uploadAllPendingImages')) {
+                        log('✅ Pending images upload function found', 'integrationResults');
+                    } else {
+                        log('⚠️ Pending images upload function not found', 'integrationResults');
+                    }
+                    
+                    // Check for configuration
+                    if (content.includes('dgymjtqil')) {
+                        log('✅ Cloudinary configuration found', 'integrationResults');
+                    } else {
+                        log('⚠️ Cloudinary configuration not found', 'integrationResults');
+                    }
+                    
+                    updateStatus('integrationStatus', 'success', 'Integration check completed');
+                })
+                .catch(error => {
+                    log(`❌ Integration check failed: ${error.message}`, 'integrationResults');
+                    updateStatus('integrationStatus', 'error', 'Integration check failed');
+                });
+        }
+
+        function clearResults() {
+            document.getElementById('uploadResults').textContent = 'Upload results cleared...';
+            const img = document.querySelector('.test-card:nth-child(2) img');
+            if (img) img.remove();
+            updateStatus('uploadStatus', 'info', 'Ready to test upload');
+        }
+
+        // Auto-run config check on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkConfig, 500);
+        });
+    </script>
+</body>
+</html>

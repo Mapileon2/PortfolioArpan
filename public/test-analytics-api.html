@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics API Test Suite - CMS Enhancement</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-success { background: #c6f6d5; color: #22543d; }
+        .status-error { background: #fed7d7; color: #742a2a; }
+        .status-warning { background: #feebc8; color: #7b341e; }
+        .status-info { background: #bee3f8; color: #2a4365; }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #3182ce;
+        }
+        
+        .btn-success { background: #48bb78; }
+        .btn-success:hover { background: #38a169; }
+        
+        .btn-warning { background: #ed8936; }
+        .btn-warning:hover { background: #dd6b20; }
+        
+        .btn-danger { background: #f56565; }
+        .btn-danger:hover { background: #e53e3e; }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f7fafc;
+            border-left: 4px solid #4299e1;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .auth-section {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .auth-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            margin: 5px 0;
+            font-family: monospace;
+        }
+        
+        .endpoint-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .endpoint-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .endpoint-method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .method-get { background: #c6f6d5; color: #22543d; }
+        .method-post { background: #bee3f8; color: #2a4365; }
+        .method-put { background: #feebc8; color: #7b341e; }
+        .method-delete { background: #fed7d7; color: #742a2a; }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4299e1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .error-message {
+            color: #e53e3e;
+            background: #fed7d7;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        .success-message {
+            color: #22543d;
+            background: #c6f6d5;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Analytics API Test Suite</h1>
+            <p>Comprehensive testing for CMS Enhancement Analytics API Endpoints</p>
+            <div id="apiStatus" class="status-badge status-info">Ready</div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="auth-section">
+            <h3>🔐 Authentication Setup</h3>
+            <input type="text" id="authToken" class="auth-input" placeholder="Enter JWT Token (Bearer token)" />
+            <input type="text" id="apiBaseUrl" class="auth-input" value="http://localhost:3000" placeholder="API Base URL" />
+            <button class="btn btn-success" onclick="testAuthentication()">Test Authentication</button>
+            <button class="btn" onclick="generateTestToken()">Generate Test Token</button>
+            <div id="authResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- API Health Check -->
+        <div class="test-section">
+            <h3>🏥 API Health Check</h3>
+            <button class="btn btn-success" onclick="testHealthEndpoint()">Check API Health</button>
+            <button class="btn" onclick="testRateLimit()">Test Rate Limiting</button>
+            <div id="healthResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Event Tracking Tests -->
+        <div class="test-section">
+            <h3>📊 Event Tracking Endpoints</h3>
+            <button class="btn" onclick="testTrackEvent()">POST /api/analytics/track</button>
+            <button class="btn" onclick="testBatchTracking()">POST /api/analytics/track/batch</button>
+            <button class="btn" onclick="testEventValidation()">Test Event Validation</button>
+            <div id="trackingResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Analytics Retrieval Tests -->
+        <div class="test-section">
+            <h3>📈 Analytics Retrieval Endpoints</h3>
+            <button class="btn" onclick="testContentAnalytics()">GET /api/analytics/content/:id</button>
+            <button class="btn" onclick="testUserAnalytics()">GET /api/analytics/user/:userId</button>
+            <button class="btn" onclick="testDashboardAnalytics()">GET /api/analytics/dashboard</button>
+            <div id="retrievalResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Insights and Recommendations Tests -->
+        <div class="test-section">
+            <h3>🧠 Insights and Recommendations</h3>
+            <button class="btn" onclick="testContentInsights()">GET /api/analytics/insights/content/:id</button>
+            <button class="btn" onclick="testSystemInsights()">GET /api/analytics/insights/system</button>
+            <button class="btn" onclick="testRecommendations()">Test Recommendations Engine</button>
+            <div id="insightsResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Custom Reports Tests -->
+        <div class="test-section">
+            <h3>📋 Custom Reports</h3>
+            <button class="btn" onclick="testCreateReport()">POST /api/analytics/reports</button>
+            <button class="btn" onclick="testListReports()">GET /api/analytics/reports</button>
+            <button class="btn" onclick="testExecuteReport()">POST /api/analytics/reports/:id/execute</button>
+            <button class="btn" onclick="testExportReport()">GET /api/analytics/export/:reportId</button>
+            <div id="reportsResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Funnel Analysis Tests -->
+        <div class="test-section">
+            <h3>🎯 Funnel Analysis</h3>
+            <button class="btn" onclick="testFunnelAnalysis()">POST /api/analytics/funnel</button>
+            <button class="btn" onclick="testComplexFunnel()">Test Complex Funnel</button>
+            <button class="btn" onclick="testFunnelInsights()">Test Funnel Insights</button>
+            <div id="funnelResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Performance and Load Tests -->
+        <div class="test-section">
+            <h3>⚡ Performance and Load Testing</h3>
+            <button class="btn" onclick="testHighVolumeTracking()">High Volume Event Tracking</button>
+            <button class="btn" onclick="testConcurrentRequests()">Concurrent API Requests</button>
+            <button class="btn" onclick="testLargeReportGeneration()">Large Report Generation</button>
+            <div id="performanceResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- API Endpoints Overview -->
+        <div class="test-section">
+            <h3>🗺️ API Endpoints Overview</h3>
+            <div class="endpoint-grid" id="endpointsGrid">
+                <!-- Endpoints will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Real-time Metrics Dashboard -->
+        <div class="test-section">
+            <h3>📱 Real-time API Metrics</h3>
+            <button class="btn btn-success" onclick="startMetricsMonitoring()">Start Monitoring</button>
+            <button class="btn btn-warning" onclick="stopMetricsMonitoring()">Stop Monitoring</button>
+            
+            <div class="metrics-grid" id="metricsGrid" style="display: none;">
+                <div class="metric-card">
+                    <div class="metric-value" id="totalRequests">0</div>
+                    <div class="metric-label">Total Requests</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="successRate">0%</div>
+                    <div class="metric-label">Success Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="avgResponseTime">0ms</div>
+                    <div class="metric-label">Avg Response Time</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="errorCount">0</div>
+                    <div class="metric-label">Errors</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let authToken = '';
+        let apiBaseUrl = 'http://localhost:3000';
+        let metricsInterval = null;
+        let requestMetrics = {
+            total: 0,
+            success: 0,
+            errors: 0,
+            responseTimes: []
+        };
+
+        // API endpoints configuration
+        const apiEndpoints = [
+            { method: 'GET', path: '/api/analytics/health', description: 'API health check', auth: false },
+            { method: 'POST', path: '/api/analytics/track', description: 'Track single event', auth: false },
+            { method: 'POST', path: '/api/analytics/track/batch', description: 'Track multiple events', auth: true },
+            { method: 'GET', path: '/api/analytics/content/:id', description: 'Get content analytics', auth: true },
+            { method: 'GET', path: '/api/analytics/user/:userId', description: 'Get user analytics', auth: true },
+            { method: 'GET', path: '/api/analytics/insights/content/:id', description: 'Get content insights', auth: true },
+            { method: 'GET', path: '/api/analytics/insights/system', description: 'Get system insights', auth: true },
+            { method: 'POST', path: '/api/analytics/reports', description: 'Create custom report', auth: true },
+            { method: 'GET', path: '/api/analytics/reports', description: 'List reports', auth: true },
+            { method: 'GET', path: '/api/analytics/reports/:id', description: 'Get specific report', auth: true },
+            { method: 'POST', path: '/api/analytics/reports/:id/execute', description: 'Execute report', auth: true },
+            { method: 'POST', path: '/api/analytics/funnel', description: 'Generate funnel analysis', auth: true },
+            { method: 'GET', path: '/api/analytics/dashboard', description: 'Get dashboard data', auth: true },
+            { method: 'GET', path: '/api/analytics/export/:reportId', description: 'Export report', auth: true }
+        ];
+
+        // Initialize page
+        window.addEventListener('load', () => {
+            populateEndpointsGrid();
+            
+            // Load saved values
+            const savedToken = localStorage.getItem('analytics_auth_token');
+            const savedUrl = localStorage.getItem('analytics_api_url');
+            
+            if (savedToken) {
+                document.getElementById('authToken').value = savedToken;
+                authToken = savedToken;
+            }
+            
+            if (savedUrl) {
+                document.getElementById('apiBaseUrl').value = savedUrl;
+                apiBaseUrl = savedUrl;
+            }
+        });
+
+        // Populate endpoints grid
+        function populateEndpointsGrid() {
+            const grid = document.getElementById('endpointsGrid');
+            grid.innerHTML = '';
+            
+            apiEndpoints.forEach(endpoint => {
+                const card = document.createElement('div');
+                card.className = 'endpoint-card';
+                
+                const methodClass = `method-${endpoint.method.toLowerCase()}`;
+                
+                card.innerHTML = `
+                    <div>
+                        <span class="endpoint-method ${methodClass}">${endpoint.method}</span>
+                        <strong>${endpoint.path}</strong>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 14px; color: #718096;">
+                        ${endpoint.description}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px;">
+                        Auth Required: ${endpoint.auth ? '✅ Yes' : '❌ No'}
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Utility function to make API requests
+        async function makeApiRequest(method, endpoint, data = null, requireAuth = true) {
+            const startTime = Date.now();
+            
+            try {
+                // Update API base URL and token from inputs
+                apiBaseUrl = document.getElementById('apiBaseUrl').value;
+                authToken = document.getElementById('authToken').value;
+                
+                // Save to localStorage
+                localStorage.setItem('analytics_api_url', apiBaseUrl);
+                localStorage.setItem('analytics_auth_token', authToken);
+                
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (requireAuth && authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+                
+                const config = {
+                    method,
+                    headers
+                };
+                
+                if (data && (method === 'POST' || method === 'PUT')) {
+                    config.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`${apiBaseUrl}${endpoint}`, config);
+                const responseTime = Date.now() - startTime;
+                
+                // Update metrics
+                requestMetrics.total++;
+                requestMetrics.responseTimes.push(responseTime);
+                
+                if (response.ok) {
+                    requestMetrics.success++;
+                } else {
+                    requestMetrics.errors++;
+                }
+                
+                const responseData = await response.json();
+                
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: responseData,
+                    responseTime,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+            } catch (error) {
+                const responseTime = Date.now() - startTime;
+                requestMetrics.total++;
+                requestMetrics.errors++;
+                requestMetrics.responseTimes.push(responseTime);
+                
+                return {
+                    success: false,
+                    error: error.message,
+                    responseTime
+                };
+            }
+        }
+
+        // Authentication tests
+        async function testAuthentication() {
+            const resultDiv = document.getElementById('authResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing authentication...';
+            
+            try {
+                const result = await makeApiRequest('GET', '/api/analytics/dashboard', null, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ Authentication successful!
+
+Response Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+Token Valid: ✅ Yes
+
+User Info:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                    document.getElementById('apiStatus').textContent = 'Authenticated';
+                    document.getElementById('apiStatus').className = 'status-badge status-success';
+                } else {
+                    resultDiv.innerHTML = `
+❌ Authentication failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+
+Please check your JWT token and try again.
+                    `;
+                    document.getElementById('apiStatus').textContent = 'Auth Failed';
+                    document.getElementById('apiStatus').className = 'status-badge status-error';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Authentication test failed:\n${error.message}`;
+            }
+        }
+
+        async function generateTestToken() {
+            const resultDiv = document.getElementById('authResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Generating test token...';
+            
+            try {
+                // This would typically call your auth service
+                // For testing, we'll simulate a token generation
+                const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXItaWQiLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2MzQ1Njc4OTAsImV4cCI6MTYzNDY1NDI5MH0.test-signature';
+                
+                document.getElementById('authToken').value = testToken;
+                authToken = testToken;
+                
+                resultDiv.innerHTML = `
+✅ Test token generated!
+
+Token: ${testToken}
+
+Note: This is a mock token for testing purposes.
+In production, you would get this from your authentication service.
+
+The token has been automatically filled in the auth input field.
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Token generation failed:\n${error.message}`;
+            }
+        }
+
+        // Health check tests
+        async function testHealthEndpoint() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Checking API health...';
+            
+            try {
+                const result = await makeApiRequest('GET', '/api/analytics/health', null, false);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ API Health Check Passed!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+
+Health Data:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ API Health Check Failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Health check failed:\n${error.message}`;
+            }
+        }
+
+        async function testRateLimit() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing rate limiting...';
+            
+            try {
+                const requests = [];
+                const requestCount = 10;
+                
+                // Send multiple requests quickly to test rate limiting
+                for (let i = 0; i < requestCount; i++) {
+                    requests.push(makeApiRequest('GET', '/api/analytics/health', null, false));
+                }
+                
+                const results = await Promise.all(requests);
+                const successCount = results.filter(r => r.success).length;
+                const rateLimitedCount = results.filter(r => r.status === 429).length;
+                
+                resultDiv.innerHTML = `
+✅ Rate Limiting Test Completed!
+
+Total Requests: ${requestCount}
+Successful: ${successCount}
+Rate Limited (429): ${rateLimitedCount}
+Other Errors: ${requestCount - successCount - rateLimitedCount}
+
+Rate Limiting: ${rateLimitedCount > 0 ? '✅ Working' : '⚠️ Not Triggered'}
+
+Response Details:
+${results.map((r, i) => `Request ${i + 1}: ${r.status} (${r.responseTime}ms)`).join('\n')}
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Rate limit test failed:\n${error.message}`;
+            }
+        }
+
+        // Event tracking tests
+        async function testTrackEvent() {
+            const resultDiv = document.getElementById('trackingResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing event tracking...';
+            
+            try {
+                const eventData = {
+                    eventType: 'test_event',
+                    eventCategory: 'testing',
+                    eventAction: 'api_test',
+                    eventLabel: 'Analytics API Test Event',
+                    properties: {
+                        test_id: Date.now(),
+                        api_version: '1.0',
+                        test_type: 'single_event'
+                    },
+                    value: 100
+                };
+                
+                const result = await makeApiRequest('POST', '/api/analytics/track', eventData, false);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ Event tracking successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+
+Event Data Sent:
+${JSON.stringify(eventData, null, 2)}
+
+Response:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ Event tracking failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Event tracking test failed:\n${error.message}`;
+            }
+        }
+
+        async function testBatchTracking() {
+            const resultDiv = document.getElementById('trackingResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing batch event tracking...';
+            
+            try {
+                const events = [];
+                for (let i = 0; i < 5; i++) {
+                    events.push({
+                        eventType: 'batch_test_event',
+                        eventCategory: 'testing',
+                        eventAction: 'batch_test',
+                        eventLabel: `Batch Event ${i + 1}`,
+                        properties: {
+                            batch_id: Date.now(),
+                            event_number: i + 1
+                        },
+                        value: (i + 1) * 10
+                    });
+                }
+                
+                const result = await makeApiRequest('POST', '/api/analytics/track/batch', { events }, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ Batch event tracking successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+Events Sent: ${events.length}
+
+Response:
+${JSON.stringify(result.data, null, 2)}
+
+Sample Event:
+${JSON.stringify(events[0], null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ Batch event tracking failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Batch tracking test failed:\n${error.message}`;
+            }
+        }
+
+        async function testEventValidation() {
+            const resultDiv = document.getElementById('trackingResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing event validation...';
+            
+            try {
+                // Test with invalid event data (missing required fields)
+                const invalidEventData = {
+                    eventLabel: 'Invalid Event Test',
+                    properties: { test: 'validation' }
+                    // Missing required fields: eventType, eventCategory, eventAction
+                };
+                
+                const result = await makeApiRequest('POST', '/api/analytics/track', invalidEventData, false);
+                
+                if (!result.success && result.status === 400) {
+                    resultDiv.innerHTML = `
+✅ Event validation working correctly!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+
+Validation correctly rejected invalid event data.
+
+Invalid Data Sent:
+${JSON.stringify(invalidEventData, null, 2)}
+
+Validation Error:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+⚠️ Event validation may not be working properly!
+
+Status: ${result.status} ${result.statusText}
+Expected: 400 Bad Request
+Actual: ${result.status}
+
+Response:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Event validation test failed:\n${error.message}`;
+            }
+        }
+
+        // Analytics retrieval tests
+        async function testContentAnalytics() {
+            const resultDiv = document.getElementById('retrievalResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing content analytics retrieval...';
+            
+            try {
+                const contentId = 'test-case-study-' + Date.now();
+                const params = new URLSearchParams({
+                    contentType: 'case_study',
+                    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    endDate: new Date().toISOString(),
+                    periodType: 'daily'
+                });
+                
+                const result = await makeApiRequest('GET', `/api/analytics/content/${contentId}?${params}`, null, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ Content analytics retrieval successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+Content ID: ${contentId}
+
+Analytics Data:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ Content analytics retrieval failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Content analytics test failed:\n${error.message}`;
+            }
+        }
+
+        async function testUserAnalytics() {
+            const resultDiv = document.getElementById('retrievalResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing user analytics retrieval...';
+            
+            try {
+                const userId = 'test-user-' + Date.now();
+                const params = new URLSearchParams({
+                    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    endDate: new Date().toISOString(),
+                    periodType: 'daily'
+                });
+                
+                const result = await makeApiRequest('GET', `/api/analytics/user/${userId}?${params}`, null, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ User analytics retrieval successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+User ID: ${userId}
+
+Analytics Data:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ User analytics retrieval failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ User analytics test failed:\n${error.message}`;
+            }
+        }
+
+        async function testDashboardAnalytics() {
+            const resultDiv = document.getElementById('retrievalResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing dashboard analytics...';
+            
+            try {
+                const params = new URLSearchParams({ days: '7' });
+                const result = await makeApiRequest('GET', `/api/analytics/dashboard?${params}`, null, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ Dashboard analytics retrieval successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+
+Dashboard Data:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ Dashboard analytics retrieval failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Dashboard analytics test failed:\n${error.message}`;
+            }
+        }
+
+        // Insights tests
+        async function testContentInsights() {
+            const resultDiv = document.getElementById('insightsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing content insights...';
+            
+            try {
+                const contentId = 'test-case-study-' + Date.now();
+                const params = new URLSearchParams({
+                    contentType: 'case_study',
+                    days: '30'
+                });
+                
+                const result = await makeApiRequest('GET', `/api/analytics/insights/content/${contentId}?${params}`, null, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ Content insights generation successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+Content ID: ${contentId}
+
+Insights Data:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ Content insights generation failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Content insights test failed:\n${error.message}`;
+            }
+        }
+
+        async function testSystemInsights() {
+            const resultDiv = document.getElementById('insightsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing system insights...';
+            
+            try {
+                const params = new URLSearchParams({ days: '30' });
+                const result = await makeApiRequest('GET', `/api/analytics/insights/system?${params}`, null, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ System insights generation successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+
+System Insights:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ System insights generation failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ System insights test failed:\n${error.message}`;
+            }
+        }
+
+        // Custom reports tests
+        async function testCreateReport() {
+            const resultDiv = document.getElementById('reportsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing custom report creation...';
+            
+            try {
+                const reportConfig = {
+                    name: 'Test Analytics Report',
+                    description: 'API test report for analytics data',
+                    reportType: 'export',
+                    dateRange: {
+                        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                        endDate: new Date()
+                    },
+                    filters: {
+                        event_category: ['content', 'user_interaction']
+                    },
+                    metrics: ['event_value', 'time_on_page'],
+                    dimensions: ['event_type', 'device_type'],
+                    aggregation: 'sum',
+                    format: 'json'
+                };
+                
+                const result = await makeApiRequest('POST', '/api/analytics/reports', reportConfig, true);
+                
+                if (result.success) {
+                    // Store report ID for later tests
+                    window.testReportId = result.data.reportId;
+                    
+                    resultDiv.innerHTML = `
+✅ Custom report creation successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+Report ID: ${result.data.reportId}
+
+Report Configuration:
+${JSON.stringify(reportConfig, null, 2)}
+
+Response:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ Custom report creation failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Custom report creation test failed:\n${error.message}`;
+            }
+        }
+
+        async function testListReports() {
+            const resultDiv = document.getElementById('reportsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing reports listing...';
+            
+            try {
+                const params = new URLSearchParams({
+                    page: '1',
+                    limit: '10',
+                    reportType: 'export'
+                });
+                
+                const result = await makeApiRequest('GET', `/api/analytics/reports?${params}`, null, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ Reports listing successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+
+Reports Data:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ Reports listing failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Reports listing test failed:\n${error.message}`;
+            }
+        }
+
+        // Funnel analysis tests
+        async function testFunnelAnalysis() {
+            const resultDiv = document.getElementById('funnelResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing funnel analysis...';
+            
+            try {
+                const funnelConfig = {
+                    funnelSteps: [
+                        {
+                            name: 'Landing Page Visit',
+                            eventType: 'page_view',
+                            eventAction: 'view'
+                        },
+                        {
+                            name: 'Content Engagement',
+                            eventType: 'content_view',
+                            eventAction: 'view'
+                        },
+                        {
+                            name: 'Action Taken',
+                            eventType: 'user_action',
+                            eventAction: 'click'
+                        },
+                        {
+                            name: 'Conversion',
+                            eventType: 'conversion',
+                            eventAction: 'complete'
+                        }
+                    ],
+                    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    endDate: new Date().toISOString(),
+                    filters: {
+                        funnelName: 'User Engagement Funnel'
+                    }
+                };
+                
+                const result = await makeApiRequest('POST', '/api/analytics/funnel', funnelConfig, true);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ Funnel analysis successful!
+
+Status: ${result.status} ${result.statusText}
+Response Time: ${result.responseTime}ms
+
+Funnel Configuration:
+${JSON.stringify(funnelConfig, null, 2)}
+
+Funnel Results:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ Funnel analysis failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Response Time: ${result.responseTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Funnel analysis test failed:\n${error.message}`;
+            }
+        }
+
+        // Performance tests
+        async function testHighVolumeTracking() {
+            const resultDiv = document.getElementById('performanceResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing high volume event tracking...';
+            
+            try {
+                const batchSize = 50;
+                const events = [];
+                
+                for (let i = 0; i < batchSize; i++) {
+                    events.push({
+                        eventType: 'performance_test',
+                        eventCategory: 'testing',
+                        eventAction: 'high_volume_test',
+                        eventLabel: `Performance Test Event ${i + 1}`,
+                        properties: {
+                            batch_test: true,
+                            event_index: i,
+                            timestamp: Date.now()
+                        },
+                        value: i
+                    });
+                }
+                
+                const startTime = Date.now();
+                const result = await makeApiRequest('POST', '/api/analytics/track/batch', { events }, true);
+                const totalTime = Date.now() - startTime;
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+✅ High volume tracking test successful!
+
+Status: ${result.status} ${result.statusText}
+Events Sent: ${batchSize}
+Total Time: ${totalTime}ms
+Events Per Second: ${(batchSize / (totalTime / 1000)).toFixed(2)}
+Avg Time Per Event: ${(totalTime / batchSize).toFixed(2)}ms
+
+Performance Assessment: ${totalTime < 5000 ? '✅ Excellent' : totalTime < 10000 ? '⚠️ Good' : '❌ Needs Optimization'}
+
+Response:
+${JSON.stringify(result.data, null, 2)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+❌ High volume tracking test failed!
+
+Status: ${result.status} ${result.statusText}
+Error: ${result.data?.error || result.error}
+Total Time: ${totalTime}ms
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ High volume tracking test failed:\n${error.message}`;
+            }
+        }
+
+        async function testConcurrentRequests() {
+            const resultDiv = document.getElementById('performanceResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div> Testing concurrent API requests...';
+            
+            try {
+                const concurrentRequests = 10;
+                const requests = [];
+                
+                // Create multiple concurrent requests
+                for (let i = 0; i < concurrentRequests; i++) {
+                    requests.push(makeApiRequest('GET', '/api/analytics/health', null, false));
+                }
+                
+                const startTime = Date.now();
+                const results = await Promise.all(requests);
+                const totalTime = Date.now() - startTime;
+                
+                const successCount = results.filter(r => r.success).length;
+                const avgResponseTime = results.reduce((sum, r) => sum + r.responseTime, 0) / results.length;
+                
+                resultDiv.innerHTML = `
+✅ Concurrent requests test completed!
+
+Total Requests: ${concurrentRequests}
+Successful: ${successCount}
+Failed: ${concurrentRequests - successCount}
+Total Time: ${totalTime}ms
+Avg Response Time: ${avgResponseTime.toFixed(2)}ms
+Requests Per Second: ${(concurrentRequests / (totalTime / 1000)).toFixed(2)}
+
+Performance Assessment: ${avgResponseTime < 500 ? '✅ Excellent' : avgResponseTime < 1000 ? '⚠️ Good' : '❌ Needs Optimization'}
+
+Individual Results:
+${results.map((r, i) => `Request ${i + 1}: ${r.success ? 'Success' : 'Failed'} (${r.responseTime}ms)`).join('\n')}
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Concurrent requests test failed:\n${error.message}`;
+            }
+        }
+
+        // Metrics monitoring
+        function startMetricsMonitoring() {
+            document.getElementById('metricsGrid').style.display = 'grid';
+            
+            metricsInterval = setInterval(() => {
+                updateMetricsDisplay();
+            }, 2000);
+            
+            updateMetricsDisplay();
+        }
+
+        function stopMetricsMonitoring() {
+            if (metricsInterval) {
+                clearInterval(metricsInterval);
+                metricsInterval = null;
+            }
+            document.getElementById('metricsGrid').style.display = 'none';
+        }
+
+        function updateMetricsDisplay() {
+            const successRate = requestMetrics.total > 0 ? 
+                ((requestMetrics.success / requestMetrics.total) * 100).toFixed(1) : 0;
+            
+            const avgResponseTime = requestMetrics.responseTimes.length > 0 ?
+                (requestMetrics.responseTimes.reduce((sum, time) => sum + time, 0) / requestMetrics.responseTimes.length).toFixed(0) : 0;
+            
+            document.getElementById('totalRequests').textContent = requestMetrics.total;
+            document.getElementById('successRate').textContent = successRate + '%';
+            document.getElementById('avgResponseTime').textContent = avgResponseTime + 'ms';
+            document.getElementById('errorCount').textContent = requestMetrics.errors;
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (metricsInterval) {
+                clearInterval(metricsInterval);
+            }
+        });
+    </script>
+</body>
+</html>

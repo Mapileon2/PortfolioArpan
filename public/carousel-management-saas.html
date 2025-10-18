@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel Management - SaaS Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <style>
+        .carousel-item { transition: all 0.3s ease; }
+        .carousel-item:hover { transform: translateY(-2px); }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.4; }
+        .sortable-chosen { transform: scale(1.05); }
+        .status-indicator { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Header with Analytics -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">🎠 Carousel Management</h1>
+                    <p class="text-gray-600">Enterprise-grade carousel content management system</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="carouselSaaS.bulkUpload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-upload mr-2"></i>Bulk Upload
+                    </button>
+                    <button onclick="carouselSaaS.exportData()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                    <button onclick="carouselSaaS.openSettings()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-cog mr-2"></i>Settings
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Real-time Analytics Dashboard -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-600 text-sm font-medium">Total Images</p>
+                            <p id="totalImages" class="text-2xl font-bold text-blue-900">0</p>
+                        </div>
+                        <i class="fas fa-images text-blue-500 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-600 text-sm font-medium">Active</p>
+                            <p id="activeImages" class="text-2xl font-bold text-green-900">0</p>
+                        </div>
+                        <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-yellow-600 text-sm font-medium">Storage Used</p>
+                            <p id="storageUsed" class="text-2xl font-bold text-yellow-900">0 MB</p>
+                        </div>
+                        <i class="fas fa-hdd text-yellow-500 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-600 text-sm font-medium">Performance</p>
+                            <p id="performanceScore" class="text-2xl font-bold text-purple-900">--</p>
+                        </div>
+                        <i class="fas fa-tachometer-alt text-purple-500 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Filters & Search -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search images..." 
+                               class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="scheduled">Scheduled</option>
+                    </select>
+                    <select id="sortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="order">Order</option>
+                        <option value="created">Date Created</option>
+                        <option value="title">Title</option>
+                        <option value="size">File Size</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="carouselSaaS.toggleView('grid')" id="gridViewBtn" class="p-2 text-gray-600 hover:text-blue-600 transition">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button onclick="carouselSaaS.toggleView('list')" id="listViewBtn" class="p-2 text-gray-600 hover:text-blue-600 transition">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <button onclick="carouselSaaS.selectAll()" class="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                        Select All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        <div id="bulkActionsBar" class="bg-blue-600 text-white rounded-lg p-4 mb-6 hidden">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <span id="selectedCount">0 items selected</span>
+                    <button onclick="carouselSaaS.bulkActivate()" class="bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-sm transition">
+                        <i class="fas fa-check mr-1"></i>Activate
+                    </button>
+                    <button onclick="carouselSaaS.bulkDeactivate()" class="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded text-sm transition">
+                        <i class="fas fa-pause mr-1"></i>Deactivate
+                    </button>
+                    <button onclick="carouselSaaS.bulkDelete()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm transition">
+                        <i class="fas fa-trash mr-1"></i>Delete
+                    </button>
+                </div>
+                <button onclick="carouselSaaS.clearSelection()" class="text-blue-200 hover:text-white transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Carousel Items Management -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Carousel Items</h2>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">Drag to reorder</span>
+                            <button onclick="carouselSaaS.saveOrder()" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition">
+                                <i class="fas fa-save mr-1"></i>Save Order
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sortable Carousel Items -->
+                    <div id="carouselItems" class="space-y-4">
+                        <!-- Items will be rendered here -->
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div id="emptyState" class="text-center py-12 hidden">
+                        <i class="fas fa-images text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">No carousel items yet</h3>
+                        <p class="text-gray-500 mb-6">Start building your carousel by uploading images</p>
+                        <button onclick="carouselSaaS.bulkUpload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-2"></i>Add First Item
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Preview & Controls -->
+            <div class="space-y-6">
+                <!-- Live Carousel Preview -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Live Preview</h3>
+                    <div id="carouselPreview" class="bg-gray-100 rounded-lg overflow-hidden">
+                        <!-- Preview will be rendered here -->
+                    </div>
+                    <div class="mt-4 flex justify-center space-x-2">
+                        <button onclick="carouselSaaS.previewPrevious()" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700 transition">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button onclick="carouselSaaS.toggleAutoplay()" id="autoplayBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                            <i class="fas fa-play mr-1"></i>Auto Play
+                        </button>
+                        <button onclick="carouselSaaS.previewNext()" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700 transition">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <button onclick="carouselSaaS.addNewItem()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus mr-2"></i>Add New Item
+                        </button>
+                        <button onclick="carouselSaaS.scheduleContent()" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
+                            <i class="fas fa-calendar mr-2"></i>Schedule Content
+                        </button>
+                        <button onclick="carouselSaaS.optimizeImages()" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-compress mr-2"></i>Optimize Images
+                        </button>
+                        <button onclick="carouselSaaS.generateReport()" class="w-full bg-yellow-600 text-white py-2 rounded-lg hover:bg-yellow-700 transition">
+                            <i class="fas fa-chart-bar mr-2"></i>Analytics Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Performance Insights -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Performance Insights</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Load Time</span>
+                            <span id="loadTime" class="text-sm font-medium text-green-600">--ms</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Image Optimization</span>
+                            <span id="optimization" class="text-sm font-medium text-blue-600">--%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">SEO Score</span>
+                            <span id="seoScore" class="text-sm font-medium text-purple-600">--/100</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Accessibility</span>
+                            <span id="accessibility" class="text-sm font-medium text-green-600">Good</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals will be inserted here -->
+    <div id="modalContainer"></div>
+
+    <script src="js/carousel-saas-manager.js"></script>
+    <script>
+        // Initialize the carousel manager when the page loads
+        let carouselSaaS;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initializing Carousel SaaS Manager...');
+            carouselSaaS = new CarouselSaaSManager();
+            
+            // Make it globally available for onclick handlers
+            window.carouselSaaS = carouselSaaS;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Test Case Studies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h1 class="text-2xl font-bold mb-4">🧪 Create Test Case Studies</h1>
+            <p class="text-gray-600 mb-4">This will create sample case studies in localStorage for testing the admin dashboard.</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <button onclick="createTestCaseStudies()" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition">
+                    ➕ Create Test Case Studies
+                </button>
+                <button onclick="clearCaseStudies()" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition">
+                    🗑️ Clear All Case Studies
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <button onclick="checkCaseStudies()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition">
+                    📊 Check Current Case Studies
+                </button>
+                <button onclick="openAdminDashboard()" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition">
+                    🏠 Open Admin Dashboard
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">📝 Status Log</h2>
+            <div id="statusLog" class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm h-64 overflow-y-auto">
+                <div>Ready to create test case studies...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('statusLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: 'text-blue-400',
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400'
+            };
+            
+            const entry = document.createElement('div');
+            entry.className = colors[type] || 'text-green-400';
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function createTestCaseStudies() {
+            log('🧪 Creating test case studies...', 'info');
+            
+            const testCaseStudies = [
+                {
+                    id: 'cs_' + Date.now() + '_001',
+                    project_title: 'E-commerce Platform Redesign',
+                    caseStudyTitle: 'E-commerce Platform Redesign',
+                    heroTitle: 'Modern Shopping Experience',
+                    heroSubtitle: 'Complete redesign of an e-commerce platform with improved UX and 40% higher conversion rates',
+                    overviewDescription: 'A comprehensive redesign project that transformed an outdated e-commerce platform into a modern, user-friendly shopping experience.',
+                    problemDescription: 'The existing platform had poor user experience, slow loading times, and low conversion rates.',
+                    processDescription: 'We conducted extensive user research, created wireframes, and implemented a new design system.',
+                    showcaseDescription: 'The new platform features improved navigation, faster checkout, and mobile optimization.',
+                    reflectionDescription: 'Key learnings about user behavior and the importance of performance optimization in e-commerce.',
+                    status: 'published',
+                    featured: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    id: 'cs_' + Date.now() + '_002',
+                    project_title: 'Mobile Banking App',
+                    caseStudyTitle: 'Mobile Banking App',
+                    heroTitle: 'Secure Digital Banking',
+                    heroSubtitle: 'Native mobile app for secure and convenient banking with biometric authentication',
+                    overviewDescription: 'Development of a secure mobile banking application that prioritizes user security and convenience.',
+                    problemDescription: 'Users needed a secure and convenient way to manage their finances on mobile devices.',
+                    processDescription: 'We implemented security best practices, intuitive UI design, and comprehensive testing.',
+                    showcaseDescription: 'The app features biometric login, real-time notifications, and comprehensive account management.',
+                    reflectionDescription: 'Insights into mobile security, user trust, and the balance between security and usability.',
+                    status: 'published',
+                    featured: false,
+                    created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+                    updated_at: new Date(Date.now() - 86400000).toISOString()
+                },
+                {
+                    id: 'cs_' + Date.now() + '_003',
+                    project_title: 'SaaS Analytics Dashboard',
+                    caseStudyTitle: 'SaaS Analytics Dashboard',
+                    heroTitle: 'Data-Driven Insights',
+                    heroSubtitle: 'Real-time analytics dashboard with interactive data visualization and custom reporting',
+                    overviewDescription: 'Built a comprehensive analytics dashboard for a SaaS platform to help users understand their data and make informed decisions.',
+                    problemDescription: 'Users needed better insights into their data, usage patterns, and business metrics.',
+                    processDescription: 'We designed interactive charts, implemented real-time updates, and created customizable views.',
+                    showcaseDescription: 'The dashboard provides real-time analytics, custom reports, data export capabilities, and predictive insights.',
+                    reflectionDescription: 'Learned about data visualization best practices, performance optimization for large datasets, and user-centric design.',
+                    status: 'draft',
+                    featured: false,
+                    created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+                    updated_at: new Date(Date.now() - 3600000).toISOString() // 1 hour ago
+                },
+                {
+                    id: 'cs_' + Date.now() + '_004',
+                    project_title: 'Healthcare Management System',
+                    caseStudyTitle: 'Healthcare Management System',
+                    heroTitle: 'Streamlined Healthcare',
+                    heroSubtitle: 'Comprehensive healthcare management system for clinics and hospitals',
+                    overviewDescription: 'Developed a complete healthcare management system to streamline patient care and administrative processes.',
+                    problemDescription: 'Healthcare providers needed an integrated solution to manage patients, appointments, and medical records.',
+                    processDescription: 'We created a modular system with patient management, scheduling, and electronic health records.',
+                    showcaseDescription: 'The system includes patient portals, appointment scheduling, medical records, and billing integration.',
+                    reflectionDescription: 'Understanding healthcare workflows, compliance requirements, and the importance of data security in healthcare.',
+                    status: 'published',
+                    featured: true,
+                    created_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+                    updated_at: new Date(Date.now() - 259200000).toISOString()
+                },
+                {
+                    id: 'cs_' + Date.now() + '_005',
+                    project_title: 'AI-Powered Content Platform',
+                    caseStudyTitle: 'AI-Powered Content Platform',
+                    heroTitle: 'Intelligent Content Creation',
+                    heroSubtitle: 'AI-powered platform for automated content generation and optimization',
+                    overviewDescription: 'Built an AI-powered content platform that helps businesses create, optimize, and distribute content at scale.',
+                    problemDescription: 'Content creators needed tools to produce high-quality content efficiently while maintaining brand consistency.',
+                    processDescription: 'We integrated machine learning models, created intuitive interfaces, and implemented content optimization algorithms.',
+                    showcaseDescription: 'The platform features AI writing assistance, content optimization, automated publishing, and performance analytics.',
+                    reflectionDescription: 'Exploring the intersection of AI and content creation, user adoption of AI tools, and ethical considerations.',
+                    status: 'draft',
+                    featured: false,
+                    created_at: new Date(Date.now() - 345600000).toISOString(), // 4 days ago
+                    updated_at: new Date(Date.now() - 7200000).toISOString() // 2 hours ago
+                }
+            ];
+            
+            try {
+                localStorage.setItem('portfolio_case_studies', JSON.stringify(testCaseStudies));
+                log('✅ Created ' + testCaseStudies.length + ' test case studies in localStorage', 'success');
+                
+                testCaseStudies.forEach((cs, index) => {
+                    log(`   ${index + 1}. ${cs.project_title} (${cs.status}${cs.featured ? ', featured' : ''})`, 'info');
+                });
+                
+                log('🎉 Test case studies created successfully!', 'success');
+                log('💡 Now open the admin dashboard to see them displayed', 'info');
+                
+            } catch (error) {
+                log('❌ Error creating test case studies: ' + error.message, 'error');
+            }
+        }
+
+        function clearCaseStudies() {
+            log('🗑️ Clearing all case studies...', 'warning');
+            
+            try {
+                localStorage.removeItem('portfolio_case_studies');
+                log('✅ All case studies cleared from localStorage', 'success');
+            } catch (error) {
+                log('❌ Error clearing case studies: ' + error.message, 'error');
+            }
+        }
+
+        function checkCaseStudies() {
+            log('📊 Checking current case studies...', 'info');
+            
+            try {
+                const storedData = localStorage.getItem('portfolio_case_studies');
+                
+                if (!storedData) {
+                    log('📭 No case studies found in localStorage', 'warning');
+                    return;
+                }
+                
+                const caseStudies = JSON.parse(storedData);
+                log('📚 Found ' + caseStudies.length + ' case studies:', 'success');
+                
+                const stats = {
+                    total: caseStudies.length,
+                    published: caseStudies.filter(cs => cs.status === 'published').length,
+                    draft: caseStudies.filter(cs => cs.status === 'draft').length,
+                    featured: caseStudies.filter(cs => cs.featured).length
+                };
+                
+                log(`📊 Stats: ${stats.total} total, ${stats.published} published, ${stats.draft} drafts, ${stats.featured} featured`, 'info');
+                
+                caseStudies.forEach((cs, index) => {
+                    log(`   ${index + 1}. ${cs.project_title} (${cs.status}${cs.featured ? ', featured' : ''})`, 'info');
+                });
+                
+            } catch (error) {
+                log('❌ Error checking case studies: ' + error.message, 'error');
+            }
+        }
+
+        function openAdminDashboard() {
+            log('🏠 Opening admin dashboard...', 'info');
+            window.open('admin-dashboard.html', '_blank');
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            log('🚀 Test case study creator loaded', 'success');
+            log('💡 Click "Create Test Case Studies" to add sample data', 'info');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Performance Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/fast-image-preview.js"></script>
+    <style>
+        .performance-metric {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center">⚡ Image Performance Test</h1>
+        
+        <!-- Performance Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="performance-metric rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold" id="loadTime">0ms</div>
+                <div class="text-sm opacity-90">Load Time</div>
+            </div>
+            <div class="performance-metric rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold" id="imageCount">0</div>
+                <div class="text-sm opacity-90">Images Loaded</div>
+            </div>
+            <div class="performance-metric rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold" id="avgTime">0ms</div>
+                <div class="text-sm opacity-90">Avg per Image</div>
+            </div>
+            <div class="performance-metric rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold" id="memoryUsage">0MB</div>
+                <div class="text-sm opacity-90">Memory Usage</div>
+            </div>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">🧪 Performance Tests</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="testSingleImage()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Single Image Test
+                </button>
+                <button onclick="testMultipleImages()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Multiple Images (10)
+                </button>
+                <button onclick="testLargeImages()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    Large Images Test
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <button onclick="testMixedSizes()" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                    Mixed Sizes Test
+                </button>
+                <button onclick="testFileUpload()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    File Upload Test
+                </button>
+                <button onclick="clearTest()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Clear Test
+                </button>
+            </div>
+        </div>
+
+        <!-- File Upload for Testing -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-lg font-bold mb-4">📁 Upload Your Own Images</h3>
+            <input type="file" id="fileInput" multiple accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h3 class="text-lg font-bold mb-4">📊 Test Results</h3>
+            <div id="testResults" class="space-y-2"></div>
+        </div>
+
+        <!-- Image Container -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-bold mb-4">🖼️ Image Preview</h3>
+            <div id="imageContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = [];
+        let startTime = 0;
+        let loadedImages = 0;
+
+        // Test images with different sizes and aspect ratios
+        const testImages = {
+            small: [
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300',
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=300'
+            ],
+            medium: [
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600',
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600'
+            ],
+            large: [
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=800',
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&h=800',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&h=800'
+            ],
+            mixed: [
+                'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400', // Wide
+                'https://images.unsplash.com/photo-1494790108755-2616c9c0e8c5?w=400&h=800', // Tall
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&h=500', // Square
+                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600', // Standard
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300&h=900'  // Very tall
+            ]
+        };
+
+        function startPerformanceTest(testName, imageCount) {
+            console.log(`🚀 Starting ${testName} test...`);
+            startTime = performance.now();
+            loadedImages = 0;
+            
+            addTestResult(testName, 'info', `Started test with ${imageCount} images`);
+            updateMetrics();
+        }
+
+        function endPerformanceTest(testName) {
+            const endTime = performance.now();
+            const totalTime = endTime - startTime;
+            const avgTime = loadedImages > 0 ? totalTime / loadedImages : 0;
+            
+            console.log(`✅ ${testName} completed in ${totalTime.toFixed(2)}ms`);
+            
+            // Update metrics
+            document.getElementById('loadTime').textContent = `${totalTime.toFixed(0)}ms`;
+            document.getElementById('imageCount').textContent = loadedImages;
+            document.getElementById('avgTime').textContent = `${avgTime.toFixed(0)}ms`;
+            
+            // Update memory usage if available
+            if (performance.memory) {
+                const memoryMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
+                document.getElementById('memoryUsage').textContent = `${memoryMB}MB`;
+            }
+            
+            addTestResult(testName, 'success', `Completed in ${totalTime.toFixed(2)}ms (${avgTime.toFixed(2)}ms per image)`);
+        }
+
+        function onImageLoad() {
+            loadedImages++;
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            const currentTime = performance.now() - startTime;
+            document.getElementById('loadTime').textContent = `${currentTime.toFixed(0)}ms`;
+            document.getElementById('imageCount').textContent = loadedImages;
+            
+            if (loadedImages > 0) {
+                const avgTime = currentTime / loadedImages;
+                document.getElementById('avgTime').textContent = `${avgTime.toFixed(0)}ms`;
+            }
+        }
+
+        function testSingleImage() {
+            clearTest();
+            startPerformanceTest('Single Image', 1);
+            
+            const container = document.getElementById('imageContainer');
+            const imageUrl = testImages.medium[0];
+            
+            const preview = window.fastImagePreview.generateImagePreview(
+                imageUrl,
+                'Single test image',
+                'single-test',
+                {
+                    aspectRatio: 'auto',
+                    showControls: true
+                }
+            );
+            
+            container.innerHTML = preview;
+            
+            // Monitor when image loads
+            setTimeout(() => {
+                const img = container.querySelector('img');
+                if (img) {
+                    if (img.complete) {
+                        onImageLoad();
+                        endPerformanceTest('Single Image');
+                    } else {
+                        img.addEventListener('load', () => {
+                            onImageLoad();
+                            endPerformanceTest('Single Image');
+                        });
+                    }
+                }
+            }, 100);
+        }
+
+        function testMultipleImages() {
+            clearTest();
+            startPerformanceTest('Multiple Images', 10);
+            
+            const container = document.getElementById('imageContainer');
+            const images = [
+                ...testImages.small,
+                ...testImages.medium,
+                ...testImages.large,
+                testImages.mixed[0]
+            ];
+            
+            let html = '';
+            images.forEach((imageUrl, index) => {
+                const preview = window.fastImagePreview.generateImagePreview(
+                    imageUrl,
+                    `Test image ${index + 1}`,
+                    'multi-test',
+                    {
+                        aspectRatio: 'auto',
+                        showControls: false
+                    }
+                );
+                html += preview;
+            });
+            
+            container.innerHTML = html;
+            
+            // Monitor when all images load
+            let loadedCount = 0;
+            const allImages = container.querySelectorAll('img');
+            
+            allImages.forEach(img => {
+                const checkLoad = () => {
+                    loadedCount++;
+                    onImageLoad();
+                    
+                    if (loadedCount === allImages.length) {
+                        endPerformanceTest('Multiple Images');
+                    }
+                };
+                
+                if (img.complete) {
+                    checkLoad();
+                } else {
+                    img.addEventListener('load', checkLoad);
+                }
+            });
+        }
+
+        function testLargeImages() {
+            clearTest();
+            startPerformanceTest('Large Images', testImages.large.length);
+            
+            const container = document.getElementById('imageContainer');
+            let html = '';
+            
+            testImages.large.forEach((imageUrl, index) => {
+                const preview = window.fastImagePreview.generateImagePreview(
+                    imageUrl,
+                    `Large image ${index + 1}`,
+                    'large-test',
+                    {
+                        aspectRatio: 'auto',
+                        showControls: true
+                    }
+                );
+                html += preview;
+            });
+            
+            container.innerHTML = html;
+            
+            // Monitor loading
+            let loadedCount = 0;
+            const allImages = container.querySelectorAll('img');
+            
+            allImages.forEach(img => {
+                const checkLoad = () => {
+                    loadedCount++;
+                    onImageLoad();
+                    
+                    if (loadedCount === allImages.length) {
+                        endPerformanceTest('Large Images');
+                    }
+                };
+                
+                if (img.complete) {
+                    checkLoad();
+                } else {
+                    img.addEventListener('load', checkLoad);
+                }
+            });
+        }
+
+        function testMixedSizes() {
+            clearTest();
+            startPerformanceTest('Mixed Sizes', testImages.mixed.length);
+            
+            const container = document.getElementById('imageContainer');
+            let html = '';
+            
+            testImages.mixed.forEach((imageUrl, index) => {
+                const preview = window.fastImagePreview.generateImagePreview(
+                    imageUrl,
+                    `Mixed size image ${index + 1}`,
+                    'mixed-test',
+                    {
+                        aspectRatio: 'auto',
+                        showControls: true
+                    }
+                );
+                html += preview;
+            });
+            
+            container.innerHTML = html;
+            
+            // Monitor loading
+            let loadedCount = 0;
+            const allImages = container.querySelectorAll('img');
+            
+            allImages.forEach(img => {
+                const checkLoad = () => {
+                    loadedCount++;
+                    onImageLoad();
+                    
+                    if (loadedCount === allImages.length) {
+                        endPerformanceTest('Mixed Sizes');
+                    }
+                };
+                
+                if (img.complete) {
+                    checkLoad();
+                } else {
+                    img.addEventListener('load', checkLoad);
+                }
+            });
+        }
+
+        function testFileUpload() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.click();
+        }
+
+        // File upload handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            
+            clearTest();
+            startPerformanceTest('File Upload', files.length);
+            
+            const container = document.getElementById('imageContainer');
+            let html = '';
+            
+            files.forEach((file, index) => {
+                const preview = window.fastImagePreview.generateImagePreview(
+                    file,
+                    file.name,
+                    'upload-test',
+                    {
+                        aspectRatio: 'auto',
+                        showControls: true
+                    }
+                );
+                html += preview;
+            });
+            
+            container.innerHTML = html;
+            
+            // Monitor loading
+            let loadedCount = 0;
+            const allImages = container.querySelectorAll('img');
+            
+            allImages.forEach(img => {
+                const checkLoad = () => {
+                    loadedCount++;
+                    onImageLoad();
+                    
+                    if (loadedCount === allImages.length) {
+                        endPerformanceTest('File Upload');
+                    }
+                };
+                
+                if (img.complete) {
+                    checkLoad();
+                } else {
+                    img.addEventListener('load', checkLoad);
+                }
+            });
+        });
+
+        function clearTest() {
+            document.getElementById('imageContainer').innerHTML = '';
+            document.getElementById('loadTime').textContent = '0ms';
+            document.getElementById('imageCount').textContent = '0';
+            document.getElementById('avgTime').textContent = '0ms';
+            loadedImages = 0;
+        }
+
+        function addTestResult(test, status, message) {
+            testResults.push({
+                test,
+                status,
+                message,
+                timestamp: new Date().toLocaleTimeString()
+            });
+            updateTestResults();
+        }
+
+        function updateTestResults() {
+            const container = document.getElementById('testResults');
+            const recent = testResults.slice(-10); // Show last 10 results
+            
+            container.innerHTML = recent.map(result => {
+                const statusClass = {
+                    'success': 'bg-green-50 text-green-800 border-green-200',
+                    'info': 'bg-blue-50 text-blue-800 border-blue-200',
+                    'error': 'bg-red-50 text-red-800 border-red-200'
+                }[result.status] || 'bg-gray-50 text-gray-800 border-gray-200';
+                
+                return `
+                    <div class="p-3 rounded-lg border ${statusClass}">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <strong>${result.test}:</strong> ${result.message}
+                            </div>
+                            <span class="text-xs opacity-75">${result.timestamp}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            addTestResult('System', 'info', 'Performance test page loaded');
+            
+            // Auto-run single image test
+            setTimeout(() => {
+                testSingleImage();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

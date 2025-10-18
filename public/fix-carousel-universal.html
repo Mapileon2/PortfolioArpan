@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Universal Carousel Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">🔧 Universal Carousel Fix</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">🎯 Comprehensive Carousel Fix</h2>
+            <p class="text-gray-600 mb-4">This tool will test and fix all carousel issues regardless of database schema.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="testCarouselAPI()" 
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all">
+                    🧪 Test Carousel API
+                </button>
+                <button onclick="fixCarouselIssues()" 
+                        class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all">
+                    🔧 Fix All Issues
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">📊 Results</h2>
+            <div id="results" class="space-y-3 max-h-96 overflow-y-auto">
+                <div class="text-gray-600 text-center py-8">
+                    <div class="text-4xl mb-4">🎠</div>
+                    <p>Click "Test Carousel API" to start diagnosis...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(message, type = 'info', details = '') {
+            const resultsDiv = document.getElementById('results');
+            const colors = {
+                success: 'border-green-200 bg-green-50 text-green-800',
+                error: 'border-red-200 bg-red-50 text-red-800',
+                warning: 'border-yellow-200 bg-yellow-50 text-yellow-800',
+                info: 'border-blue-200 bg-blue-50 text-blue-800'
+            };
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const result = document.createElement('div');
+            result.className = `border rounded-lg p-4 ${colors[type]}`;
+            result.innerHTML = `
+                <div class="flex items-start">
+                    <span class="text-xl mr-3">${icons[type]}</span>
+                    <div class="flex-1">
+                        <div class="font-semibold">${message}</div>
+                        ${details ? `<div class="text-sm mt-1 opacity-75">${details}</div>` : ''}
+                        <div class="text-xs mt-2 opacity-60">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                </div>
+            `;
+            
+            if (resultsDiv.children.length === 1 && resultsDiv.children[0].textContent.includes('Click "Test')) {
+                resultsDiv.innerHTML = '';
+            }
+            
+            resultsDiv.appendChild(result);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        async function testCarouselAPI() {
+            addResult('🔍 Starting Comprehensive Carousel Diagnosis', 'info');
+            
+            const endpoints = [
+                { url: '/api/carousel', name: 'Root Carousel API' },
+                { url: '/api/carousel/images', name: 'Carousel Images API' },
+                { url: '/api/carousel/active', name: 'Active Carousel API' }
+            ];
+            
+            let workingEndpoints = 0;
+            let hasData = false;
+            
+            for (const endpoint of endpoints) {
+                try {
+                    addResult(`Testing ${endpoint.name}...`, 'info');
+                    
+                    const response = await fetch(endpoint.url);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        workingEndpoints++;
+                        
+                        if (data && data.length > 0) {
+                            hasData = true;
+                            addResult(`✅ ${endpoint.name} Working`, 'success', `Found ${data.length} items`);
+                            
+                            // Show sample data structure
+                            const sample = data[0];
+                            const keys = Object.keys(sample).slice(0, 5).join(', ');
+                            addResult(`Sample data structure: ${keys}...`, 'info');
+                        } else {
+                            addResult(`✅ ${endpoint.name} Working (No Data)`, 'warning', 'API works but no data found');
+                        }
+                    } else {
+                        addResult(`❌ ${endpoint.name} Failed`, 'error', `HTTP ${response.status}: ${response.statusText}`);
+                        
+                        if (response.status === 404) {
+                            addResult('Endpoint not found - may need server restart', 'warning');
+                        } else if (response.status === 500) {
+                            addResult('Server error - likely database issue', 'warning');
+                        }
+                    }
+                } catch (error) {
+                    addResult(`❌ ${endpoint.name} Error`, 'error', error.message);
+                }
+                
+                // Small delay between tests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            // Summary
+            addResult(`📊 Test Summary: ${workingEndpoints}/3 endpoints working`, 
+                     workingEndpoints === 3 ? 'success' : 'warning');
+            
+            if (workingEndpoints === 3 && hasData) {
+                addResult('🎉 Carousel System Fully Operational!', 'success', 'All APIs working with data available');
+            } else if (workingEndpoints === 3) {
+                addResult('⚠️ APIs Working But No Data', 'warning', 'Consider adding test data');
+            } else {
+                addResult('🔧 Issues Detected', 'error', 'Some APIs need attention');
+            }
+        }
+
+        async function fixCarouselIssues() {
+            addResult('🔧 Starting Universal Carousel Fix', 'info');
+            
+            // Step 1: Test current state
+            addResult('Step 1: Testing current API state...', 'info');
+            const rootTest = await testEndpoint('/api/carousel');
+            
+            if (!rootTest.success) {
+                addResult('Root API issue detected', 'warning', 'This was fixed in the API code - restart server to apply');
+            }
+            
+            // Step 2: Try to add test data using different approaches
+            addResult('Step 2: Attempting to add test data...', 'info');
+            
+            const testDataApproaches = [
+                {
+                    name: 'Standard Schema',
+                    data: {
+                        title: 'Test Carousel Item',
+                        description: 'Test carousel item for verification',
+                        url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
+                        thumbnail_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=200&fit=crop',
+                        alt_text: 'Test carousel image',
+                        status: 'active',
+                        order_index: 0
+                    }
+                },
+                {
+                    name: 'Alternative Schema',
+                    data: {
+                        title: 'Test Carousel Item',
+                        description: 'Test carousel item for verification',
+                        image_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
+                        link_url: '#',
+                        button_text: 'Learn More',
+                        status: 'active',
+                        order_index: 0
+                    }
+                }
+            ];
+            
+            let dataAdded = false;
+            
+            for (const approach of testDataApproaches) {
+                if (dataAdded) break;
+                
+                try {
+                    addResult(`Trying ${approach.name}...`, 'info');
+                    
+                    const response = await fetch('/api/carousel/images', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(approach.data)
+                    });
+                    
+                    if (response.ok) {
+                        addResult(`✅ Test data added using ${approach.name}`, 'success');
+                        dataAdded = true;
+                    } else {
+                        addResult(`${approach.name} failed: ${response.status}`, 'warning');
+                    }
+                } catch (error) {
+                    addResult(`${approach.name} error: ${error.message}`, 'warning');
+                }
+            }
+            
+            if (!dataAdded) {
+                addResult('Could not add test data via API', 'warning', 'This may be due to authentication or schema issues');
+                addResult('💡 Manual Fix Required', 'info', 'Run the corrected SQL script in Supabase to add test data');
+            }
+            
+            // Step 3: Final verification
+            addResult('Step 3: Final verification...', 'info');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const finalTest = await testEndpoint('/api/carousel');
+            if (finalTest.success && finalTest.data && finalTest.data.length > 0) {
+                addResult('🎉 Fix Successful!', 'success', 'Carousel API is now working with data');
+                addResult('💡 Next Step', 'info', 'Run production verification test to confirm 100% readiness');
+            } else {
+                addResult('🔧 Partial Fix Applied', 'warning', 'API may be working but needs data or server restart');
+            }
+        }
+
+        async function testEndpoint(url) {
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    return { success: true, data, status: response.status };
+                } else {
+                    return { success: false, status: response.status };
+                }
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+    </script>
+</body>
+</html>

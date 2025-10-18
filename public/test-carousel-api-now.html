@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎠 Test Carousel API Now</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center text-blue-600">🎠 Carousel API Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-semibold mb-4">🧪 Quick API Test</h2>
+            <button onclick="testCarouselAPI()" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                🚀 Test Carousel API Now
+            </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4">📊 Test Results</h2>
+            <div id="results" class="space-y-3">
+                <div class="text-gray-600">Click "Test Carousel API Now" to start...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const colors = {
+                success: 'text-green-600 bg-green-50 border-green-200',
+                error: 'text-red-600 bg-red-50 border-red-200',
+                warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+                info: 'text-blue-600 bg-blue-50 border-blue-200'
+            };
+            
+            const result = document.createElement('div');
+            result.className = `p-3 border rounded ${colors[type]}`;
+            result.innerHTML = `
+                <div class="flex items-start">
+                    <span class="font-semibold mr-2">[${new Date().toLocaleTimeString()}]</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            if (resultsDiv.children.length === 1 && resultsDiv.children[0].textContent.includes('Click "Test')) {
+                resultsDiv.innerHTML = '';
+            }
+            
+            resultsDiv.appendChild(result);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        async function testCarouselAPI() {
+            addResult('🔧 Starting Carousel API Test...', 'info');
+            
+            try {
+                // Test 1: Root endpoint
+                addResult('Testing /api/carousel endpoint...', 'info');
+                const rootResponse = await fetch('/api/carousel');
+                
+                if (rootResponse.ok) {
+                    const rootData = await rootResponse.json();
+                    addResult(`✅ Root API Working - Found ${rootData.length} items`, 'success');
+                    
+                    if (rootData.length > 0) {
+                        addResult(`📋 Sample data: "${rootData[0].title}"`, 'info');
+                    }
+                } else {
+                    addResult(`❌ Root API Failed - Status: ${rootResponse.status}`, 'error');
+                }
+                
+                // Test 2: Images endpoint
+                addResult('Testing /api/carousel/images endpoint...', 'info');
+                const imagesResponse = await fetch('/api/carousel/images');
+                
+                if (imagesResponse.ok) {
+                    const imagesData = await imagesResponse.json();
+                    addResult(`✅ Images API Working - Found ${imagesData.length || 0} items`, 'success');
+                } else {
+                    addResult(`❌ Images API Failed - Status: ${imagesResponse.status}`, 'error');
+                }
+                
+                // Test 3: Active endpoint
+                addResult('Testing /api/carousel/active endpoint...', 'info');
+                const activeResponse = await fetch('/api/carousel/active');
+                
+                if (activeResponse.ok) {
+                    const activeData = await activeResponse.json();
+                    addResult(`✅ Active API Working - Found ${activeData.length || 0} active items`, 'success');
+                } else {
+                    addResult(`❌ Active API Failed - Status: ${activeResponse.status}`, 'error');
+                }
+                
+                // Summary
+                const allWorking = rootResponse.ok && imagesResponse.ok && activeResponse.ok;
+                if (allWorking) {
+                    addResult('🎉 All Carousel APIs are working!', 'success');
+                    addResult('💡 You can now run the production verification test again.', 'info');
+                } else {
+                    addResult('⚠️ Some APIs still have issues. Check server logs.', 'warning');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaboration System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .participants {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .participant {
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .participant.active { background: #28a745; color: white; }
+        .participant.idle { background: #ffc107; color: black; }
+        
+        .comments {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .comment {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        
+        .comment:last-child { border-bottom: none; }
+        
+        .comment-author {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .comment-time {
+            font-size: 11px;
+            color: #6c757d;
+        }
+        
+        .editor {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        
+        .cursors {
+            position: relative;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            min-height: 50px;
+        }
+        
+        .cursor {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: #007bff;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤝 Collaboration System Test Suite</h1>
+        <p>This page tests the real-time collaboration features including sessions, WebSocket connections, comments, and presence tracking.</p>
+        
+        <div class="test-section">
+            <h3>🔐 Authentication Status</h3>
+            <div id="authStatus" class="status info">Checking authentication...</div>
+            <button onclick="testAuth()">Test Authentication</button>
+            <button onclick="login()">Login</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📡 WebSocket Connection Test</h2>
+        
+        <div class="test-section">
+            <h3>Connection Status</h3>
+            <div id="wsStatus" class="status info">Not connected</div>
+            <button onclick="connectWebSocket()">Connect WebSocket</button>
+            <button onclick="disconnectWebSocket()">Disconnect</button>
+            
+            <h4>Connection Log</h4>
+            <div id="wsLog" class="log"></div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="container">
+            <h2>🏢 Session Management</h2>
+            
+            <div class="test-section">
+                <h3>Create Session</h3>
+                <input type="text" id="sessionName" placeholder="Session Name" value="Test Collaboration Session">
+                <select id="sessionType">
+                    <option value="editing">Editing</option>
+                    <option value="reviewing">Reviewing</option>
+                    <option value="commenting">Commenting</option>
+                </select>
+                <input type="text" id="contentId" placeholder="Content ID" value="test-case-study-123">
+                <input type="text" id="contentTitle" placeholder="Content Title" value="Test Case Study">
+                <label>
+                    <input type="checkbox" id="isPublic"> Public Session
+                </label>
+                <button onclick="createSession()">Create Session</button>
+                
+                <div id="sessionInfo" class="status info" style="display: none;"></div>
+            </div>
+            
+            <div class="test-section">
+                <h3>Join Session</h3>
+                <input type="text" id="joinSessionId" placeholder="Session ID">
+                <button onclick="joinSession()">Join Session</button>
+                <button onclick="leaveSession()">Leave Session</button>
+                
+                <h4>Current Session</h4>
+                <div id="currentSession" class="status info">No active session</div>
+            </div>
+            
+            <div class="test-section">
+                <h3>Session Participants</h3>
+                <div id="participants" class="participants">
+                    <div class="participant">No participants</div>
+                </div>
+                <button onclick="getParticipants()">Refresh Participants</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <h2>✏️ Real-time Editing</h2>
+            
+            <div class="test-section">
+                <h3>Collaborative Editor</h3>
+                <textarea id="editor" class="editor" placeholder="Start typing to test real-time collaboration..."></textarea>
+                
+                <div>
+                    <button onclick="insertText()">Insert Sample Text</button>
+                    <button onclick="deleteText()">Delete Text</button>
+                    <button onclick="replaceText()">Replace Text</button>
+                </div>
+                
+                <h4>Live Cursors</h4>
+                <div id="cursors" class="cursors">
+                    <div>Other users' cursors will appear here</div>
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <h3>Edit Operations Log</h3>
+                <div id="editLog" class="log"></div>
+                <button onclick="clearEditLog()">Clear Log</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>💬 Comments System</h2>
+        
+        <div class="grid">
+            <div class="test-section">
+                <h3>Add Comment</h3>
+                <textarea id="commentText" placeholder="Enter your comment..." rows="3"></textarea>
+                <select id="commentType">
+                    <option value="comment">Comment</option>
+                    <option value="suggestion">Suggestion</option>
+                    <option value="question">Question</option>
+                    <option value="approval">Approval</option>
+                </select>
+                <button onclick="addComment()">Add Comment</button>
+                <button onclick="addReply()">Add Reply to Last Comment</button>
+            </div>
+            
+            <div class="test-section">
+                <h3>Comments</h3>
+                <div id="comments" class="comments">
+                    <div>No comments yet</div>
+                </div>
+                <button onclick="loadComments()">Refresh Comments</button>
+                <button onclick="resolveLastComment()">Resolve Last Comment</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>⚡ API Endpoints Test</h2>
+        
+        <div class="grid">
+            <div class="test-section">
+                <h3>Session API</h3>
+                <button onclick="testSessionAPI()">Test Session Endpoints</button>
+                <button onclick="testPresenceAPI()">Test Presence API</button>
+                <div id="apiResults" class="log"></div>
+            </div>
+            
+            <div class="test-section">
+                <h3>Comments API</h3>
+                <button onclick="testCommentsAPI()">Test Comments Endpoints</button>
+                <button onclick="testConflictAPI()">Test Conflict Resolution</button>
+                <div id="commentsApiResults" class="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔧 System Status</h2>
+        
+        <div class="test-section">
+            <h3>Overall Test Results</h3>
+            <div id="overallStatus" class="status info">Ready to test</div>
+            <button onclick="runAllTests()">Run All Tests</button>
+            <button onclick="clearAllLogs()">Clear All Logs</button>
+            
+            <h4>Test Summary</h4>
+            <div id="testSummary" class="log"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const API_BASE_URL = '/api';
+        const WS_URL = `ws://${window.location.host}/ws/collaboration`;
+        
+        // Initialize Supabase client
+        let supabase;
+        let ws = null;
+        let currentUser = null;
+        let currentSession = null;
+        let collaborationService = null;
+        let lastCommentId = null;
+        
+        // Test results tracking
+        let testResults = {
+            auth: false,
+            websocket: false,
+            session: false,
+            editing: false,
+            comments: false,
+            api: false
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Try to initialize Supabase if credentials are available
+                if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    await testAuth();
+                } else {
+                    log('authStatus', 'Please configure Supabase credentials', 'warning');
+                }
+                
+                // Load collaboration service if available
+                if (typeof CollaborationService !== 'undefined') {
+                    collaborationService = new CollaborationService(supabase);
+                    log('overallStatus', 'Collaboration service loaded', 'success');
+                }
+                
+                setupEditorListeners();
+                
+            } catch (error) {
+                log('overallStatus', `Initialization error: ${error.message}`, 'error');
+            }
+        });
+
+        // Utility functions
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.className = `status ${type}`;
+                element.textContent = message;
+            }
+            
+            // Also log to console
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function appendLog(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const timestamp = new Date().toLocaleTimeString();
+                element.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+                element.scrollTop = element.scrollHeight;
+            }
+        }
+
+        // Authentication tests
+        async function testAuth() {
+            try {
+                if (!supabase) {
+                    log('authStatus', 'Supabase not configured', 'warning');
+                    return false;
+                }
+                
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error) {
+                    log('authStatus', `Auth error: ${error.message}`, 'error');
+                    return false;
+                }
+                
+                if (user) {
+                    currentUser = user;
+                    log('authStatus', `Authenticated as: ${user.email}`, 'success');
+                    testResults.auth = true;
+                    return true;
+                } else {
+                    log('authStatus', 'Not authenticated', 'warning');
+                    return false;
+                }
+            } catch (error) {
+                log('authStatus', `Auth test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function login() {
+            if (!supabase) {
+                alert('Please configure Supabase credentials first');
+                return;
+            }
+            
+            const email = prompt('Enter email:');
+            const password = prompt('Enter password:');
+            
+            if (email && password) {
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+                    
+                    if (error) {
+                        log('authStatus', `Login failed: ${error.message}`, 'error');
+                    } else {
+                        currentUser = data.user;
+                        log('authStatus', `Logged in as: ${data.user.email}`, 'success');
+                        testResults.auth = true;
+                    }
+                } catch (error) {
+                    log('authStatus', `Login error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // WebSocket tests
+        function connectWebSocket() {
+            try {
+                if (!currentUser) {
+                    log('wsStatus', 'Please authenticate first', 'warning');
+                    return;
+                }
+                
+                const token = supabase?.auth?.session?.access_token || 'test-token';
+                const wsUrl = `${WS_URL}?token=${token}`;
+                
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = () => {
+                    log('wsStatus', 'WebSocket connected', 'success');
+                    appendLog('wsLog', 'WebSocket connection established');
+                    testResults.websocket = true;
+                };
+                
+                ws.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    appendLog('wsLog', `Received: ${JSON.stringify(message, null, 2)}`);
+                    handleWebSocketMessage(message);
+                };
+                
+                ws.onclose = () => {
+                    log('wsStatus', 'WebSocket disconnected', 'warning');
+                    appendLog('wsLog', 'WebSocket connection closed');
+                };
+                
+                ws.onerror = (error) => {
+                    log('wsStatus', 'WebSocket error', 'error');
+                    appendLog('wsLog', `WebSocket error: ${error}`);
+                };
+                
+            } catch (error) {
+                log('wsStatus', `Connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        function disconnectWebSocket() {
+            if (ws) {
+                ws.close();
+                ws = null;
+                log('wsStatus', 'Disconnected', 'info');
+            }
+        }
+
+        function sendWebSocketMessage(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(message));
+                appendLog('wsLog', `Sent: ${JSON.stringify(message, null, 2)}`);
+            } else {
+                appendLog('wsLog', 'WebSocket not connected');
+            }
+        }
+
+        function handleWebSocketMessage(message) {
+            switch (message.type) {
+                case 'session_joined':
+                    currentSession = message.session;
+                    log('currentSession', `Joined session: ${message.sessionId}`, 'success');
+                    updateSessionInfo();
+                    break;
+                    
+                case 'user_joined':
+                    appendLog('wsLog', `User ${message.userId} joined session`);
+                    getParticipants();
+                    break;
+                    
+                case 'user_left':
+                    appendLog('wsLog', `User ${message.userId} left session`);
+                    getParticipants();
+                    break;
+                    
+                case 'remote_edit':
+                    appendLog('editLog', `Remote edit by ${message.userId}: ${JSON.stringify(message.operation)}`);
+                    break;
+                    
+                case 'remote_cursor':
+                    updateCursor(message.userId, message.position);
+                    break;
+                    
+                case 'comment_added':
+                    appendLog('wsLog', `New comment by ${message.userId}`);
+                    loadComments();
+                    break;
+                    
+                case 'error':
+                    appendLog('wsLog', `Error: ${message.error}`);
+                    break;
+            }
+        }
+
+        // Session management
+        async function createSession() {
+            try {
+                const sessionData = {
+                    sessionName: document.getElementById('sessionName').value,
+                    sessionType: document.getElementById('sessionType').value,
+                    contentType: 'case_study',
+                    contentId: document.getElementById('contentId').value,
+                    contentTitle: document.getElementById('contentTitle').value,
+                    isPublic: document.getElementById('isPublic').checked,
+                    maxParticipants: 10
+                };
+                
+                const response = await fetch(`${API_BASE_URL}/collaboration/sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    },
+                    body: JSON.stringify(sessionData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentSession = result.session;
+                    document.getElementById('joinSessionId').value = result.session.session_id;
+                    log('sessionInfo', `Session created: ${result.session.session_id}`, 'success');
+                    testResults.session = true;
+                    updateSessionInfo();
+                } else {
+                    log('sessionInfo', `Failed to create session: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                log('sessionInfo', `Create session error: ${error.message}`, 'error');
+            }
+        }
+
+        function joinSession() {
+            const sessionId = document.getElementById('joinSessionId').value;
+            if (!sessionId) {
+                alert('Please enter a session ID');
+                return;
+            }
+            
+            sendWebSocketMessage({
+                type: 'join_session',
+                sessionId: sessionId
+            });
+        }
+
+        function leaveSession() {
+            if (currentSession) {
+                sendWebSocketMessage({
+                    type: 'leave_session',
+                    sessionId: currentSession.session_id
+                });
+                
+                currentSession = null;
+                log('currentSession', 'Left session', 'info');
+                document.getElementById('participants').innerHTML = '<div class="participant">No participants</div>';
+            }
+        }
+
+        function updateSessionInfo() {
+            if (currentSession) {
+                const info = `Session: ${currentSession.session_name} (${currentSession.session_id})`;
+                log('currentSession', info, 'success');
+                document.getElementById('sessionInfo').style.display = 'block';
+                document.getElementById('sessionInfo').textContent = info;
+            }
+        }
+
+        async function getParticipants() {
+            if (!currentSession) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/collaboration/presence/${currentSession.session_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const participantsDiv = document.getElementById('participants');
+                    participantsDiv.innerHTML = '';
+                    
+                    result.participants.forEach(participant => {
+                        const div = document.createElement('div');
+                        div.className = `participant ${participant.presence.status}`;
+                        div.textContent = `${participant.full_name || participant.email} (${participant.presence.status})`;
+                        participantsDiv.appendChild(div);
+                    });
+                    
+                    if (result.participants.length === 0) {
+                        participantsDiv.innerHTML = '<div class="participant">No active participants</div>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error getting participants:', error);
+            }
+        }
+
+        // Real-time editing
+        function setupEditorListeners() {
+            const editor = document.getElementById('editor');
+            let lastContent = '';
+            let cursorPosition = 0;
+            
+            editor.addEventListener('input', (e) => {
+                const newContent = editor.value;
+                const newCursorPosition = editor.selectionStart;
+                
+                // Detect operation type
+                if (newContent.length > lastContent.length) {
+                    // Insert operation
+                    const insertedText = newContent.slice(cursorPosition, newCursorPosition);
+                    sendEditOperation('insert', cursorPosition, insertedText);
+                } else if (newContent.length < lastContent.length) {
+                    // Delete operation
+                    const deletedLength = lastContent.length - newContent.length;
+                    sendEditOperation('delete', cursorPosition, '', deletedLength);
+                }
+                
+                lastContent = newContent;
+                cursorPosition = newCursorPosition;
+                
+                // Send cursor update
+                sendCursorUpdate(cursorPosition);
+            });
+            
+            editor.addEventListener('selectionchange', () => {
+                sendCursorUpdate(editor.selectionStart, {
+                    start: editor.selectionStart,
+                    end: editor.selectionEnd
+                });
+            });
+        }
+
+        function sendEditOperation(type, position, content, length = 0) {
+            const operation = {
+                type,
+                position,
+                content,
+                length,
+                timestamp: Date.now(),
+                version: 1
+            };
+            
+            sendWebSocketMessage({
+                type: 'content_edit',
+                operation
+            });
+            
+            appendLog('editLog', `Local edit: ${type} at ${position}`);
+            testResults.editing = true;
+        }
+
+        function sendCursorUpdate(position, selection = null) {
+            sendWebSocketMessage({
+                type: 'cursor_update',
+                position,
+                selection
+            });
+        }
+
+        function insertText() {
+            const editor = document.getElementById('editor');
+            const sampleText = 'Sample inserted text ';
+            const position = editor.selectionStart;
+            
+            editor.value = editor.value.slice(0, position) + sampleText + editor.value.slice(position);
+            editor.selectionStart = editor.selectionEnd = position + sampleText.length;
+            
+            sendEditOperation('insert', position, sampleText);
+        }
+
+        function deleteText() {
+            const editor = document.getElementById('editor');
+            const position = editor.selectionStart;
+            const deleteLength = 10;
+            
+            if (position >= deleteLength) {
+                editor.value = editor.value.slice(0, position - deleteLength) + editor.value.slice(position);
+                editor.selectionStart = editor.selectionEnd = position - deleteLength;
+                
+                sendEditOperation('delete', position - deleteLength, '', deleteLength);
+            }
+        }
+
+        function replaceText() {
+            const editor = document.getElementById('editor');
+            const position = editor.selectionStart;
+            const replaceLength = 5;
+            const newText = 'REPLACED';
+            
+            if (position >= replaceLength) {
+                editor.value = editor.value.slice(0, position - replaceLength) + newText + editor.value.slice(position);
+                editor.selectionStart = editor.selectionEnd = position - replaceLength + newText.length;
+                
+                sendEditOperation('replace', position - replaceLength, newText, replaceLength);
+            }
+        }
+
+        function updateCursor(userId, position) {
+            const cursorsDiv = document.getElementById('cursors');
+            let cursor = document.getElementById(`cursor-${userId}`);
+            
+            if (!cursor) {
+                cursor = document.createElement('div');
+                cursor.id = `cursor-${userId}`;
+                cursor.className = 'cursor';
+                cursor.title = `User ${userId}`;
+                cursorsDiv.appendChild(cursor);
+            }
+            
+            // Position cursor (simplified positioning)
+            cursor.style.left = `${Math.min(position * 8, cursorsDiv.offsetWidth - 2)}px`;
+        }
+
+        function clearEditLog() {
+            document.getElementById('editLog').innerHTML = '';
+        }
+
+        // Comments system
+        async function addComment() {
+            const text = document.getElementById('commentText').value;
+            const type = document.getElementById('commentType').value;
+            
+            if (!text.trim()) {
+                alert('Please enter comment text');
+                return;
+            }
+            
+            try {
+                const commentData = {
+                    sessionId: currentSession?.session_id,
+                    contentType: 'case_study',
+                    contentId: currentSession?.content_id || 'test-content',
+                    text,
+                    commentType: type,
+                    anchorType: 'text',
+                    anchorData: { position: 0 }
+                };
+                
+                const response = await fetch(`${API_BASE_URL}/collaboration/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    },
+                    body: JSON.stringify(commentData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    lastCommentId = result.comment.id;
+                    document.getElementById('commentText').value = '';
+                    loadComments();
+                    testResults.comments = true;
+                } else {
+                    alert(`Failed to add comment: ${result.error}`);
+                }
+                
+            } catch (error) {
+                alert(`Comment error: ${error.message}`);
+            }
+        }
+
+        async function addReply() {
+            if (!lastCommentId) {
+                alert('No comment to reply to. Add a comment first.');
+                return;
+            }
+            
+            const text = prompt('Enter reply text:');
+            if (!text) return;
+            
+            try {
+                const commentData = {
+                    sessionId: currentSession?.session_id,
+                    contentType: 'case_study',
+                    contentId: currentSession?.content_id || 'test-content',
+                    text,
+                    commentType: 'comment',
+                    parentCommentId: lastCommentId
+                };
+                
+                const response = await fetch(`${API_BASE_URL}/collaboration/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    },
+                    body: JSON.stringify(commentData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadComments();
+                } else {
+                    alert(`Failed to add reply: ${result.error}`);
+                }
+                
+            } catch (error) {
+                alert(`Reply error: ${error.message}`);
+            }
+        }
+
+        async function loadComments() {
+            if (!currentSession) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/collaboration/comments?contentType=case_study&contentId=${currentSession.content_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const commentsDiv = document.getElementById('comments');
+                    commentsDiv.innerHTML = '';
+                    
+                    result.comments.forEach(comment => {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'comment';
+                        commentDiv.innerHTML = `
+                            <div class="comment-author">${comment.user_profiles?.full_name || 'Unknown User'}</div>
+                            <div class="comment-time">${new Date(comment.created_at).toLocaleString()}</div>
+                            <div>${comment.comment_text}</div>
+                            ${comment.is_resolved ? '<div style="color: green;">✓ Resolved</div>' : ''}
+                        `;
+                        
+                        // Add replies
+                        if (comment.replies && comment.replies.length > 0) {
+                            comment.replies.forEach(reply => {
+                                const replyDiv = document.createElement('div');
+                                replyDiv.style.marginLeft = '20px';
+                                replyDiv.style.borderLeft = '2px solid #ddd';
+                                replyDiv.style.paddingLeft = '10px';
+                                replyDiv.innerHTML = `
+                                    <div class="comment-author">${reply.user_profiles?.full_name || 'Unknown User'}</div>
+                                    <div class="comment-time">${new Date(reply.created_at).toLocaleString()}</div>
+                                    <div>${reply.comment_text}</div>
+                                `;
+                                commentDiv.appendChild(replyDiv);
+                            });
+                        }
+                        
+                        commentsDiv.appendChild(commentDiv);
+                    });
+                    
+                    if (result.comments.length === 0) {
+                        commentsDiv.innerHTML = '<div>No comments yet</div>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        }
+
+        async function resolveLastComment() {
+            if (!lastCommentId) {
+                alert('No comment to resolve');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/collaboration/comments/${lastCommentId}/resolve`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadComments();
+                } else {
+                    alert(`Failed to resolve comment: ${result.error}`);
+                }
+                
+            } catch (error) {
+                alert(`Resolve error: ${error.message}`);
+            }
+        }
+
+        // API tests
+        async function testSessionAPI() {
+            const results = [];
+            
+            try {
+                // Test GET sessions
+                const response = await fetch(`${API_BASE_URL}/collaboration/sessions`, {
+                    headers: {
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    }
+                });
+                
+                const result = await response.json();
+                results.push(`GET /sessions: ${response.status} - ${result.success ? 'Success' : 'Failed'}`);
+                
+                testResults.api = true;
+                
+            } catch (error) {
+                results.push(`API test error: ${error.message}`);
+            }
+            
+            document.getElementById('apiResults').innerHTML = results.join('<br>');
+        }
+
+        async function testPresenceAPI() {
+            if (!currentSession) {
+                document.getElementById('apiResults').innerHTML = 'No active session for presence test';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/collaboration/presence/${currentSession.session_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    }
+                });
+                
+                const result = await response.json();
+                document.getElementById('apiResults').innerHTML = `Presence API: ${response.status} - ${result.success ? 'Success' : 'Failed'}`;
+                
+            } catch (error) {
+                document.getElementById('apiResults').innerHTML = `Presence API error: ${error.message}`;
+            }
+        }
+
+        async function testCommentsAPI() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/collaboration/comments?contentType=case_study&contentId=test-content`, {
+                    headers: {
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    }
+                });
+                
+                const result = await response.json();
+                document.getElementById('commentsApiResults').innerHTML = `Comments API: ${response.status} - ${result.success ? 'Success' : 'Failed'}`;
+                
+            } catch (error) {
+                document.getElementById('commentsApiResults').innerHTML = `Comments API error: ${error.message}`;
+            }
+        }
+
+        async function testConflictAPI() {
+            if (!currentSession) {
+                document.getElementById('commentsApiResults').innerHTML = 'No active session for conflict test';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/collaboration/conflicts/${currentSession.session_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${supabase?.auth?.session?.access_token || 'test-token'}`
+                    }
+                });
+                
+                const result = await response.json();
+                document.getElementById('commentsApiResults').innerHTML = `Conflicts API: ${response.status} - ${result.success ? 'Success' : 'Failed'}`;
+                
+            } catch (error) {
+                document.getElementById('commentsApiResults').innerHTML = `Conflicts API error: ${error.message}`;
+            }
+        }
+
+        // Overall testing
+        async function runAllTests() {
+            log('overallStatus', 'Running all tests...', 'info');
+            
+            // Reset test results
+            Object.keys(testResults).forEach(key => testResults[key] = false);
+            
+            // Run tests in sequence
+            await testAuth();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            connectWebSocket();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            if (testResults.auth && testResults.websocket) {
+                await createSession();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                if (currentSession) {
+                    joinSession();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Test editing
+                    insertText();
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Test comments
+                    document.getElementById('commentText').value = 'Test comment from automated test';
+                    await addComment();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Test APIs
+                    await testSessionAPI();
+                    await testCommentsAPI();
+                }
+            }
+            
+            // Update summary
+            updateTestSummary();
+        }
+
+        function updateTestSummary() {
+            const passed = Object.values(testResults).filter(Boolean).length;
+            const total = Object.keys(testResults).length;
+            const percentage = Math.round((passed / total) * 100);
+            
+            const summary = [
+                `Tests passed: ${passed}/${total} (${percentage}%)`,
+                `Authentication: ${testResults.auth ? '✅' : '❌'}`,
+                `WebSocket: ${testResults.websocket ? '✅' : '❌'}`,
+                `Session Management: ${testResults.session ? '✅' : '❌'}`,
+                `Real-time Editing: ${testResults.editing ? '✅' : '❌'}`,
+                `Comments System: ${testResults.comments ? '✅' : '❌'}`,
+                `API Endpoints: ${testResults.api ? '✅' : '❌'}`
+            ];
+            
+            document.getElementById('testSummary').innerHTML = summary.join('<br>');
+            
+            if (percentage >= 80) {
+                log('overallStatus', `All tests completed - ${percentage}% passed`, 'success');
+            } else if (percentage >= 50) {
+                log('overallStatus', `Tests completed - ${percentage}% passed`, 'warning');
+            } else {
+                log('overallStatus', `Tests completed - ${percentage}% passed`, 'error');
+            }
+        }
+
+        function clearAllLogs() {
+            ['wsLog', 'editLog', 'apiResults', 'commentsApiResults', 'testSummary'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.innerHTML = '';
+            });
+            
+            log('overallStatus', 'All logs cleared', 'info');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+import {v2 as cloudinary} from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: 'dgymjtqil',
+  api_key: '951533987774134',
+  api_secret: 'jTPgMHSl-6m7LptvsBA5eDbOWwc'
+});
