@@ -1,6 +1,21 @@
 const admin = require('firebase-admin');
 const dotenv = require('dotenv');
 
+if (process.env.NODE_ENV === 'test') {
+  module.exports = {
+      auth: {},
+      rtdb: {
+          ref: () => ({
+              once: () => Promise.resolve({
+                  exists: () => true,
+                  val: () => ({ publicId: 'old-public-id' })
+              }),
+              update: () => Promise.resolve(),
+          }),
+      },
+      admin: {},
+  };
+} else {
 // Load environment variables
 dotenv.config({ path: './backend.env' });
 
@@ -70,4 +85,5 @@ module.exports = {
   auth: admin.auth(),
   rtdb: admin.database(),
   firestore: admin.firestore
-}; 
+};
+}
