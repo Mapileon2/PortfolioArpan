@@ -665,14 +665,15 @@ app.put('/api/carousel-images/:id', upload.single('image'), async (req, res) => 
           }
         }
         
-        // Delete the old image if we have its publicId
-        if (currentData.publicId) {
-          try {
-            await imageService.deleteImage(currentData.publicId, currentData.service || 'cloudinary');
-          } catch (deleteError) {
-            console.error('Error deleting old image:', deleteError);
-            // Continue anyway
-          }
+      }
+
+      // Delete the old image if a new one was uploaded successfully
+      if (imageInfo && currentData.publicId) {
+        try {
+          await imageService.deleteImage(currentData.publicId, currentData.service || 'cloudinary');
+        } catch (deleteError) {
+          console.error('Error deleting old image:', deleteError);
+          // Continue anyway, as the new image is already uploaded
         }
       }
       

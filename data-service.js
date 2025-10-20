@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const { admin, firestore, rtdb } = require('./firebase-admin');
+const imageService = require('./image-service');
 
 // Ensure data directory exists
 const dataDir = path.join(__dirname, 'data');
@@ -269,22 +270,30 @@ const carouselImages = {
   
   update: async (id, updates, userId) => {
     try {
-      const docRef = firestore.collection(carouselImagesCollection).doc(id);
-      const doc = await docRef.get();
-      
-      if (!doc.exists) return null;
-      
-      const updatedImage = {
-        ...updates,
-        ...updateTimestamps({}, userId)
-      };
-      
-      await docRef.update(updatedImage);
-      
-      return { id, ...doc.data(), ...updatedImage };
+        const docRef = firestore.collection(carouselImagesCollection).doc(id);
+        const doc = await docRef.get();
+
+        if (!doc.exists) return null;
+
+        if (updates.file) {
+            const imageInfo = await imageService.uploadImage(updates.file);
+            updates.url = imageInfo.url;
+            updates.publicId = imageInfo.publicId;
+            delete updates.file;
+            await imageService.deleteImage(doc.data().publicId);
+        }
+
+        const updatedImage = {
+            ...updates,
+            ...updateTimestamps({}, userId)
+        };
+
+        await docRef.update(updatedImage);
+
+        return { id, ...doc.data(), ...updatedImage };
     } catch (error) {
-      console.error(`Error updating carousel image ${id}:`, error);
-      throw error;
+        console.error(`Error updating carousel image ${id}:`, error);
+        throw error;
     }
   },
   
